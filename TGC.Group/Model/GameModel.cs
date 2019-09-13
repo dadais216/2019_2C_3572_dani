@@ -1,12 +1,15 @@
-using Microsoft.DirectX.DirectInput;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using Microsoft.DirectX.Direct3D;
+using TGC.Core.BoundingVolumes;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
 using TGC.Core.Geometry;
-using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
+using TGC.Group.Model.Camera;
 
 namespace TGC.Group.Model
 {
@@ -18,6 +21,47 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
+        internal static readonly TGCVector3 Origin = TGCVector3.Empty;
+        internal static readonly TGCVector3 Up = TGCVector3.Up;
+        internal static readonly TGCVector3 Down = -Up;
+        internal static readonly TGCVector3 East = new TGCVector3(1, 0, 0);
+        internal static readonly TGCVector3 West = -East;
+        internal static readonly TGCVector3 North = new TGCVector3(0, 0, 1);
+        internal static readonly TGCVector3 South = -North;
+        private readonly Device Device = D3DDevice.Instance.Device;
+        private readonly Random Random = new Random();
+        private readonly TgcScene Scene = new TgcScene("Alpha", null);
+
+
+        private List<TgcBoundingAxisAlignBox> Collisions = new List<TgcBoundingAxisAlignBox>();
+        private TgcMesh Pine;
+        private TgcMesh Shrub;
+        private TgcMesh Shrub2;
+        private TgcMesh Plant;
+        private TgcMesh Plant2;
+        private TgcMesh Plant3;
+
+        private int RandByte()
+        {
+            return Random.Next(0, 255);
+        }
+
+        private int boxNumber;
+        private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
+        {
+            var box = TGCBox.fromSize(position, size, GetTexture(textureName));
+            box.Transform = TGCMatrix.Translation(position);
+            Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
+            Collisions.Add(box.BoundingBox);
+        }
+
+        private TgcMesh GetMeshFromScene(string scenePath)
+        {
+            var loader = new TgcSceneLoader();
+            var auxScene = loader.loadSceneFromFile(MediaDir + scenePath);
+            return auxScene.Meshes[0];
+        }
+
         /// <summary>
         ///     Constructor del juego.
         /// </summary>
@@ -28,16 +72,49 @@ namespace TGC.Group.Model
             Category = Game.Default.Category;
             Name = Game.Default.Name;
             Description = Game.Default.Description;
+            Pine = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
+            Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
+            Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
+            Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
+            Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
+            Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");
         }
 
-        //Caja que se muestra en el ejemplo.
-        private TGCBox Box { get; set; }
 
-        //Mesh de TgcLogo.
-        private TgcMesh Mesh { get; set; }
+        private const int max = 3000;
+        private int RanInt()
+        {
+            return Random.Next(-max, max);
+        }
 
-        //Boleano para ver si dibujamos el boundingbox
-        private bool BoundingBox { get; set; }
+        private TGCVector3 RandomPos()
+        {
+            return RanInt() * North + RanInt() * East;
+        }
+
+        private TgcTexture GetTexture(string textureName)
+        {
+            return TgcTexture.createTexture(Device, MediaDir + textureName + ".jpg");
+        }
+
+        private void PopulateMeshes(TgcMesh mesh, int maxElements, int scaleMin, int scaleMax, bool withColission)
+        {
+            if (scaleMin > scaleMax) return;
+            for (var i = 0; i < maxElements; i++)
+            {
+                var newMesh = mesh.clone(i.ToString());
+                newMesh.Position = RandomPos();
+                newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
+                newMesh.RotateY((float) (Math.PI * Random.NextDouble()));
+                Scene.Meshes.Add(newMesh);
+                if (withColission)
+                {
+                    newMesh.BoundingBox.scaleTranslate(newMesh.Position, 
+                        new TGCVector3(newMesh.Scale.X*0.3f,newMesh.Scale.Y,newMesh.Scale.Z*0.3f));
+                    Collisions.Add(newMesh.BoundingBox);
+                }
+            }
+        }
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -47,41 +124,31 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-            //Device de DirectX para crear primitivas.
-            var d3dDevice = D3DDevice.Instance.Device;
+            // Instancio cajas
+            for (var i = 0; i < 10; i++)
+            {
+                var size = Random.Next(100, 300);
+                var position = RandomPos() + Up * (size / 2);
+                GenerateTexturedBox(position, TGCVector3.One * size, "caja");
+            }
+            var groundSize = (North + East) * 20000;
+            var groundOrigin = -groundSize;
+            groundOrigin.Multiply(0.5f);
+            var plane = new TgcPlane(groundOrigin, groundSize, TgcPlane.Orientations.XZplane, GetTexture("pasto"));
+            Scene.Meshes.Add(plane.toMesh("ground"));
 
-            //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
-            //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
-            var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
+            PopulateMeshes(Pine, 200, 2, 10,true);
+            PopulateMeshes(Shrub, 500, 1, 4,false);
+            PopulateMeshes(Shrub2, 500, 1, 4, false);
+            PopulateMeshes(Plant, 60, 1, 3, false);
+            PopulateMeshes(Plant2, 60, 1, 3, false);
+            PopulateMeshes(Plant3, 60, 1, 3, false);
 
-            //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
-            //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
-            var texture = TgcTexture.createTexture(pathTexturaCaja);
 
-            //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
-            var size = new TGCVector3(5, 10, 5);
-            //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
-            Box = TGCBox.fromSize(size, texture);
-            //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
-            //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new TGCVector3(-25, 0, 0);
+            // Instancio camara
+            Camara = new Camera.Camera(Input, Collisions);
 
-            //Cargo el unico mesh que tiene la escena.
-            Mesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "LogoTGC-TgcScene.xml").Meshes[0];
-            //Defino una escala en el modelo logico del mesh que es muy grande.
-            Mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
-
-            //Suelen utilizarse objetos que manejan el comportamiento de la camara.
-            //Lo que en realidad necesitamos gráficamente es una matriz de View.
-            //El framework maneja una cámara estática, pero debe ser inicializada.
-            //Posición de la camara.
-            var cameraPosition = new TGCVector3(0, 0, 125);
-            //Quiero que la camara mire hacia el origen (0,0,0).
-            var lookAt = TGCVector3.Empty;
-            //Configuro donde esta la posicion de la camara y hacia donde mira.
-            Camara.SetCamera(cameraPosition, lookAt);
-            //Internamente el framework construye la matriz de view con estos dos vectores.
-            //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+            
         }
 
         /// <summary>
@@ -92,28 +159,6 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-
-            //Capturar Input teclado
-            if (Input.keyPressed(Key.F))
-            {
-                BoundingBox = !BoundingBox;
-            }
-
-            //Capturar Input Mouse
-            if (Input.buttonUp(TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                //Como ejemplo podemos hacer un movimiento simple de la cámara.
-                //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new TGCVector3(0, 10f, 0), Camara.LookAt);
-                //Ver ejemplos de cámara para otras operaciones posibles.
-
-                //Si superamos cierto Y volvemos a la posición original.
-                if (Camara.Position.Y > 300f)
-                {
-                    Camara.SetCamera(new TGCVector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
-                }
-            }
-
             PostUpdate();
         }
 
@@ -124,34 +169,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Render()
         {
-            //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
-
-            //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Con clic izquierdo subimos la camara [Actual]: " + TGCVector3.PrintVector3(Camara.Position), 0, 30, Color.OrangeRed);
-
-            //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
-            //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
-            //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
-            //Finalmente invocamos al render de la caja
-            Box.Render();
-
-            //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
-            //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            Mesh.UpdateMeshTransform();
-            //Render del mesh
-            Mesh.Render();
-
-            //Render de BoundingBox, muy útil para debug de colisiones.
-            if (BoundingBox)
-            {
-                Box.BoundingBox.Render();
-                Mesh.BoundingBox.Render();
-            }
-
-            //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
+            Scene.RenderAll();
             PostRender();
         }
 
@@ -162,10 +181,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            //Dispose de la caja.
-            Box.Dispose();
-            //Dispose del mesh.
-            Mesh.Dispose();
+            Scene.DisposeAll();
         }
     }
 }

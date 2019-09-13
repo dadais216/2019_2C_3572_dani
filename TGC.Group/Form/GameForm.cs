@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using TGC.Core.Direct3D;
@@ -47,33 +48,30 @@ namespace TGC.Group.Form
 
         private void GameForm_Load(object sender, EventArgs e)
         {
-            //FullScreen, van en este orden para que queda oculta la barra de Windows.
-            //this.WindowState = FormWindowState.Normal;
-            //this.FormBorderStyle = FormBorderStyle.None;
-            //this.WindowState = FormWindowState.Maximized;
+            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            // FullScreen, van en este orden para que queda oculta la barra de Windows.
+            WindowState = FormWindowState.Normal;
+            // FormBorderStyle = FormBorderStyle.None;
+            // WindowState = FormWindowState.Maximized;
 
-            //OriginalBorderStyle
-            //this.FormBorderStyle = FormBorderStyle.Sizable;
-
-            //Iniciar graficos.
+            // Iniciar graficos.
             InitGraphics();
 
-            //Titulo de la ventana principal.
+            // Titulo de la ventana principal.
             Text = Modelo.Name + @" - " + Modelo.Description;
 
-            //Focus panel3D.
+            // Focus panel3D.
             panel3D.Focus();
 
-            //Inicio el ciclo de Render.
-            InitRenderLoop();
+            // Inicio el ciclo de Render.
+            RenderLoop();
         }
 
         private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (ApplicationRunning)
-            {
-                ShutDown();
-            }
+            if (!ApplicationRunning) return;
+            ShutDown();
+            ApplicationRunning = false;
         }
 
         /// <summary>
@@ -81,58 +79,68 @@ namespace TGC.Group.Form
         /// </summary>
         public void InitGraphics()
         {
-            //Se inicio la aplicación
+            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            // Se inicio la aplicación
             ApplicationRunning = true;
 
-            //Inicio Device
+            // Inicio Device
             D3DDevice.Instance.InitializeD3DDevice(panel3D);
 
-            //Inicio inputs
+            // Inicio inputs
             Input = new TgcD3dInput();
             Input.Initialize(this, panel3D);
 
-            //Inicio sonido
+            // Inicio sonido
             DirectSound = new TgcDirectSound();
             DirectSound.InitializeD3DDevice(panel3D);
 
-            //Directorio actual de ejecución
-            var currentDirectory = Environment.CurrentDirectory + "\\";
+            // Directorio actual de ejecución
+            var currentDirectory = Environment.CurrentDirectory;
+            currentDirectory = currentDirectory.Substring(0, currentDirectory.LastIndexOf('\\'));
+            currentDirectory = currentDirectory.Substring(0, currentDirectory.LastIndexOf('\\'))+"\\";
+            //independiente de build. Medio garca pero no encontre una forma estandar de hacerlo
 
-            //Cargar shaders del framework
+            // Cargar shaders del framework
             TGCShaders.Instance.LoadCommonShaders(currentDirectory + Game.Default.ShadersDirectory, D3DDevice.Instance);
 
-            //Juego a ejecutar, si quisiéramos tener diferentes modelos aquí podemos cambiar la instancia e invocar a otra clase.
-            Modelo = new GameModel(currentDirectory + Game.Default.MediaDirectory,
-                currentDirectory + Game.Default.ShadersDirectory);
+            // Juego a ejecutar, si quisiéramos tener diferentes modelos aquí podemos cambiar la instancia e invocar a otra clase.
+            Modelo = new GameModel(currentDirectory + Game.Default.MediaDirectory, currentDirectory + Game.Default.ShadersDirectory);
 
-            //Cargar juego.
+            // Cargar juego.
             ExecuteModel();
         }
 
         /// <summary>
         ///     Comienzo el loop del juego.
         /// </summary>
-        public void InitRenderLoop()
+        public void RenderLoop()
         {
-            while (ApplicationRunning)
+            try
             {
-                //Renderizo si es que hay un ejemplo activo.
-                if (Modelo != null)
+                while (ApplicationRunning)
                 {
-                    //Solo renderizamos si la aplicacion tiene foco, para no consumir recursos innecesarios.
-                    if (ApplicationActive())
+                    // Renderizo si es que hay un ejemplo activo.
+                    if (Modelo != null)
                     {
-                        Modelo.Update();
-                        Modelo.Render();
+                        // Solo renderizamos si la aplicacion tiene foco, para no consumir recursos innecesarios.
+                        if (ApplicationActive())
+                        {
+                            Modelo.Update();
+                            Modelo.Render();
+                        }
+                        else
+                        {
+                            // Si no tenemos el foco, dormir cada tanto para no consumir gran cantidad de CPU.
+                            Thread.Sleep(100);
+                        }
                     }
-                    else
-                    {
-                        //Si no tenemos el foco, dormir cada tanto para no consumir gran cantidad de CPU.
-                        Thread.Sleep(100);
-                    }
+                    //  Process application messages.
+                    Application.DoEvents();
                 }
-                // Process application messages.
-                Application.DoEvents();
+            }
+            catch (Exception)
+            {
+                ShutDown();
             }
         }
 
@@ -142,20 +150,7 @@ namespace TGC.Group.Form
         /// </summary>
         public bool ApplicationActive()
         {
-            if (ContainsFocus)
-            {
-                return true;
-            }
-
-            foreach (var form in OwnedForms)
-            {
-                if (form.ContainsFocus)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return ContainsFocus || OwnedForms.Any(form => form.ContainsFocus);
         }
 
         /// <summary>
@@ -164,7 +159,8 @@ namespace TGC.Group.Form
         /// </summary>
         public void ExecuteModel()
         {
-            //Ejecutar Init
+            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            // Ejecutar Init
             try
             {
                 Modelo.ResetDefaultConfig();
@@ -184,11 +180,10 @@ namespace TGC.Group.Form
         /// </summary>
         public void StopCurrentExample()
         {
-            if (Modelo != null)
-            {
-                Modelo.Dispose();
-                Modelo = null;
-            }
+            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            if (Modelo == null) return;
+            Modelo.Dispose();
+            Modelo = null;
         }
 
         /// <summary>
@@ -196,11 +191,11 @@ namespace TGC.Group.Form
         /// </summary>
         public void ShutDown()
         {
+            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             ApplicationRunning = false;
-
             StopCurrentExample();
 
-            //Liberar Device al finalizar la aplicacion
+            // Liberar Device al finalizar la aplicacion
             D3DDevice.Instance.Dispose();
             TexturesPool.Instance.clearAll();
         }
