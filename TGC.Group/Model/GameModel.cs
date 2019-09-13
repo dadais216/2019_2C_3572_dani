@@ -8,6 +8,7 @@ using TGC.Core.Example;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Terrain;
 using TGC.Core.Textures;
 using TGC.Group.Model.Camera;
 
@@ -30,37 +31,20 @@ namespace TGC.Group.Model
         internal static readonly TGCVector3 South = -North;
         private readonly Device Device = D3DDevice.Instance.Device;
         private readonly Random Random = new Random();
-        private readonly TgcScene Scene = new TgcScene("Alpha", null);
+        private readonly TgcScene Scene = new TgcScene("mapa", null);//por ahi cambiar con objeto propio, nomas necesito tener una lista de meshes
+
+        private readonly List<TgcBoundingAxisAlignBox> Collisions = new List<TgcBoundingAxisAlignBox>();
+        private readonly TgcMesh Pine;
+        private readonly TgcMesh Shrub;
+        private readonly TgcMesh Shrub2;
+        private readonly TgcMesh Plant;
+        private readonly TgcMesh Plant2;
+        private readonly TgcMesh Plant3;
+        private TgcSkyBox sky;
+
+       
 
 
-        private List<TgcBoundingAxisAlignBox> Collisions = new List<TgcBoundingAxisAlignBox>();
-        private TgcMesh Pine;
-        private TgcMesh Shrub;
-        private TgcMesh Shrub2;
-        private TgcMesh Plant;
-        private TgcMesh Plant2;
-        private TgcMesh Plant3;
-
-        private int RandByte()
-        {
-            return Random.Next(0, 255);
-        }
-
-        private int boxNumber;
-        private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
-        {
-            var box = TGCBox.fromSize(position, size, GetTexture(textureName));
-            box.Transform = TGCMatrix.Translation(position);
-            Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
-            Collisions.Add(box.BoundingBox);
-        }
-
-        private TgcMesh GetMeshFromScene(string scenePath)
-        {
-            var loader = new TgcSceneLoader();
-            var auxScene = loader.loadSceneFromFile(MediaDir + scenePath);
-            return auxScene.Meshes[0];
-        }
 
         /// <summary>
         ///     Constructor del juego.
@@ -78,43 +62,14 @@ namespace TGC.Group.Model
             Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
             Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
             Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");
+
+
         }
 
 
-        private const int max = 3000;
-        private int RanInt()
-        {
-            return Random.Next(-max, max);
-        }
 
-        private TGCVector3 RandomPos()
-        {
-            return RanInt() * North + RanInt() * East;
-        }
 
-        private TgcTexture GetTexture(string textureName)
-        {
-            return TgcTexture.createTexture(Device, MediaDir + textureName + ".jpg");
-        }
-
-        private void PopulateMeshes(TgcMesh mesh, int maxElements, int scaleMin, int scaleMax, bool withColission)
-        {
-            if (scaleMin > scaleMax) return;
-            for (var i = 0; i < maxElements; i++)
-            {
-                var newMesh = mesh.clone(i.ToString());
-                newMesh.Position = RandomPos();
-                newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
-                newMesh.RotateY((float) (Math.PI * Random.NextDouble()));
-                Scene.Meshes.Add(newMesh);
-                if (withColission)
-                {
-                    newMesh.BoundingBox.scaleTranslate(newMesh.Position, 
-                        new TGCVector3(newMesh.Scale.X*0.3f,newMesh.Scale.Y,newMesh.Scale.Z*0.3f));
-                    Collisions.Add(newMesh.BoundingBox);
-                }
-            }
-        }
+        
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -124,6 +79,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+
+
             // Instancio cajas
             for (var i = 0; i < 10; i++)
             {
@@ -144,6 +101,7 @@ namespace TGC.Group.Model
             PopulateMeshes(Plant2, 60, 1, 3, false);
             PopulateMeshes(Plant3, 60, 1, 3, false);
 
+            initSky();
 
             // Instancio camara
             Camara = new Camera.Camera(Input, Collisions);
@@ -159,6 +117,10 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
+
+
+
+
             PostUpdate();
         }
 
@@ -171,6 +133,7 @@ namespace TGC.Group.Model
         {
             PreRender();
             Scene.RenderAll();
+            sky.Render();
             PostRender();
         }
 
@@ -182,6 +145,85 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             Scene.DisposeAll();
+        }
+
+        private int RanInt()
+        {
+            const int max = 3000;
+            return Random.Next(-max, max);
+        }
+
+        private TGCVector3 RandomPos()
+        {
+            return RanInt() * North + RanInt() * East;
+        }
+
+        private TgcTexture GetTexture(string textureName)
+        {
+            return TgcTexture.createTexture(Device, MediaDir + textureName + ".jpg");
+        }
+
+        private TgcMesh GetMeshFromScene(string scenePath)
+        {
+            var loader = new TgcSceneLoader();
+            var auxScene = loader.loadSceneFromFile(MediaDir + scenePath);
+            return auxScene.Meshes[0];
+        }
+
+        private void PopulateMeshes(TgcMesh mesh, int maxElements, int scaleMin, int scaleMax, bool withColission)
+        {
+            if (scaleMin > scaleMax) return;
+            for (var i = 0; i < maxElements; i++)
+            {
+                var newMesh = mesh.clone(i.ToString());
+                newMesh.Position = RandomPos();
+                newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
+                newMesh.RotateY((float)(Math.PI * Random.NextDouble()));
+                Scene.Meshes.Add(newMesh);
+                if (withColission)
+                {
+                    newMesh.BoundingBox.scaleTranslate(newMesh.Position,
+                        new TGCVector3(newMesh.Scale.X * 0.3f, newMesh.Scale.Y, newMesh.Scale.Z * 0.3f));
+                    Collisions.Add(newMesh.BoundingBox);
+                }
+            }
+        }
+
+        private int boxNumber;
+        private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
+        {
+            var box = TGCBox.fromSize(position, size, GetTexture(textureName));
+            box.Transform = TGCMatrix.Translation(position);
+            Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
+            Collisions.Add(box.BoundingBox);
+        }
+
+        private void initSky()
+        {
+            //aumentar render distance
+            D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(D3DDevice.Instance.FieldOfView, D3DDevice.Instance.AspectRatio,
+D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 9f).ToMatrix();
+            
+
+            sky = new TgcSkyBox();
+            sky.Center = TGCVector3.Empty;
+            sky.Size = new TGCVector3(100000, 100000, 100000);
+
+            //sky.Color = Color.OrangeRed;
+
+            var texturesPath = MediaDir + "SkyBox\\";
+
+            
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "Up.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "Down.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "Left.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "Right.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "Front.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "Back.jpg");
+            sky.SkyEpsilon = 25f;
+            
+            sky.Init();
+
         }
     }
 }
