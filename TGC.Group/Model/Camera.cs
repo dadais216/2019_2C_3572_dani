@@ -167,13 +167,18 @@ namespace TGC.Group.Model.Camera
             }
 
             // Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
-            for (int i = 1; i < 2; i++)
+            const int steps = 1;
+            for (int i = 1; i < steps+1; i++)
             {
-                TGCVector3 step = new TGCVector3(moveVector.X,moveVector.Y,moveVector.Z);
+                TGCVector3 step = new TGCVector3(moveVector.X/ (float)steps,moveVector.Y / (float)steps, moveVector.Z / (float)steps);
                 eyePosition += TGCVector3.TransformNormal( step*elapsedTime, cameraRotation);
                 boundingBox.transform(TGCMatrix.Translation(eyePosition));
                 //colision
 
+
+
+
+                /*
                 foreach (var box in boxes)//eventualmente se va a tener que acelerar supongo
                 {
                     var result = TgcCollisionUtils.classifyBoxBox(boundingBox, box);
@@ -264,10 +269,10 @@ namespace TGC.Group.Model.Camera
 
                         eyePosition += displacement * 1.1f;
                         //break;
+                        
                     }
-                }
+                }*/
             }
-            //Logger.Log("c+ " + (cameraCenter.Y + cameraRadius).ToString() + " c- " + (cameraCenter.Y - cameraRadius).ToString());
 
             // Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
             var cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);

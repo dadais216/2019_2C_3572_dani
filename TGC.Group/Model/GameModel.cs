@@ -82,31 +82,36 @@ namespace TGC.Group.Model
 
 
             // Instancio cajas
+            /*
             for (var i = 0; i < 10; i++)
             {
                 var size = Random.Next(100, 300);
                 var position = RandomPos() + Up * (size / 2);
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
+            */
+            GenerateTexturedBox(new TGCVector3(-600f,2600f,-600f), TGCVector3.One * 600, "caja");
+
             var groundSize = (North + East) * 20000;
             var groundOrigin = -groundSize;
             groundOrigin.Multiply(0.5f);
             var plane = new TgcPlane(groundOrigin, groundSize, TgcPlane.Orientations.XZplane, GetTexture("pasto"));
             Scene.Meshes.Add(plane.toMesh("ground"));
-
+            
             PopulateMeshes(Pine, 200, 2, 10,true);
+            /*
             PopulateMeshes(Shrub, 500, 1, 4,false);
             PopulateMeshes(Shrub2, 500, 1, 4, false);
             PopulateMeshes(Plant, 60, 1, 3, false);
             PopulateMeshes(Plant2, 60, 1, 3, false);
             PopulateMeshes(Plant3, 60, 1, 3, false);
-
+            */
             initSky();
 
             // Instancio camara
             Camara = new Camera.Camera(Input, Collisions);
 
-            
+            matriz = box.Transform;
         }
 
         /// <summary>
@@ -114,16 +119,33 @@ namespace TGC.Group.Model
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
         ///     ante ellas.
         /// </summary>
+        /// 
+        TGCMatrix matriz=TGCMatrix.Identity;
+
         public override void Update()
         {
             PreUpdate();
 
+            acummulatedTime += ElapsedTime;
+            
+            
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.H)) matriz.M21 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.J)) matriz.M22 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K)) matriz.M23 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.B)) matriz.M31 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += .01f;
 
+
+            
 
 
             PostUpdate();
         }
-
+        float acummulatedTime = 0;
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
@@ -132,6 +154,10 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
+
+            box.Transform = matriz;
+
+            box.Render();
             Scene.RenderAll();
             sky.Render();
             PostRender();
@@ -190,11 +216,12 @@ namespace TGC.Group.Model
         }
 
         private int boxNumber;
+        TGCBox box;
         private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
         {
-            var box = TGCBox.fromSize(position, size, GetTexture(textureName));
+            box = TGCBox.fromSize(position, size, GetTexture(textureName));
             box.Transform = TGCMatrix.Translation(position);
-            Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
+            //Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
             Collisions.Add(box.BoundingBox);
         }
 
