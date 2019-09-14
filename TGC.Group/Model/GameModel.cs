@@ -99,19 +99,19 @@ namespace TGC.Group.Model
             Scene.Meshes.Add(plane.toMesh("ground"));
             
             PopulateMeshes(Pine, 200, 2, 10,true);
-            /*
-            PopulateMeshes(Shrub, 500, 1, 4,false);
-            PopulateMeshes(Shrub2, 500, 1, 4, false);
+            
+            /*PopulateMeshes(Shrub2, 500, 1, 4, false);
             PopulateMeshes(Plant, 60, 1, 3, false);
             PopulateMeshes(Plant2, 60, 1, 3, false);
-            PopulateMeshes(Plant3, 60, 1, 3, false);
-            */
+            PopulateMeshes(Plant3, 60, 1, 3, false);*/
+            
             initSky();
 
             // Instancio camara
-            Camara = new Camera.Camera(Input, Collisions);
+            Camara = new Camera.Camera(Input, box);
 
             matriz = box.Transform;
+
         }
 
         /// <summary>
@@ -120,15 +120,13 @@ namespace TGC.Group.Model
         ///     ante ellas.
         /// </summary>
         /// 
-        TGCMatrix matriz=TGCMatrix.Identity;
 
+        TGCMatrix matriz;
         public override void Update()
         {
             PreUpdate();
 
-            acummulatedTime += ElapsedTime;
-            
-            
+
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += .01f;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += .01f;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += .01f;
@@ -140,12 +138,9 @@ namespace TGC.Group.Model
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += .01f;
 
 
-            
-
 
             PostUpdate();
         }
-        float acummulatedTime = 0;
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
@@ -155,10 +150,9 @@ namespace TGC.Group.Model
         {
             PreRender();
 
-            box.Transform = matriz;
-
-            box.Render();
-            Scene.RenderAll();
+            box.transform(matriz);
+            box.renderAsPolygons();
+            //Scene.RenderAll();
             sky.Render();
             PostRender();
         }
@@ -215,21 +209,21 @@ namespace TGC.Group.Model
             }
         }
 
+        Parallelepiped box;
         private int boxNumber;
-        TGCBox box;
         private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
         {
-            box = TGCBox.fromSize(position, size, GetTexture(textureName));
-            box.Transform = TGCMatrix.Translation(position);
+            box = Parallelepiped.fromSize(position, size, GetTexture(textureName));
+            box.transform(TGCMatrix.Translation(position));
             //Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
-            Collisions.Add(box.BoundingBox);
+            //Collisions.Add(box.BoundingBox);
         }
 
         private void initSky()
         {
             //aumentar render distance
             D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(D3DDevice.Instance.FieldOfView, D3DDevice.Instance.AspectRatio,
-D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 9f).ToMatrix();
+D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10f).ToMatrix();
             
 
             sky = new TgcSkyBox();

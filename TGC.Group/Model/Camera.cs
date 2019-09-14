@@ -69,21 +69,17 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public float JumpSpeed = 500f;
 
-        private List<TgcBoundingAxisAlignBox> boxes;
-        private TgcBoundingAxisAlignBox boundingBox;
+        public Parallelepiped box;
 
 
         /// <summary>
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
         ///     MovementSpeed y JumpSpeed 500f, el directionView (0,0,-1)
         /// </summary>
-        public Camera(TgcD3dInput input, List<TgcBoundingAxisAlignBox> boxes_)
+        public Camera(TgcD3dInput input, Parallelepiped box_)
         {
             Input = input;
-            boxes = boxes_;//no tengo claro si estoy haciendo una copia o pasando puntero. Espero que sea lo segundo
-
-            boundingBox = new TgcBoundingAxisAlignBox(new TGCVector3(-50, -50, -50), new TGCVector3(50, 50, 50));
-            //creo que esta descentrada, por lo menos eso parece cuando se usan cajas muy chicas
+            box = box_;//no tengo claro si estoy haciendo una copia o pasando puntero. Espero que sea lo segundo
         }
 
         private TgcD3dInput Input { get; }
@@ -166,17 +162,37 @@ namespace TGC.Group.Model.Camera
                 }
             }
 
-            // Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
+
+
+
+            TGCVector3 cameraFinalTarget=new TGCVector3();
             const int steps = 1;
             for (int i = 1; i < steps+1; i++)
             {
                 TGCVector3 step = new TGCVector3(moveVector.X/ (float)steps,moveVector.Y / (float)steps, moveVector.Z / (float)steps);
                 eyePosition += TGCVector3.TransformNormal( step*elapsedTime, cameraRotation);
-                boundingBox.transform(TGCMatrix.Translation(eyePosition));
+
+
+
+                // Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
+                // Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
+                var cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+                cameraFinalTarget = eyePosition + cameraRotatedTarget;
+
+
+
+
                 //colision
 
+                var ray = new TgcRay();
+                ray.Origin = eyePosition;
+                ray.Direction = new TGCVector3(0,1,0);
 
-
+                if (box.intersectRay(ray, out float t,out TGCVector3 q))
+                {
+                    //Logger.Log("("+q.X.ToString() + " :  " + q.Y.ToString() + " :  " + q.Z.ToString() + ")");
+                    Logger.Log(t.ToString());
+                }
 
                 /*
                 foreach (var box in boxes)//eventualmente se va a tener que acelerar supongo
@@ -274,13 +290,10 @@ namespace TGC.Group.Model.Camera
                 }*/
             }
 
-            // Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
-            var cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
-            var cameraFinalTarget = eyePosition + cameraRotatedTarget;
-
             // Se calcula el nuevo vector de up producido por el movimiento del update.
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
+
 
             base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector);
         }

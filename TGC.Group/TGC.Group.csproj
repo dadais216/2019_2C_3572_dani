@@ -102,6 +102,7 @@
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
     <Compile Include="Model\Camera.cs" />
+    <Compile Include="Model\Parallelepiped.cs" />
     <Compile Include="Model\GameModel.cs" />
     <Compile Include="Model\Logger.cs" />
     <Compile Include="Program.cs" />
