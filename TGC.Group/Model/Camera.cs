@@ -70,6 +70,9 @@ namespace TGC.Group.Model.Camera
         public float JumpSpeed = 500f;
 
         public Parallelepiped box;
+        private TgcRay up;
+        private TgcRay down;
+        private TgcRay[] horizontal;
 
 
         /// <summary>
@@ -79,7 +82,17 @@ namespace TGC.Group.Model.Camera
         public Camera(TgcD3dInput input, Parallelepiped box_)
         {
             Input = input;
-            box = box_;//no tengo claro si estoy haciendo una copia o pasando puntero. Espero que sea lo segundo
+            box = box_;
+
+            up = new TgcRay();
+            up.Direction = new TGCVector3(0, 1, 0);
+            down = new TgcRay();
+            down.Direction = new TGCVector3(0, -1, 0);
+            horizontal = new TgcRay[4] {new TgcRay(), new TgcRay(), new TgcRay(), new TgcRay() ,};
+            horizontal[0].Direction = new TGCVector3(1, 0, 0);
+            horizontal[1].Direction = new TGCVector3(0, 0, 1);
+            horizontal[2].Direction = new TGCVector3(-1, 0, 0);
+            horizontal[3].Direction = new TGCVector3(0, 0, -1);
         }
 
         private TgcD3dInput Input { get; }
@@ -164,7 +177,7 @@ namespace TGC.Group.Model.Camera
 
 
 
-
+            TGCVector3 cameraRotatedTarget;
             TGCVector3 cameraFinalTarget=new TGCVector3();
             const int steps = 1;
             for (int i = 1; i < steps+1; i++)
@@ -176,23 +189,58 @@ namespace TGC.Group.Model.Camera
 
                 // Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
                 // Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
-                var cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+                cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
                 cameraFinalTarget = eyePosition + cameraRotatedTarget;
 
 
 
 
                 //colision
+                up.Origin = eyePosition;
+                down.Origin = eyePosition;
+                horizontal[0].Origin = eyePosition;
+                horizontal[1].Origin = eyePosition;
+                horizontal[2].Origin = eyePosition;
+                horizontal[3].Origin = eyePosition;
 
-                var ray = new TgcRay();
-                ray.Origin = eyePosition;
-                ray.Direction = new TGCVector3(0,1,0);
+                var displacement = new TGCVector3(0,0,0);
+                const float border = 100f;
 
-                if (box.intersectRay(ray, out float t,out TGCVector3 q))
+                if (box.intersectRay(up, out float t, out TGCVector3 q) && t < border)
                 {
-                    //Logger.Log("("+q.X.ToString() + " :  " + q.Y.ToString() + " :  " + q.Z.ToString() + ")");
-                    Logger.Log(t.ToString());
+                    displacement += -up.Direction * (border - t);
                 }
+                if (box.intersectRay(down, out t, out q) && t < border)
+                {
+                    displacement += -down.Direction * (border - t);
+                }
+                foreach(TgcRay dir in horizontal)
+                {
+                    if (box.intersectRay(dir, out t, out q) && t < border)
+                    {
+                        displacement += -dir.Direction * (border - t);
+                    }
+                }
+
+                var minNotNull = new Func<float, float, float>((aS, bS) => {
+                    var a=Math.Abs(aS);
+                    var b = Math.Abs(bS);
+                    if (a == 0 && b == 0) return 0;
+                    if (a == 0) return b;
+                    if (b == 0) return a;
+                    if (a < b) return a;
+                    return b;
+                });
+
+                float minVal = minNotNull(minNotNull(displacement.X, displacement.Y),displacement.Z);
+                if (Math.Abs(displacement.X) != minVal) displacement.X = 0;
+                if (Math.Abs(displacement.Y) != minVal) displacement.Y = 0;
+                if (Math.Abs(displacement.Z) != minVal) displacement.Z = 0;
+
+                Logger.LogVector(displacement);
+
+
+                eyePosition += displacement;
 
                 /*
                 foreach (var box in boxes)//eventualmente se va a tener que acelerar supongo
@@ -290,6 +338,9 @@ namespace TGC.Group.Model.Camera
                 }*/
             }
 
+
+            cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+            cameraFinalTarget = eyePosition + cameraRotatedTarget;
             // Se calcula el nuevo vector de up producido por el movimiento del update.
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
