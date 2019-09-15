@@ -73,6 +73,8 @@ namespace TGC.Group.Model.Camera
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
+        private bool onGround=false;
+        private float vSpeed=0;
 
 
         /// <summary>
@@ -115,27 +117,8 @@ namespace TGC.Group.Model.Camera
             }
         }
 
-        private static readonly Dictionary<Key, TGCVector3> keysDirections = new Dictionary<Key, TGCVector3>
-        {
-            {Key.W, GameModel.South},
-            {Key.S, GameModel.North},
-            {Key.A, GameModel.East},
-            {Key.D, GameModel.West},
-            {Key.Space, GameModel.Up},
-            {Key.LeftShift, GameModel.Down}
-        };
+        
 
-        struct vecIndex
-        {
-            public int index;
-            public float val;
-
-            public vecIndex(int v, float x)
-            {
-                index = v;
-                val = x;
-            }
-        }
 
         /// <summary>
         ///     Realiza un update de la camara a partir del elapsedTime, actualizando Position,LookAt y UpVector.
@@ -150,197 +133,113 @@ namespace TGC.Group.Model.Camera
                 LockCam = !lockCam;
             }
 
-            //Exit
-            if (Input.keyPressed(Key.Escape) || Input.keyPressed(Key.BackSpace))
+            var inputMove = TGCVector3.Empty;
+            if (lockCam)
             {
-                throw new ApplicationException();
-            }
-
-            var moveVector = TGCVector3.Empty;
-            { //codigo de camara que vuela
-                if (lockCam)
-                {
-                    leftrightRot -= -Input.XposRelative * RotationSpeed;
-                    updownRot -= Input.YposRelative * RotationSpeed;
-                    // Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
-                    cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
-                    Cursor.Position = mouseCenter;
-                }
-
-                foreach (var kvp in keysDirections)
-                {
-                    //esto tiene el bug de que moverse en diagonal es mas rapido
-                    if (Input.keyDown(kvp.Key))
-                        moveVector += kvp.Value * MovementSpeed;
-                }
+                leftrightRot -= -Input.XposRelative * RotationSpeed;
+                updownRot -= Input.YposRelative * RotationSpeed;
+                // Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
+                cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
+                Cursor.Position = mouseCenter;
             }
 
 
+            //en la colision se asume que el centro del personaje nunca atraviesa la pared
+            //se podria optimizar mas haciendo que solo se prueben colisiones en la direccion que se esta moviendo
+            //el jugador.
 
-            TGCVector3 cameraRotatedTarget;
-            TGCVector3 cameraFinalTarget=new TGCVector3();
-            const int steps = 1;
-            for (int i = 1; i < steps+1; i++)
+            //rayos colision
+            horizontal[0].Origin = eyePosition;
+            horizontal[1].Origin = eyePosition;
+            horizontal[2].Origin = eyePosition;
+            horizontal[3].Origin = eyePosition;
+            up.Origin = eyePosition;
+            down.Origin = eyePosition;
+
+            if (Input.keyDown(Key.W))
+                inputMove += GameModel.South;
+            if (Input.keyDown(Key.S))
+                inputMove += GameModel.North;
+            if (Input.keyDown(Key.A))
+                inputMove += GameModel.East;
+            if (Input.keyDown(Key.D))
+                inputMove += GameModel.West;
+            
+            TGCVector3 moveXZ = TGCVector3.TransformNormal(inputMove, cameraRotation);
+            moveXZ.Y = 0;
+            moveXZ.Normalize();
+
+            eyePosition += moveXZ * MovementSpeed * elapsedTime;
+
+            var displacement = new TGCVector3(0, 0, 0);
+            const float border = 100f;
+
+            float t;
+            TGCVector3 q;
+            foreach (TgcRay dir in horizontal)
             {
-                TGCVector3 step = new TGCVector3(moveVector.X/ (float)steps,moveVector.Y / (float)steps, moveVector.Z / (float)steps);
-                eyePosition += TGCVector3.TransformNormal( step*elapsedTime, cameraRotation);
-
-
-
-                // Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
-                // Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
-                cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
-                cameraFinalTarget = eyePosition + cameraRotatedTarget;
-
-
-
-
-                //colision
-                up.Origin = eyePosition;
-                down.Origin = eyePosition;
-                horizontal[0].Origin = eyePosition;
-                horizontal[1].Origin = eyePosition;
-                horizontal[2].Origin = eyePosition;
-                horizontal[3].Origin = eyePosition;
-
-                var displacement = new TGCVector3(0,0,0);
-                const float border = 100f;
-
-                if (box.intersectRay(up, out float t, out TGCVector3 q) && t < border)
+                if (box.intersectRay(dir, out t, out q) && t < border)
                 {
-                    displacement += -up.Direction * (border - t);
+                    displacement += -dir.Direction * (border - t);
                 }
-                if (box.intersectRay(down, out t, out q) && t < border)
-                {
-                    displacement += -down.Direction * (border - t);
-                }
-                foreach(TgcRay dir in horizontal)
-                {
-                    if (box.intersectRay(dir, out t, out q) && t < border)
-                    {
-                        displacement += -dir.Direction * (border - t);
-                    }
-                }
-
-                var minNotNull = new Func<float, float, float>((aS, bS) => {
-                    var a=Math.Abs(aS);
-                    var b = Math.Abs(bS);
-                    if (a == 0 && b == 0) return 0;
-                    if (a == 0) return b;
-                    if (b == 0) return a;
-                    if (a < b) return a;
-                    return b;
-                });
-
-                float minVal = minNotNull(minNotNull(displacement.X, displacement.Y),displacement.Z);
-                if (Math.Abs(displacement.X) != minVal) displacement.X = 0;
-                if (Math.Abs(displacement.Y) != minVal) displacement.Y = 0;
-                if (Math.Abs(displacement.Z) != minVal) displacement.Z = 0;
-
-                Logger.LogVector(displacement);
-
-
-                eyePosition += displacement;
-
-                /*
-                foreach (var box in boxes)//eventualmente se va a tener que acelerar supongo
-                {
-                    var result = TgcCollisionUtils.classifyBoxBox(boundingBox, box);
-                    if (result == TgcCollisionUtils.BoxBoxResult.Adentro)
-                    {
-                        Logger.Log("no papa la re bardeaste");
-                    }
-                    else if (result == TgcCollisionUtils.BoxBoxResult.Atravesando)
-                    {
-                        TGCVector3 displacement = new TGCVector3(0, 0, 0); //asigno aca porque c# me obliga lenguaje de mierda en c esto no pasaba
-                                                                           //puede que haya una forma mejor de hacer esto, abriendo el codigo de boundingBox
-                        var cameraCenter = boundingBox.calculateBoxCenter();
-                        var cameraRadius = boundingBox.calculateAxisRadius().X;//es un cuadrado
-                        var boxCenter = box.calculateBoxCenter();
-                        var boxRadius = box.calculateAxisRadius();
-                        if (boxCenter.X - boxRadius.X < cameraCenter.X + cameraRadius
-                            && boxCenter.X - boxRadius.X > cameraCenter.X - cameraRadius)
-                        {
-                            displacement.X += (boxCenter.X - boxRadius.X) - (cameraCenter.X + cameraRadius);
-                            Logger.Log("X-");
-                        }
-                        if (boxCenter.X + boxRadius.X > cameraCenter.X - cameraRadius
-                           && boxCenter.X + boxRadius.X < cameraCenter.X + cameraRadius)
-                        {
-                            displacement.X += (boxCenter.X + boxRadius.X) - (cameraCenter.X - cameraRadius);
-                            Logger.Log("X+");
-                        }
-                        if (boxCenter.Y - boxRadius.Y < cameraCenter.Y + cameraRadius
-                           && boxCenter.Y - boxRadius.Y > cameraCenter.Y - cameraRadius)
-                        {
-                            displacement.Y += (boxCenter.Y - boxRadius.Y) - (cameraCenter.Y + cameraRadius);
-                            Logger.Log("Y-");
-                        }
-                        if (boxCenter.Y + boxRadius.Y > cameraCenter.Y - cameraRadius
-                           && boxCenter.Y + boxRadius.Y < cameraCenter.Y + cameraRadius)
-                        {
-                            displacement.Y += (boxCenter.Y + boxRadius.Y) - (cameraCenter.Y - cameraRadius);
-                            Logger.Log("Y+");
-                        }
-                        if (boxCenter.Z - boxRadius.Z < cameraCenter.Z + cameraRadius
-                           && boxCenter.Z - boxRadius.Z > cameraCenter.Z - cameraRadius)
-                        {
-                            displacement.Z += (boxCenter.Z - boxRadius.Z) - (cameraCenter.Z + cameraRadius);
-                            Logger.Log("Z-");
-                        }
-                        if (boxCenter.Z + boxRadius.Z > cameraCenter.Z - cameraRadius
-                           && boxCenter.Z + boxRadius.Z < cameraCenter.Z + cameraRadius)
-                        {
-                            displacement.Z += (boxCenter.Z + boxRadius.Z) - (cameraCenter.Z - cameraRadius);
-                            Logger.Log("Z+");
-                        }
-
-                        //solo mantener eje menor != 0. Es una heuristica para manejar esquinas
-                        //osea, de los desplazamientos hacer solo el menos brusco
-                        {
-                            var nums = new List<vecIndex>();
-                            nums.Add(new vecIndex(0, displacement.X));
-                            nums.Add(new vecIndex(1, displacement.Y));
-                            nums.Add(new vecIndex(2, displacement.Z));
-                            nums.RemoveAll(n => n.val == 0);
-                            if (nums.Count != 0)
-                            {
-                                //if (nums.Count == 2)
-                                //{
-                                //    Logger.Log("X: " + displacement.X.ToString() + "Y: " + displacement.Y.ToString() + "Z: " + displacement.Z.ToString());
-                                //}
-
-                                nums.Sort((a, b) => Math.Abs(a.val) < Math.Abs(b.val) ? -1 : 1);
-                                if (nums[0].index == 0)
-                                {
-                                    displacement.Y = 0; displacement.Z = 0;
-                                }
-                                else if (nums[0].index == 1)
-                                {
-                                    displacement.X = 0; displacement.Z = 0;
-                                }
-                                else
-                                {
-                                    displacement.X = 0; displacement.Y = 0;
-                                }
-
-                                //if (nums.Count == 2)
-                                //{
-                                //    Logger.Log("=> X: " + displacement.X.ToString() + "Y: " + displacement.Y.ToString() + "Z: " + displacement.Z.ToString());
-                                //}
-                            }
-                        }
-
-                        eyePosition += displacement * 1.1f;
-                        //break;
-                        
-                    }
-                }*/
             }
 
 
-            cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
-            cameraFinalTarget = eyePosition + cameraRotatedTarget;
+            if (Input.keyDown(Key.Space) && onGround)
+                vSpeed = 10f;
+
+            if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
+            {
+                if (t < border)
+                    displacement += up.Direction * (border - t);
+                onGround = true;
+                vSpeed = 0f;
+            }
+            else
+            {
+                if (!onGround)
+                {
+                    vSpeed -= elapsedTime*5;//gravedad
+                }
+
+                onGround = false;
+            }
+
+            displacement += up.Direction * vSpeed;
+            Logger.Log(vSpeed);
+            if (box.intersectRay(up, out t, out  q) && t < border)
+            {
+                displacement += -up.Direction * (border - t);
+            }
+                
+
+                
+            /*
+            var minNotNull = new Func<float, float, float>((aS, bS) => {
+                var a=Math.Abs(aS);
+                var b = Math.Abs(bS);
+                if (a == 0 && b == 0) return 0;
+                if (a == 0) return b;
+                if (b == 0) return a;
+                if (a < b) return a;
+                return b;
+            });
+
+            float minVal = minNotNull(minNotNull(displacement.X, displacement.Y),displacement.Z);
+            if (Math.Abs(displacement.X) != minVal) displacement.X = 0;
+            if (Math.Abs(displacement.Y) != minVal) displacement.Y = 0;
+            if (Math.Abs(displacement.Z) != minVal) displacement.Z = 0;
+            */
+            //Logger.Log(displacement);
+
+
+            eyePosition += displacement;
+
+            
+
+
+            TGCVector3 cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+            TGCVector3 cameraFinalTarget = eyePosition + cameraRotatedTarget;
             // Se calcula el nuevo vector de up producido por el movimiento del update.
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);

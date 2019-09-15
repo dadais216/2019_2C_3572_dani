@@ -90,7 +90,7 @@ namespace TGC.Group.Model
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
             */
-            GenerateTexturedBox(new TGCVector3(-600f,2600f,-600f), TGCVector3.One * 600, "caja");
+            GenerateTexturedBox(new TGCVector3(-00f,-2600f,-00f), TGCVector3.One * 600, "caja");
 
             var groundSize = (North + East) * 20000;
             var groundOrigin = -groundSize;
