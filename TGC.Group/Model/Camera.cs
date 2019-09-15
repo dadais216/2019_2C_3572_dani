@@ -69,7 +69,7 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public float JumpSpeed = 500f;
 
-        public Parallelepiped box;
+        public List<Parallelepiped> boxes;
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
@@ -81,10 +81,10 @@ namespace TGC.Group.Model.Camera
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
         ///     MovementSpeed y JumpSpeed 500f, el directionView (0,0,-1)
         /// </summary>
-        public Camera(TgcD3dInput input, Parallelepiped box_)
+        public Camera(TgcD3dInput input, List<Parallelepiped> boxes_)
         {
             Input = input;
-            box = box_;
+            boxes = boxes_;
 
             up = new TgcRay();
             up.Direction = new TGCVector3(0, 1, 0);
@@ -145,8 +145,6 @@ namespace TGC.Group.Model.Camera
 
 
             //en la colision se asume que el centro del personaje nunca atraviesa la pared
-            //se podria optimizar mas haciendo que solo se prueben colisiones en la direccion que se esta moviendo
-            //el jugador.
 
             //rayos colision
             horizontal[0].Origin = eyePosition;
@@ -176,43 +174,51 @@ namespace TGC.Group.Model.Camera
 
             float t;
             TGCVector3 q;
-            foreach (TgcRay dir in horizontal)
+
+            //se podrian tirar rayos en las diagonales para manejar mejor esquinas tambien.
+            //se podria tirar rayos solo en las direcciones que me estoy moviendo
+            //se podria tirar solo un rayo horizontal en la direccion que me muevo y sacar el
+            //desplazamiento haciendo cuentas con la normal del triangulo
+            foreach (var box in boxes)
             {
-                if (box.intersectRay(dir, out t, out q) && t < border)
+                foreach (TgcRay dir in horizontal)
                 {
-                    displacement += -dir.Direction * (border - t);
-                }
-            }
-
-
-            if (Input.keyDown(Key.Space) && onGround)
-                vSpeed = 10f;
-
-            if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
-            {
-                if (t < border)
-                    displacement += up.Direction * (border - t);
-                onGround = true;
-                vSpeed = 0f;
-            }
-            else
-            {
-                if (!onGround)
-                {
-                    vSpeed -= elapsedTime*5;//gravedad
+                    if (box.intersectRay(dir, out t, out q) && t < border)
+                    {
+                        displacement += -dir.Direction * (border - t);
+                    }
                 }
 
-                onGround = false;
-            }
 
-            displacement += up.Direction * vSpeed;
-            Logger.Log(vSpeed);
-            if (box.intersectRay(up, out t, out  q) && t < border)
-            {
-                displacement += -up.Direction * (border - t);
-            }
-                
+                if (Input.keyDown(Key.Space) && onGround)
+                    vSpeed = 10f;
 
+                if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
+                {
+                    if (t < border)
+                        displacement += up.Direction * (border - t);
+                    onGround = true;
+                    vSpeed = 0f;
+                }
+                else
+                {
+                    if (!onGround)
+                    {
+                        vSpeed -= elapsedTime * 5;//gravedad
+                    }
+
+                    onGround = false;
+                }
+
+                displacement += up.Direction * vSpeed;
+                Logger.Log(vSpeed);
+                if (box.intersectRay(up, out t, out q) && t < border)
+                {
+                    displacement += -up.Direction * (border - t);
+                    vSpeed = 0f;
+                }
+
+            }
                 
             /*
             var minNotNull = new Func<float, float, float>((aS, bS) => {

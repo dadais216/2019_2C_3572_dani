@@ -42,7 +42,8 @@ namespace TGC.Group.Model
         private readonly TgcMesh Plant3;
         private TgcSkyBox sky;
 
-       
+
+        List<Parallelepiped> boxes=new List<Parallelepiped>();
 
 
 
@@ -90,7 +91,9 @@ namespace TGC.Group.Model
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
             */
-            GenerateTexturedBox(new TGCVector3(-00f,-2600f,-00f), TGCVector3.One * 600, "caja");
+            GenerateTexturedBox(new TGCVector3(-400f,000f,-200f), TGCVector3.One * 600, "caja");
+            GenerateTexturedBox(new TGCVector3(-00f, -1000f, -00f), TGCVector3.One * 600, "caja");
+
 
             var groundSize = (North + East) * 20000;
             var groundOrigin = -groundSize;
@@ -108,9 +111,9 @@ namespace TGC.Group.Model
             initSky();
 
             // Instancio camara
-            Camara = new Camera.Camera(Input, box);
+            Camara = new Camera.Camera(Input, boxes);
 
-            matriz = box.Transform;
+            matriz = boxes[0].Transform;
 
         }
 
@@ -149,9 +152,11 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
-
-            box.transform(matriz);
-            box.renderAsPolygons();
+            boxes[0].transform(matriz);
+            foreach(var box in boxes)
+            {
+                box.renderAsPolygons();
+            }
             //Scene.RenderAll();
             sky.Render();
             PostRender();
@@ -209,14 +214,11 @@ namespace TGC.Group.Model
             }
         }
 
-        Parallelepiped box;
-        private int boxNumber;
         private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
         {
-            box = Parallelepiped.fromSize(position, size, GetTexture(textureName));
+            var box= Parallelepiped.fromSize(position, size, GetTexture(textureName));
             box.transform(TGCMatrix.Translation(position));
-            //Scene.Meshes.Add(box.ToMesh("box" + boxNumber++));
-            //Collisions.Add(box.BoundingBox);
+            boxes.Add(box);
         }
 
         private void initSky()
