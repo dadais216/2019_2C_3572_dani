@@ -28,7 +28,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///  Direction view se calcula a partir de donde se quiere ver con la camara inicialmente. por defecto se ve en -Z.
         /// </summary>
-        private readonly TGCVector3 directionView = GameModel.South;
+        private readonly TGCVector3 directionView = Map.South;
 
 
         private static float leftrightRot = FastMath.PI_HALF;
@@ -52,7 +52,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        private TGCVector3 eyePosition = GameModel.Origin;
+        private TGCVector3 eyePosition = Map.Origin;
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -64,27 +64,22 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public readonly float RotationSpeed = 0.1f;
 
-        /// <summary>
-        ///  Velocidad de Salto
-        /// </summary>
-        public float JumpSpeed = 500f;
-
-        public List<Parallelepiped> boxes;
+        public Map map;
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
         private bool onGround=false;
-        private float vSpeed=0;
+        private float vSpeed=10;
 
 
         /// <summary>
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
         ///     MovementSpeed y JumpSpeed 500f, el directionView (0,0,-1)
         /// </summary>
-        public Camera(TgcD3dInput input, List<Parallelepiped> boxes_)
+        public Camera(TgcD3dInput input, Map map_)
         {
             Input = input;
-            boxes = boxes_;
+            map = map_;
 
             up = new TgcRay();
             up.Direction = new TGCVector3(0, 1, 0);
@@ -155,13 +150,13 @@ namespace TGC.Group.Model.Camera
             down.Origin = eyePosition;
 
             if (Input.keyDown(Key.W))
-                inputMove += GameModel.South;
+                inputMove += Map.South;
             if (Input.keyDown(Key.S))
-                inputMove += GameModel.North;
+                inputMove += Map.North;
             if (Input.keyDown(Key.A))
-                inputMove += GameModel.East;
+                inputMove += Map.East;
             if (Input.keyDown(Key.D))
-                inputMove += GameModel.West;
+                inputMove += Map.West;
             
             TGCVector3 moveXZ = TGCVector3.TransformNormal(inputMove, cameraRotation);
             moveXZ.Y = 0;
@@ -179,7 +174,7 @@ namespace TGC.Group.Model.Camera
             //se podria tirar rayos solo en las direcciones que me estoy moviendo
             //se podria tirar solo un rayo horizontal en la direccion que me muevo y sacar el
             //desplazamiento haciendo cuentas con la normal del triangulo
-            foreach (var box in boxes)
+            foreach (var box in map.collisions)
             {
                 foreach (TgcRay dir in horizontal)
                 {
@@ -191,7 +186,7 @@ namespace TGC.Group.Model.Camera
 
 
                 if (Input.keyDown(Key.Space) && onGround)
-                    vSpeed = 10f;
+                    vSpeed = 20f;
 
                 if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
                 {
@@ -204,7 +199,7 @@ namespace TGC.Group.Model.Camera
                 {
                     if (!onGround)
                     {
-                        vSpeed -= elapsedTime * 5;//gravedad
+                        vSpeed = Math.Max(vSpeed-elapsedTime * 1,-8);//gravedad
                     }
 
                     onGround = false;

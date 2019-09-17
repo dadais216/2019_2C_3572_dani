@@ -22,30 +22,8 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
-        internal static readonly TGCVector3 Origin = TGCVector3.Empty;
-        internal static readonly TGCVector3 Up = TGCVector3.Up;
-        internal static readonly TGCVector3 Down = -Up;
-        internal static readonly TGCVector3 East = new TGCVector3(1, 0, 0);
-        internal static readonly TGCVector3 West = -East;
-        internal static readonly TGCVector3 North = new TGCVector3(0, 0, 1);
-        internal static readonly TGCVector3 South = -North;
-        private readonly Device Device = D3DDevice.Instance.Device;
-        private readonly Random Random = new Random();
-        private readonly TgcScene Scene = new TgcScene("mapa", null);//por ahi cambiar con objeto propio, nomas necesito tener una lista de meshes
 
-        private readonly List<TgcBoundingAxisAlignBox> Collisions = new List<TgcBoundingAxisAlignBox>();
-        private readonly TgcMesh Pine;
-        private readonly TgcMesh Shrub;
-        private readonly TgcMesh Shrub2;
-        private readonly TgcMesh Plant;
-        private readonly TgcMesh Plant2;
-        private readonly TgcMesh Plant3;
-        private TgcSkyBox sky;
-
-
-        List<Parallelepiped> boxes=new List<Parallelepiped>();
-
-
+        Map map;
 
         /// <summary>
         ///     Constructor del juego.
@@ -57,14 +35,7 @@ namespace TGC.Group.Model
             Category = Game.Default.Category;
             Name = Game.Default.Name;
             Description = Game.Default.Description;
-            Pine = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
-            Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
-            Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
-            Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
-            Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
-            Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");
-
-
+            map = new Map(this);
         }
 
 
@@ -81,39 +52,13 @@ namespace TGC.Group.Model
         public override void Init()
         {
 
+            map.Init();
 
-            // Instancio cajas
-            /*
-            for (var i = 0; i < 10; i++)
-            {
-                var size = Random.Next(100, 300);
-                var position = RandomPos() + Up * (size / 2);
-                GenerateTexturedBox(position, TGCVector3.One * size, "caja");
-            }
-            */
-            GenerateTexturedBox(new TGCVector3(-400f,000f,-200f), TGCVector3.One * 600, "caja");
-            GenerateTexturedBox(new TGCVector3(-00f, -1000f, -00f), TGCVector3.One * 600, "caja");
-
-
-            var groundSize = (North + East) * 20000;
-            var groundOrigin = -groundSize;
-            groundOrigin.Multiply(0.5f);
-            var plane = new TgcPlane(groundOrigin, groundSize, TgcPlane.Orientations.XZplane, GetTexture("pasto"));
-            Scene.Meshes.Add(plane.toMesh("ground"));
-            
-            PopulateMeshes(Pine, 200, 2, 10,true);
-            
-            /*PopulateMeshes(Shrub2, 500, 1, 4, false);
-            PopulateMeshes(Plant, 60, 1, 3, false);
-            PopulateMeshes(Plant2, 60, 1, 3, false);
-            PopulateMeshes(Plant3, 60, 1, 3, false);*/
-            
-            initSky();
+            matriz = map.collisions[0].Transform;
 
             // Instancio camara
-            Camara = new Camera.Camera(Input, boxes);
+            Camara = new Camera.Camera(Input,map);
 
-            matriz = boxes[0].Transform;
 
         }
 
@@ -140,6 +85,14 @@ namespace TGC.Group.Model
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += .01f;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += .01f;
 
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += .01f;
+
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += .01f;
 
 
             PostUpdate();
@@ -152,13 +105,7 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
-            boxes[0].transform(matriz);
-            foreach(var box in boxes)
-            {
-                box.renderAsPolygons();
-            }
-            //Scene.RenderAll();
-            sky.Render();
+            map.Render(matriz);
             PostRender();
         }
 
@@ -169,84 +116,9 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            Scene.DisposeAll();
+            map.Scene.DisposeAll();
         }
 
-        private int RanInt()
-        {
-            const int max = 3000;
-            return Random.Next(-max, max);
-        }
-
-        private TGCVector3 RandomPos()
-        {
-            return RanInt() * North + RanInt() * East;
-        }
-
-        private TgcTexture GetTexture(string textureName)
-        {
-            return TgcTexture.createTexture(Device, MediaDir + textureName + ".jpg");
-        }
-
-        private TgcMesh GetMeshFromScene(string scenePath)
-        {
-            var loader = new TgcSceneLoader();
-            var auxScene = loader.loadSceneFromFile(MediaDir + scenePath);
-            return auxScene.Meshes[0];
-        }
-
-        private void PopulateMeshes(TgcMesh mesh, int maxElements, int scaleMin, int scaleMax, bool withColission)
-        {
-            if (scaleMin > scaleMax) return;
-            for (var i = 0; i < maxElements; i++)
-            {
-                var newMesh = mesh.clone(i.ToString());
-                newMesh.Position = RandomPos();
-                newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
-                newMesh.RotateY((float)(Math.PI * Random.NextDouble()));
-                Scene.Meshes.Add(newMesh);
-                if (withColission)
-                {
-                    newMesh.BoundingBox.scaleTranslate(newMesh.Position,
-                        new TGCVector3(newMesh.Scale.X * 0.3f, newMesh.Scale.Y, newMesh.Scale.Z * 0.3f));
-                    Collisions.Add(newMesh.BoundingBox);
-                }
-            }
-        }
-
-        private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
-        {
-            var box= Parallelepiped.fromSize(position, size, GetTexture(textureName));
-            box.transform(TGCMatrix.Translation(position));
-            boxes.Add(box);
-        }
-
-        private void initSky()
-        {
-            //aumentar render distance
-            D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(D3DDevice.Instance.FieldOfView, D3DDevice.Instance.AspectRatio,
-D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10f).ToMatrix();
-            
-
-            sky = new TgcSkyBox();
-            sky.Center = TGCVector3.Empty;
-            sky.Size = new TGCVector3(100000, 100000, 100000);
-
-            //sky.Color = Color.OrangeRed;
-
-            var texturesPath = MediaDir + "SkyBox\\";
-
-            
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "Up.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "Down.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "Left.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "Right.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "Front.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "Back.jpg");
-            sky.SkyEpsilon = 25f;
-            
-            sky.Init();
-
-        }
+        
     }
 }
