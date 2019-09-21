@@ -10,6 +10,7 @@ using TGC.Core.Direct3D;
 using TGC.Core.Geometry;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
+using TGC.Core.Terrain;
 
 namespace TGC.Group.Model.Camera
 {
@@ -57,7 +58,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///  Velocidad de movimiento
         /// </summary>
-        public readonly float MovementSpeed = 1000f;
+        public readonly float MovementSpeed = 4000f;
 
         /// <summary>
         ///  Velocidad de rotacion
@@ -65,6 +66,7 @@ namespace TGC.Group.Model.Camera
         public readonly float RotationSpeed = 0.1f;
 
         public Map map;
+        private TgcSimpleTerrain terrain;
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
@@ -80,6 +82,7 @@ namespace TGC.Group.Model.Camera
         {
             Input = input;
             map = map_;
+            terrain = map.terrain;
 
             up = new TgcRay();
             up.Direction = new TGCVector3(0, 1, 0);
@@ -186,7 +189,7 @@ namespace TGC.Group.Model.Camera
 
 
                 if (Input.keyDown(Key.Space) && onGround)
-                    vSpeed = 20f;
+                    vSpeed = 5f;
 
                 if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
                 {
@@ -199,14 +202,14 @@ namespace TGC.Group.Model.Camera
                 {
                     if (!onGround)
                     {
-                        vSpeed = Math.Max(vSpeed-elapsedTime * 1,-8);//gravedad
+                        vSpeed = Math.Max(vSpeed-elapsedTime * 1,-9);//gravedad
                     }
 
                     onGround = false;
                 }
 
-                displacement += up.Direction * vSpeed;
-                Logger.Log(vSpeed);
+                displacement += up.Direction * vSpeed*elapsedTime*100;
+                //Logger.Log(vSpeed);
                 if (box.intersectRay(up, out t, out q) && t < border)
                 {
                     displacement += -up.Direction * (border - t);
@@ -214,7 +217,8 @@ namespace TGC.Group.Model.Camera
                 }
 
             }
-                
+
+
             /*
             var minNotNull = new Func<float, float, float>((aS, bS) => {
                 var a=Math.Abs(aS);
@@ -234,9 +238,48 @@ namespace TGC.Group.Model.Camera
             //Logger.Log(displacement);
 
 
+            //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
+            //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
+            //sistema aparte es simple y es mucho mas eficiente
+            //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
+
             eyePosition += displacement;
 
-            
+            var zxScale = Map.xzTerrainScale;
+            var yScale = Map.yTerrainScale;
+
+
+            var hm = terrain.HeightmapData;
+
+            float x = eyePosition.X / zxScale;
+            float z = eyePosition.Z / zxScale;
+
+            int hx = (int)FastMath.Floor(x) + hm.GetLength(0) / 2;
+            int hz = (int)FastMath.Floor(z) + hm.GetLength(1) / 2;
+
+            //interpolacion bilineal
+            float Yx0z0 = (hm[hx, hz]-1000)*yScale;
+            float Yx1z0 = (hm[hx+1, hz] - 1000) * yScale;
+            float Yx0z1 = (hm[hx, hz+1] - 1000) * yScale;
+            float Yx1z1 = (hm[hx+1, hz+1] - 1000) * yScale;
+
+            float dx = x - FastMath.Floor(x);
+            float dz = z - FastMath.Floor(z);
+
+            float interpolz0 = Yx0z0 * (1 - dx) + Yx1z0 * dx;
+            float interpolz1 = Yx0z1 * (1 - dx) + Yx1z1 * dx;
+            float interpol = interpolz0 * (1 - dz) + interpolz1 * dz;
+
+            if (eyePosition.Y <= interpol + 500)
+            {
+                eyePosition.Y = interpol + 500;
+                onGround = true;
+            }
+
+
+
+
+
 
 
             TGCVector3 cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);

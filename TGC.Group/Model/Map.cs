@@ -29,15 +29,22 @@ namespace TGC.Group.Model
         GameModel game;
 
         public List<Parallelepiped> collisions;
-        public readonly TgcScene Scene = new TgcScene("mapa", null);//por ahi cambiar con objeto propio, nomas necesito tener una lista de meshes
+
+        public List<TgcMesh> scene = new List<TgcMesh>();
 
         private readonly TgcMesh Pine;
+        /*
         private readonly TgcMesh Shrub;
         private readonly TgcMesh Shrub2;
         private readonly TgcMesh Plant;
         private readonly TgcMesh Plant2;
         private readonly TgcMesh Plant3;
+        */
         private TgcSkyBox sky;
+
+        public TgcSimpleTerrain terrain;
+        public const float xzTerrainScale= 1000f;
+        public const float yTerrainScale = 30f;
 
 
         public Map(GameModel game_)
@@ -45,11 +52,11 @@ namespace TGC.Group.Model
             game = game_;
 
             Pine = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
-            Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
+            /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
             Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
             Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
             Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
-            Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");
+            Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
         }
 
         //hay algun motivo para separar construccion y init?
@@ -74,7 +81,7 @@ namespace TGC.Group.Model
             var groundOrigin = -groundSize;
             groundOrigin.Multiply(0.5f);
             var plane = new TgcPlane(groundOrigin, groundSize, TgcPlane.Orientations.XZplane, GetTexture("pasto"));
-            Scene.Meshes.Add(plane.toMesh("ground"));
+            scene.Add(plane.toMesh("ground"));
 
             PopulateMeshes(Pine, 200, 2, 10, true);
 
@@ -85,7 +92,9 @@ namespace TGC.Group.Model
 
             initSky();
 
-
+            terrain = new TgcSimpleTerrain();
+            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0,-1000,0));
+            terrain.loadTexture(game.MediaDir + "caja.jpg");
         }
         public void Render(TGCMatrix matriz)
         {
@@ -95,6 +104,7 @@ namespace TGC.Group.Model
                 box.renderAsPolygons();
             }
             //Scene.RenderAll();
+            terrain.Render();
             sky.Render();
         }
 
@@ -130,7 +140,7 @@ namespace TGC.Group.Model
                 newMesh.Position = RandomPos();
                 newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
                 newMesh.RotateY((float)(Math.PI * Random.NextDouble()));
-                Scene.Meshes.Add(newMesh);
+                scene.Add(newMesh);
                 if (withColission)
                 {
                     newMesh.BoundingBox.scaleTranslate(newMesh.Position,

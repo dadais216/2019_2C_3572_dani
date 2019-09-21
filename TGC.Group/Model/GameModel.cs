@@ -116,7 +116,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            map.Scene.DisposeAll();
+            map.scene.Clear();
         }
 
         
