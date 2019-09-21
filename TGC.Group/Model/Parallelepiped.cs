@@ -142,7 +142,7 @@ namespace TGC.Group.Model
         /// <summary>
         ///     Actualiza la caja en base a los valores configurados
         /// </summary>
-        public void updateValues(TGCVector3 center, TGCVector3 size)
+        public void updateValues(TGCVector3 size)
         {
             var c = Color.ToArgb();
             var x = size.X / 2;
@@ -356,8 +356,8 @@ namespace TGC.Group.Model
         public static Parallelepiped fromSize(TGCVector3 center, TGCVector3 size)
         {
             var box = new Parallelepiped();
-            box.updateValues(center, size);
-
+            box.updateValues(size);
+            box.transform(TGCMatrix.Translation(center));
             return box;
         }
 

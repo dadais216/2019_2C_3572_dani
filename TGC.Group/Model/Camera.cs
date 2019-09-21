@@ -162,7 +162,7 @@ namespace TGC.Group.Model.Camera
             moveXZ.Y = 0;
             moveXZ.Normalize();
 
-            eyePosition += moveXZ * MovementSpeed * elapsedTime;
+            TGCVector3 moving = moveXZ * MovementSpeed * elapsedTime;
 
             var displacement = new TGCVector3(0, 0, 0);
             const float border = 100f;
@@ -188,73 +188,83 @@ namespace TGC.Group.Model.Camera
                 //la solucion seria medir de forma absoluta desde el comienzo del salto
             underRoof = false;
 
-            eyePosition += up.Direction* vSpeed*elapsedTime * 100;
+            moving += up.Direction* vSpeed*elapsedTime * 100;
 
 
             //rayos colision
-            horizontal[0].Origin = eyePosition;
-            horizontal[1].Origin = eyePosition;
-            horizontal[2].Origin = eyePosition;
-            horizontal[3].Origin = eyePosition;
-            up.Origin = eyePosition;
-            down.Origin = eyePosition;
-
 
             //se podrian tirar rayos en las diagonales para manejar mejor esquinas tambien.
-            //se podria tirar rayos solo en las direcciones que me estoy moviendo
+            //se podria tirar rayos solo en las direcciones ortogonales que me estoy moviendo
             //se podria tirar solo un rayo horizontal en la direccion que me muevo y sacar el
             //desplazamiento haciendo cuentas con la normal del triangulo
 
             //en la colision se asume que el centro del personaje nunca atraviesa la pared
-            //hay un bug con que si se saca de focus el juego el elapsedtime se acumula mucho. La solucion
-            //es poner una pausa o limitar el elapsedtime maximo
-            foreach (var box in map.collisions)
+
+            //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas
+            //con fps bajos va a correr todavia mas lento pero va a ser consistente
+            float dist=moving.Length();
+            int iters = (int)FastMath.Ceiling(dist/100f);
+
+            Logger.Log(dist.ToString()+"  "+iters.ToString());
+
+            for (int i = 0; i < iters; i++)
             {
-                foreach (TgcRay dir in horizontal)
+                eyePosition += new TGCVector3(moving.X/iters,moving.Y/iters,moving.Z/iters);
+
+                horizontal[0].Origin = eyePosition;
+                horizontal[1].Origin = eyePosition;
+                horizontal[2].Origin = eyePosition;
+                horizontal[3].Origin = eyePosition;
+                up.Origin = eyePosition;
+                down.Origin = eyePosition;
+
+                foreach (var box in map.collisions)
                 {
-                    if (box.intersectRay(dir, out t, out q) && t < border)
+                    foreach (TgcRay dir in horizontal)
                     {
-                        displacement += -dir.Direction * (border - t);
+                        if (box.intersectRay(dir, out t, out q) && t < border)
+                        {
+                            displacement += -dir.Direction * (border - t);
+                        }
                     }
-                }
 
-                if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
-                {
-                    if (t < border)
-                        displacement += up.Direction * (border - t);
-                    onBox = true;
-                    Logger.Log("hit");
-                }
-                else
-                {
-                    Logger.Log("fail");
-                }
-
-                if (box.intersectRay(up, out t, out q) && t < border)
-                {
-                    underRoof = true;
-                    if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                    if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
                     {
-                        eyePosition = eyePositionBefore;
-                        goto setCamera;
+                        if (t < border)
+                            displacement += up.Direction * (border - t);
+                        onBox = true;
+                        //Logger.Log("hit");
                     }
-                    displacement += -up.Direction * (border - t);
-                    vSpeed = 0f;
-                    
+                    else
+                    {
+                        //Logger.Log("fail");
+                    }
+
+                    if (box.intersectRay(up, out t, out q) && t < border)
+                    {
+                        underRoof = true;
+                        if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                        {
+                            eyePosition = eyePositionBefore;
+                            goto setCamera;
+                        }
+                        displacement += -up.Direction * (border - t);
+                        vSpeed = 0f;
+
+                    }
+
                 }
 
+                //Logger.Log(vSpeed);
+
+
+                //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
+                //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
+                //sistema aparte es simple y es mucho mas eficiente
+                //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
+
+                eyePosition += displacement;
             }
-
-            Logger.Log(vSpeed);
-
-
-            //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
-            //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
-            //sistema aparte es simple y es mucho mas eficiente
-            //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
-
-            eyePosition += displacement;
-
             var zxScale = Map.xzTerrainScale;
             var yScale = Map.yTerrainScale;
 

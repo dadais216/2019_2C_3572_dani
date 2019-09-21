@@ -75,24 +75,25 @@ namespace TGC.Group.Model
             PreUpdate();
 
 
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.H)) matriz.M21 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.J)) matriz.M22 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K)) matriz.M23 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.B)) matriz.M31 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.H)) matriz.M21 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.J)) matriz.M22 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K)) matriz.M23 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.B)) matriz.M31 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += ElapsedTime;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += ElapsedTime;
 
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += .01f;
+            //ni idea de por que la traslacion es tan lenta
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += ElapsedTime * 5000;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += ElapsedTime * 5000;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += ElapsedTime * 5000;
 
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += .01f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += .01f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += 0.1f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f;
 
 
             PostUpdate();

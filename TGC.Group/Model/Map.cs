@@ -66,10 +66,10 @@ namespace TGC.Group.Model
             collisions = new List<Parallelepiped>();
 
             GenerateTexturedBox(new TGCVector3(-400f, 7500f, -200f), TGCVector3.One * 600, "caja");
-            for (var i = 0; i < 0; i++)
+            for (var i = 0; i < 80; i++)
             {
                 var size = Random.Next(20, 4000);
-                var position = new TGCVector3(Random.Next(500, 5000), Random.Next(8500, 9500), Random.Next(500, 5000));
+                var position = new TGCVector3(-900000, Random.Next(8500, 9500), Random.Next(500, 5000));
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
 
