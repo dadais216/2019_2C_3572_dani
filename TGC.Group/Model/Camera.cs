@@ -53,7 +53,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        private TGCVector3 eyePosition = Map.Origin;
+        private TGCVector3 eyePosition = new TGCVector3(0,9500,0);
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -70,8 +70,10 @@ namespace TGC.Group.Model.Camera
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
+
         private bool onGround=false;
         private float vSpeed=10;
+        private bool underRoof;
 
 
         /// <summary>
@@ -142,15 +144,8 @@ namespace TGC.Group.Model.Camera
             }
 
 
-            //en la colision se asume que el centro del personaje nunca atraviesa la pared
 
-            //rayos colision
-            horizontal[0].Origin = eyePosition;
-            horizontal[1].Origin = eyePosition;
-            horizontal[2].Origin = eyePosition;
-            horizontal[3].Origin = eyePosition;
-            up.Origin = eyePosition;
-            down.Origin = eyePosition;
+
 
             if (Input.keyDown(Key.W))
                 inputMove += Map.South;
@@ -160,7 +155,9 @@ namespace TGC.Group.Model.Camera
                 inputMove += Map.East;
             if (Input.keyDown(Key.D))
                 inputMove += Map.West;
-            
+
+            TGCVector3 eyePositionBefore = new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z);
+
             TGCVector3 moveXZ = TGCVector3.TransformNormal(inputMove, cameraRotation);
             moveXZ.Y = 0;
             moveXZ.Normalize();
@@ -173,10 +170,44 @@ namespace TGC.Group.Model.Camera
             float t;
             TGCVector3 q;
 
+            bool onBox=false;
+            //salto
+            if (onGround)
+            {
+                if (Input.keyDown(Key.Space)&&!underRoof)
+                    vSpeed = 100f;
+                else
+                    vSpeed = -20f;//porque sino va pegando saltitos en la bajada
+            }
+            else
+                vSpeed = Math.Max(vSpeed - elapsedTime * 100, -100);//gravedad
+                //v=a*t
+                //x=v*t
+                //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
+                //sigo con elapsed porque no note una diferencia importante
+                //la solucion seria medir de forma absoluta desde el comienzo del salto
+            underRoof = false;
+
+            eyePosition += up.Direction* vSpeed*elapsedTime * 100;
+
+
+            //rayos colision
+            horizontal[0].Origin = eyePosition;
+            horizontal[1].Origin = eyePosition;
+            horizontal[2].Origin = eyePosition;
+            horizontal[3].Origin = eyePosition;
+            up.Origin = eyePosition;
+            down.Origin = eyePosition;
+
+
             //se podrian tirar rayos en las diagonales para manejar mejor esquinas tambien.
             //se podria tirar rayos solo en las direcciones que me estoy moviendo
             //se podria tirar solo un rayo horizontal en la direccion que me muevo y sacar el
             //desplazamiento haciendo cuentas con la normal del triangulo
+
+            //en la colision se asume que el centro del personaje nunca atraviesa la pared
+            //hay un bug con que si se saca de focus el juego el elapsedtime se acumula mucho. La solucion
+            //es poner una pausa o limitar el elapsedtime maximo
             foreach (var box in map.collisions)
             {
                 foreach (TgcRay dir in horizontal)
@@ -187,55 +218,34 @@ namespace TGC.Group.Model.Camera
                     }
                 }
 
-
-                if (Input.keyDown(Key.Space) && onGround)
-                    vSpeed = 5f;
-
                 if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
                 {
                     if (t < border)
                         displacement += up.Direction * (border - t);
-                    onGround = true;
-                    vSpeed = 0f;
+                    onBox = true;
+                    Logger.Log("hit");
                 }
                 else
                 {
-                    if (!onGround)
-                    {
-                        vSpeed = Math.Max(vSpeed-elapsedTime * 1,-9);//gravedad
-                    }
-
-                    onGround = false;
+                    Logger.Log("fail");
                 }
 
-                displacement += up.Direction * vSpeed*elapsedTime*100;
-                //Logger.Log(vSpeed);
                 if (box.intersectRay(up, out t, out q) && t < border)
                 {
+                    underRoof = true;
+                    if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                    {
+                        eyePosition = eyePositionBefore;
+                        goto setCamera;
+                    }
                     displacement += -up.Direction * (border - t);
                     vSpeed = 0f;
+                    
                 }
 
             }
 
-
-            /*
-            var minNotNull = new Func<float, float, float>((aS, bS) => {
-                var a=Math.Abs(aS);
-                var b = Math.Abs(bS);
-                if (a == 0 && b == 0) return 0;
-                if (a == 0) return b;
-                if (b == 0) return a;
-                if (a < b) return a;
-                return b;
-            });
-
-            float minVal = minNotNull(minNotNull(displacement.X, displacement.Y),displacement.Z);
-            if (Math.Abs(displacement.X) != minVal) displacement.X = 0;
-            if (Math.Abs(displacement.Y) != minVal) displacement.Y = 0;
-            if (Math.Abs(displacement.Z) != minVal) displacement.Z = 0;
-            */
-            //Logger.Log(displacement);
+            Logger.Log(vSpeed);
 
 
             //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
@@ -258,10 +268,10 @@ namespace TGC.Group.Model.Camera
             int hz = (int)FastMath.Floor(z) + hm.GetLength(1) / 2;
 
             //interpolacion bilineal
-            float Yx0z0 = (hm[hx, hz]-1000)*yScale;
-            float Yx1z0 = (hm[hx+1, hz] - 1000) * yScale;
-            float Yx0z1 = (hm[hx, hz+1] - 1000) * yScale;
-            float Yx1z1 = (hm[hx+1, hz+1] - 1000) * yScale;
+            float Yx0z0 = (hm[hx, hz])*yScale;
+            float Yx1z0 = (hm[hx+1, hz]) * yScale;
+            float Yx0z1 = (hm[hx, hz+1]) * yScale;
+            float Yx1z1 = (hm[hx+1, hz+1]) * yScale;
 
             float dx = x - FastMath.Floor(x);
             float dz = z - FastMath.Floor(z);
@@ -275,12 +285,13 @@ namespace TGC.Group.Model.Camera
                 eyePosition.Y = interpol + 500;
                 onGround = true;
             }
+            else
+            {
+                onGround = onBox;
+            }
 
 
-
-
-
-
+        setCamera:
 
             TGCVector3 cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
             TGCVector3 cameraFinalTarget = eyePosition + cameraRotatedTarget;

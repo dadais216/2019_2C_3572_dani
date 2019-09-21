@@ -18,7 +18,7 @@ namespace TGC.Group.Model
         private readonly Device Device = D3DDevice.Instance.Device;
         private readonly Random Random = new Random();
 
-        internal static readonly TGCVector3 Origin = new TGCVector3(0, 20000, 0);
+        internal static readonly TGCVector3 Origin = new TGCVector3(0, 0000, 0);
         internal static readonly TGCVector3 Up = TGCVector3.Up;
         internal static readonly TGCVector3 Down = -Up;
         internal static readonly TGCVector3 East = new TGCVector3(1, 0, 0);
@@ -43,8 +43,8 @@ namespace TGC.Group.Model
         private TgcSkyBox sky;
 
         public TgcSimpleTerrain terrain;
-        public const float xzTerrainScale= 1000f;
-        public const float yTerrainScale = 30f;
+        public const float xzTerrainScale= 2000f;
+        public const float yTerrainScale = 40f;
 
 
         public Map(GameModel game_)
@@ -65,13 +65,11 @@ namespace TGC.Group.Model
             // Instancio cajas
             collisions = new List<Parallelepiped>();
 
-            GenerateTexturedBox(new TGCVector3(-400f, 000f, -200f), TGCVector3.One * 600, "caja");
-            GenerateTexturedBox(new TGCVector3(-00f, -1000f, -00f), TGCVector3.One * 600, "caja");
-
-            for (var i = 0; i < 10; i++)
+            GenerateTexturedBox(new TGCVector3(-400f, 7500f, -200f), TGCVector3.One * 600, "caja");
+            for (var i = 0; i < 0; i++)
             {
-                var size = Random.Next(20, 2000);
-                var position = RandomPos() + Up * (size / 2);
+                var size = Random.Next(20, 4000);
+                var position = new TGCVector3(Random.Next(500, 5000), Random.Next(8500, 9500), Random.Next(500, 5000));
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
 
@@ -93,7 +91,7 @@ namespace TGC.Group.Model
             initSky();
 
             terrain = new TgcSimpleTerrain();
-            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0,-1000,0));
+            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0,0000,0));
             terrain.loadTexture(game.MediaDir + "caja.jpg");
         }
         public void Render(TGCMatrix matriz)
@@ -106,17 +104,6 @@ namespace TGC.Group.Model
             //Scene.RenderAll();
             terrain.Render();
             sky.Render();
-        }
-
-        private int RanInt()
-        {
-            const int max = 3000;
-            return Random.Next(-max, max);
-        }
-
-        private TGCVector3 RandomPos()
-        {
-            return RanInt() * North + RanInt() * East;
         }
 
         private TgcTexture GetTexture(string textureName)
@@ -137,7 +124,7 @@ namespace TGC.Group.Model
             for (var i = 0; i < maxElements; i++)
             {
                 var newMesh = mesh.clone(i.ToString());
-                newMesh.Position = RandomPos();
+                newMesh.Position = new TGCVector3(Random.Next(20, 2000), Random.Next(2000, 4000), Random.Next(20, 2000));
                 newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
                 newMesh.RotateY((float)(Math.PI * Random.NextDouble()));
                 scene.Add(newMesh);
@@ -161,7 +148,7 @@ namespace TGC.Group.Model
         {
             //aumentar render distance
             D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(D3DDevice.Instance.FieldOfView, D3DDevice.Instance.AspectRatio,
-D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10f).ToMatrix();
+D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 1000f).ToMatrix();
 
 
             sky = new TgcSkyBox();
