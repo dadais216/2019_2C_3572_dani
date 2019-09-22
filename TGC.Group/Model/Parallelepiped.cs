@@ -48,106 +48,33 @@ namespace TGC.Group.Model
                 Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColoredTextured.Format, Pool.Default);
 
             Transform = TGCMatrix.Identity;
-            Color = Color.White;
-
-            //sospechoso
-            Effect = TGCShaders.Instance.VariosShader;
-            Technique = TGCShaders.T_POSITION_COLORED;
 
             //triangles = new TgcTriangle[12];
             vertex = new TGCVector3[8];
             transformedVertex = new TGCVector3[8];
         }
 
-        /// <summary>
-        ///     Color de los vértices de la caja
-        /// </summary>
-        public Color Color { get; set; }
-
-        /// <summary>
-        ///     Shader del mesh
-        /// </summary>
-        public Effect Effect { get; set; }
-
-        /// <summary>
-        ///     Technique que se va a utilizar en el effect.
-        ///     Cada vez que se llama a Render() se carga este Technique (pisando lo que el shader ya tenia seteado)
-        /// </summary>
-        public string Technique { get; set; }
-
-
-        /// <summary>
-        ///     Textura de la caja
-        /// </summary>
-        public TgcTexture Texture { get; private set; }
-
-        /// <summary>
-        ///     Renderizar la caja
-        /// </summary>
-        public void Render()
-        {
-
-            //renderizar
-            if (Texture != null)
-            {
-                TexturesManager.Instance.shaderSet(Effect, "texDiffuseMap", Texture);
-            }
-            else
-            {
-                TexturesManager.Instance.clear(0);
-            }
-            TexturesManager.Instance.clear(1);
-
-            TGCShaders.Instance.SetShaderMatrix(Effect, Transform);
-            D3DDevice.Instance.Device.VertexDeclaration = TGCShaders.Instance.VdecPositionColoredTextured;
-            Effect.Technique = Technique;
-            D3DDevice.Instance.Device.SetStreamSource(0, vertexBuffer, 0);
-
-            //Render con shader
-            Effect.Begin(0);
-            Effect.BeginPass(0);
-            D3DDevice.Instance.Device.DrawPrimitives(PrimitiveType.TriangleList, 0, 12);
-            Effect.EndPass();
-            Effect.End();
-
-        }
 
         /// <summary>
         ///     Liberar los recursos de la caja
         /// </summary>
         public void Dispose()
         {
-            if (Texture != null)
-            {
-                Texture.dispose();
-            }
             if (vertexBuffer != null && !vertexBuffer.Disposed)
             {
                 vertexBuffer.Dispose();
             }
         }
-        /// <summary>
-        ///     Configurar textura de la pared
-        /// </summary>
-        public void setTexture(TgcTexture texture)
-        {
-            if (Texture != null)
-            {
-                Texture.dispose();
-            }
-            Texture = texture;
-            Technique = TGCShaders.T_POSITION_COLORED_TEXTURED;
-        }
 
         /// <summary>
         ///     Actualiza la caja en base a los valores configurados
         /// </summary>
-        public void updateValues(TGCVector3 size)
+        public void updateValues()
         {
-            var c = Color.ToArgb();
-            var x = size.X / 2;
-            var y = size.Y / 2;
-            var z = size.Z / 2;
+            var c = Color.White.ToArgb();
+            var x = 1f / 2;
+            var y = 1f / 2;
+            var z = 1f / 2;
             const float u = 1f;
             const float v = 1f;
             const float offsetU = 0f;
@@ -346,18 +273,11 @@ namespace TGC.Group.Model
 
         #region Creacion
 
-        public static Parallelepiped fromSize(TGCVector3 center, TGCVector3 size, TgcTexture texture)
-        {
-            var box = fromSize(center, size);
-            box.setTexture(texture);
-            return box;
-        }
-
-        public static Parallelepiped fromSize(TGCVector3 center, TGCVector3 size)
+        public static Parallelepiped fromTransform(TGCMatrix transform)
         {
             var box = new Parallelepiped();
-            box.updateValues(size);
-            box.transform(TGCMatrix.Translation(center));
+            box.updateValues();
+            box.transform(transform);
             return box;
         }
 

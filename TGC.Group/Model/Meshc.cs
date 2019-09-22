@@ -16,24 +16,41 @@ namespace TGC.Group
         //el tema esta en que sceneLoader me devuelve un mesh, y no se como mover eso a un meshc
         public Parallelepiped paralleliped;
 
-        private TGCMatrix originalMesh;
-        private TGCMatrix originalParalleliped;
 
-        public void setOriginals()
-        {
-            originalMesh = mesh.Transform;
-            originalParalleliped = paralleliped.Transform;
-        }
+        //no tengo claro si es mas rapido tener un mesh propio en cada meshc o 
+        //tener uno solo e ir aplicando transformaciones.
+        //Por lo que probe, con 200 arboles antes de hacer ninguna optimizacion:
+        //un mesh en cada meshc, transformaciones: 33fps
+        //uno solo, transformaciones: 33fps
+        //un mesh en cada meshc, sin transformaciones: 33fps
+        //parece ser que da lo mismo
+        //creo que prefiero tirarme por tener un solo mesh porque en teoria deberia ser mas rapido, 
+        //y no estoy ganando ningun beneficio por tener copias. No parece importar mucho igual
+
+        //con parallelepiped voy a mantener copias porque los necesito transformados 2 veces por frame,
+        //en la colision y el render
+
+        public TGCMatrix originalMesh;
+        
+        //eventualmente voy a tener una lista de colisiones en vez de una sola
+        public TGCMatrix meshToParalleliped;
 
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
+        //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
+        //porque voy a querer tener transformaciones distintas para cada cosa y seria mas comodo
         public void transform(TGCMatrix matrix)
         {
+#if true
+
+            mesh.Transform = matrix*originalMesh;
+            paralleliped.transform(meshToParalleliped*matrix*originalMesh);
+#else
             mesh.Transform = originalMesh*matrix;
             paralleliped.transform(originalParalleliped*matrix);
-
-            //creo que lo que quiero hacer aca es sumar en vez de multiplicar
-            //el tema es que las matrices originales son distintas, tengo que guardar una matriz que me permita
-            //moverme entre esos dos espacios
+#endif
         }
+
+        
+        
     }
 }

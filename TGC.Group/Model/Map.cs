@@ -28,8 +28,6 @@ namespace TGC.Group.Model
 
         GameModel game;
 
-        public List<Parallelepiped> collisions=new List<Parallelepiped>();//se usa para las cajas porque no son mesh. Eventualmente lo voy a sacar
-
         public List<Meshc> scene = new List<Meshc>();
 
         /*
@@ -61,30 +59,17 @@ namespace TGC.Group.Model
         //hay algun motivo para separar construccion y init?
         public void Init()
         {
-            GenerateTexturedBox(new TGCVector3(0f, 0f, -0f), TGCVector3.One * 600, "caja");
-            for (var i = 0; i < 0; i++)
-            {
-                var size = Random.Next(20, 4000);
-                var position = new TGCVector3(-900000, Random.Next(8500, 9500), Random.Next(500, 5000));
-                GenerateTexturedBox(position, TGCVector3.One * size, "caja");
-            }
-
             initSky();
 
             terrain = new TgcSimpleTerrain();
             terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
             terrain.loadTexture(game.MediaDir + "caja.jpg");
 
-            PopulateMeshes("Pino\\Pino-TgcScene.xml", 200, true);
+            PopulateMeshes("Pino\\Pino-TgcScene.xml", 100, true);
 
         }
         public void Render(TGCMatrix matriz)
         {
-            collisions[0].transform(matriz);
-            foreach (var box in collisions)
-            {
-                box.renderAsPolygons();
-            }
             foreach(var mesh in scene)
             {
                 mesh.transform(matriz);
@@ -109,52 +94,42 @@ namespace TGC.Group.Model
 
         private void PopulateMeshes(string filename, int maxElements, bool withColission)
         {
+            var mesh = GetMeshFromScene(filename);
+
             for (var i = 0; i < maxElements; i++)
             {
-                Meshc mesh = new Meshc();
-                mesh.mesh = GetMeshFromScene(filename);
+                Meshc meshc = new Meshc();
+                meshc.mesh = mesh;
 
                 var squareRad = 40000;
-                var pos = new TGCVector3(Random.Next(-squareRad, squareRad),0,Random.Next(-squareRad, squareRad));
+                var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
 
 
                 var hm = terrain.HeightmapData;
-                pos.Y = (hm[(int)(pos.X / xzTerrainScale)+hm.GetLength(0)/2, (int)(pos.Z/ xzTerrainScale)+hm.GetLength(1)/2] - yTerrainOffset )* yTerrainScale - 200f;
+                pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
 
                 var scale = TGCVector3.One * Random.Next(20, 500);
 
-                mesh.mesh.Position = pos;
-                mesh.mesh.Scale = scale;
+                meshc.mesh.AutoTransformEnable = false;
+                meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
 
-                scale.Y *= 20;
-                scale *= 7.5f;
 
-                pos.Y += .5f*scale.Y;
                 //colision no tiene que ser igual al mesh
 
+                var scaleDiff = new TGCVector3(1f, 20f, 1f) * 7.5f;
+                var posDiff = new TGCVector3(0, .5f*scaleDiff.Y, 0);
 
-                mesh.paralleliped = Parallelepiped.fromSize(
-                    pos,
-                    scale
-                    ) ;
+                meshc.meshToParalleliped = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
+
+                meshc.paralleliped = Parallelepiped.fromTransform(
+                    meshc.meshToParalleliped * meshc.mesh.Transform
+                    );
 
 
-                mesh.mesh.UpdateMeshTransform();
-                mesh.mesh.AutoTransformEnable = false;
 
-
-                mesh.setOriginals();
-
-                scene.Add(mesh);
+                scene.Add(meshc);
             }
-        }
-
-        private void GenerateTexturedBox(TGCVector3 position, TGCVector3 size, string textureName)
-        {
-            var box = Parallelepiped.fromSize(position, size, GetTexture(textureName));
-            box.transform(TGCMatrix.Translation(position));
-            collisions.Add(box);
         }
 
         private void initSky()
