@@ -174,13 +174,15 @@ namespace TGC.Group.Model.Camera
             //salto
             if (onGround)
             {
-                if (Input.keyDown(Key.Space)&&!underRoof)
-                    vSpeed = 100f;
+                if (Input.keyDown(Key.Space) && !underRoof)
+                {
+                    vSpeed = 100f- Math.Max(vSpeed - elapsedTime * 100, -180);//gravedad;
+                }
                 else
                     vSpeed = -20f;//porque sino va pegando saltitos en la bajada
             }
             else
-                vSpeed = Math.Max(vSpeed - elapsedTime * 100, -100);//gravedad
+                vSpeed = Math.Max(vSpeed - elapsedTime * 100, -180);//gravedad
                 //v=a*t
                 //x=v*t
                 //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
@@ -203,9 +205,12 @@ namespace TGC.Group.Model.Camera
             //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas
             //con fps bajos va a correr todavia mas lento pero va a ser consistente
             float dist=moving.Length();
-            int iters = (int)FastMath.Ceiling(dist/100f);
+            int iters = (int)FastMath.Ceiling(dist/50f);
 
-            Logger.Log(dist.ToString()+"  "+iters.ToString());
+            Logger.Log(iters.ToString()+"   "+dist.ToString());
+
+            iters = FastMath.Min(iters, 10);//dropear iteraciones en casos extremos, sino
+                                            //el elapsedTime va a ser todavia mas grande en el proximo frame
 
             for (int i = 0; i < iters; i++)
             {
@@ -218,8 +223,9 @@ namespace TGC.Group.Model.Camera
                 up.Origin = eyePosition;
                 down.Origin = eyePosition;
 
-                foreach (var box in map.collisions)
+                foreach (var meshc in map.scene)
                 {
+                    var box = meshc.paralleliped;
                     foreach (TgcRay dir in horizontal)
                     {
                         if (box.intersectRay(dir, out t, out q) && t < border)
@@ -267,7 +273,7 @@ namespace TGC.Group.Model.Camera
             }
             var zxScale = Map.xzTerrainScale;
             var yScale = Map.yTerrainScale;
-
+            var yOffset = Map.yTerrainOffset;
 
             var hm = terrain.HeightmapData;
 
@@ -278,10 +284,10 @@ namespace TGC.Group.Model.Camera
             int hz = (int)FastMath.Floor(z) + hm.GetLength(1) / 2;
 
             //interpolacion bilineal
-            float Yx0z0 = (hm[hx, hz])*yScale;
-            float Yx1z0 = (hm[hx+1, hz]) * yScale;
-            float Yx0z1 = (hm[hx, hz+1]) * yScale;
-            float Yx1z1 = (hm[hx+1, hz+1]) * yScale;
+            float Yx0z0 = (hm[hx, hz] - yOffset) *yScale;
+            float Yx1z0 = (hm[hx+1, hz] - yOffset) * yScale;
+            float Yx0z1 = (hm[hx, hz+1] - yOffset) * yScale;
+            float Yx1z1 = (hm[hx+1, hz+1] - yOffset) * yScale;
 
             float dx = x - FastMath.Floor(x);
             float dz = z - FastMath.Floor(z);

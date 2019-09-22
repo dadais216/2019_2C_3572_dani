@@ -54,7 +54,7 @@ namespace TGC.Group.Model
 
             map.Init();
 
-            matriz = map.collisions[0].Transform;
+            matriz = TGCMatrix.Identity;
 
             // Instancio camara
             Camara = new Camera.Camera(Input,map);

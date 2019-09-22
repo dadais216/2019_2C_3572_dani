@@ -28,11 +28,10 @@ namespace TGC.Group.Model
 
         GameModel game;
 
-        public List<Parallelepiped> collisions;
+        public List<Parallelepiped> collisions=new List<Parallelepiped>();//se usa para las cajas porque no son mesh. Eventualmente lo voy a sacar
 
-        public List<TgcMesh> scene = new List<TgcMesh>();
+        public List<Meshc> scene = new List<Meshc>();
 
-        private readonly TgcMesh Pine;
         /*
         private readonly TgcMesh Shrub;
         private readonly TgcMesh Shrub2;
@@ -45,13 +44,13 @@ namespace TGC.Group.Model
         public TgcSimpleTerrain terrain;
         public const float xzTerrainScale= 2000f;
         public const float yTerrainScale = 40f;
+        public const float yTerrainOffset = 300f;
 
 
         public Map(GameModel game_)
         {
             game = game_;
 
-            Pine = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
             /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
             Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
             Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
@@ -62,37 +61,22 @@ namespace TGC.Group.Model
         //hay algun motivo para separar construccion y init?
         public void Init()
         {
-            // Instancio cajas
-            collisions = new List<Parallelepiped>();
-
-            GenerateTexturedBox(new TGCVector3(-400f, 7500f, -200f), TGCVector3.One * 600, "caja");
-            for (var i = 0; i < 80; i++)
+            GenerateTexturedBox(new TGCVector3(0f, 0f, -0f), TGCVector3.One * 600, "caja");
+            for (var i = 0; i < 0; i++)
             {
                 var size = Random.Next(20, 4000);
                 var position = new TGCVector3(-900000, Random.Next(8500, 9500), Random.Next(500, 5000));
                 GenerateTexturedBox(position, TGCVector3.One * size, "caja");
             }
 
-
-
-            var groundSize = (North + East) * 20000;
-            var groundOrigin = -groundSize;
-            groundOrigin.Multiply(0.5f);
-            var plane = new TgcPlane(groundOrigin, groundSize, TgcPlane.Orientations.XZplane, GetTexture("pasto"));
-            scene.Add(plane.toMesh("ground"));
-
-            PopulateMeshes(Pine, 200, 2, 10, true);
-
-            /*PopulateMeshes(Shrub2, 500, 1, 4, false);
-            PopulateMeshes(Plant, 60, 1, 3, false);
-            PopulateMeshes(Plant2, 60, 1, 3, false);
-            PopulateMeshes(Plant3, 60, 1, 3, false);*/
-
             initSky();
 
             terrain = new TgcSimpleTerrain();
-            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0,0000,0));
+            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
             terrain.loadTexture(game.MediaDir + "caja.jpg");
+
+            PopulateMeshes("Pino\\Pino-TgcScene.xml", 200, true);
+
         }
         public void Render(TGCMatrix matriz)
         {
@@ -101,7 +85,12 @@ namespace TGC.Group.Model
             {
                 box.renderAsPolygons();
             }
-            //Scene.RenderAll();
+            foreach(var mesh in scene)
+            {
+                mesh.transform(matriz);
+                mesh.mesh.Render();
+                //mesh.paralleliped.renderAsPolygons();
+            }
             terrain.Render();
             sky.Render();
         }
@@ -118,22 +107,46 @@ namespace TGC.Group.Model
             return auxScene.Meshes[0];
         }
 
-        private void PopulateMeshes(TgcMesh mesh, int maxElements, int scaleMin, int scaleMax, bool withColission)
+        private void PopulateMeshes(string filename, int maxElements, bool withColission)
         {
-            if (scaleMin > scaleMax) return;
             for (var i = 0; i < maxElements; i++)
             {
-                var newMesh = mesh.clone(i.ToString());
-                newMesh.Position = new TGCVector3(Random.Next(20, 2000), Random.Next(2000, 4000), Random.Next(20, 2000));
-                newMesh.Scale = TGCVector3.One * Random.Next(scaleMin, scaleMax);
-                newMesh.RotateY((float)(Math.PI * Random.NextDouble()));
-                scene.Add(newMesh);
-                if (withColission)
-                {
-                    newMesh.BoundingBox.scaleTranslate(newMesh.Position,
-                        new TGCVector3(newMesh.Scale.X * 0.3f, newMesh.Scale.Y, newMesh.Scale.Z * 0.3f));
-                    //Collisions.Add(newMesh.BoundingBox);
-                }
+                Meshc mesh = new Meshc();
+                mesh.mesh = GetMeshFromScene(filename);
+
+                var squareRad = 40000;
+                var pos = new TGCVector3(Random.Next(-squareRad, squareRad),0,Random.Next(-squareRad, squareRad));
+
+
+                var hm = terrain.HeightmapData;
+                pos.Y = (hm[(int)(pos.X / xzTerrainScale)+hm.GetLength(0)/2, (int)(pos.Z/ xzTerrainScale)+hm.GetLength(1)/2] - yTerrainOffset )* yTerrainScale - 200f;
+
+                var scale = TGCVector3.One * Random.Next(20, 500);
+
+                mesh.mesh.Position = pos;
+                mesh.mesh.Scale = scale;
+
+
+                scale.Y *= 20;
+                scale *= 7.5f;
+
+                pos.Y += .5f*scale.Y;
+                //colision no tiene que ser igual al mesh
+
+
+                mesh.paralleliped = Parallelepiped.fromSize(
+                    pos,
+                    scale
+                    ) ;
+
+
+                mesh.mesh.UpdateMeshTransform();
+                mesh.mesh.AutoTransformEnable = false;
+
+
+                mesh.setOriginals();
+
+                scene.Add(mesh);
             }
         }
 
