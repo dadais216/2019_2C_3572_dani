@@ -117,7 +117,7 @@ namespace TGC.Group.Model.Camera
             }
         }
 
-        
+
 
 
         /// <summary>
@@ -125,6 +125,9 @@ namespace TGC.Group.Model.Camera
         ///     Presenta movimientos basicos a partir de input de teclado W, A, S, D, Espacio, Control y rotraciones con el mouse.
         /// </summary>
         /// <param name="elapsedTime"></param>
+
+
+
         public override void UpdateCamera(float elapsedTime)
         {
             //Lock camera
@@ -176,7 +179,7 @@ namespace TGC.Group.Model.Camera
             {
                 if (Input.keyDown(Key.Space) && !underRoof)
                 {
-                    vSpeed = 100f- Math.Max(vSpeed - elapsedTime * 100, -180);//gravedad;
+                    vSpeed = 100f- Math.Max(-elapsedTime * 100, -180);
                 }
                 else
                     vSpeed = -20f;//porque sino va pegando saltitos en la bajada
@@ -190,8 +193,10 @@ namespace TGC.Group.Model.Camera
                 //la solucion seria medir de forma absoluta desde el comienzo del salto
             underRoof = false;
 
-            moving += up.Direction* vSpeed*elapsedTime * 100;
 
+
+
+            moving += up.Direction* vSpeed*elapsedTime * 100;
 
             //rayos colision
 
@@ -207,10 +212,12 @@ namespace TGC.Group.Model.Camera
             float dist=moving.Length();
             int iters = (int)FastMath.Ceiling(dist/50f);
 
-            Logger.Log(iters.ToString()+"   "+dist.ToString());
+            //Logger.Log(iters.ToString()+"   "+dist.ToString());
 
             iters = FastMath.Min(iters, 10);//dropear iteraciones en casos extremos, sino
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
+
+
 
             for (int i = 0; i < iters; i++)
             {
@@ -223,7 +230,7 @@ namespace TGC.Group.Model.Camera
                 up.Origin = eyePosition;
                 down.Origin = eyePosition;
 
-                foreach (var meshc in map.scene)
+                foreach (var meshc in map.chunks.fromCoordinates(eyePosition,true).meshes)
                 {
                     var box = meshc.paralleliped;
                     foreach (TgcRay dir in horizontal)

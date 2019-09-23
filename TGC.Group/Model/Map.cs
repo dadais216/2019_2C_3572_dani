@@ -28,7 +28,7 @@ namespace TGC.Group.Model
 
         GameModel game;
 
-        public List<Meshc> scene = new List<Meshc>();
+        public Chunks chunks=new Chunks();
 
         /*
         private readonly TgcMesh Shrub;
@@ -48,6 +48,7 @@ namespace TGC.Group.Model
         public Map(GameModel game_)
         {
             game = game_;
+            Meshc.chunks = chunks;
 
             /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
             Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
@@ -63,19 +64,15 @@ namespace TGC.Group.Model
 
             terrain = new TgcSimpleTerrain();
             terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
-            terrain.loadTexture(game.MediaDir + "caja.jpg");
+            //terrain.loadTexture(game.MediaDir + "caja.jpg");
+            terrain.loadTexture(game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
-            PopulateMeshes("Pino\\Pino-TgcScene.xml", 100, true);
+            PopulateMeshes("Pino\\Pino-TgcScene.xml", 500, true);
 
         }
         public void Render(TGCMatrix matriz)
         {
-            foreach(var mesh in scene)
-            {
-                mesh.transform(matriz);
-                mesh.mesh.Render();
-                //mesh.paralleliped.renderAsPolygons();
-            }
+            chunks.render(matriz);
             terrain.Render();
             sky.Render();
         }
@@ -123,12 +120,10 @@ namespace TGC.Group.Model
                 meshc.meshToParalleliped = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
 
                 meshc.paralleliped = Parallelepiped.fromTransform(
-                    meshc.meshToParalleliped * meshc.mesh.Transform
+                    meshc.meshToParalleliped * meshc.originalMesh
                     );
 
-
-
-                scene.Add(meshc);
+                chunks.addVertexFall(meshc);
             }
         }
 

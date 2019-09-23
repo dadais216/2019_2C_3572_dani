@@ -90,6 +90,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\Chunk.cs" />
     <Compile Include="Model\Meshc.cs" />
     <Compile Include="Form\GameForm.cs">
       <SubType>Form</SubType>

@@ -12,6 +12,11 @@ namespace TGC.Group
     //idealmente deberia hacer mi propia mesh para no arrastrar un monton de cosas que no uso
     public class Meshc
     {
+        public static Chunks chunks;
+        public static bool matrizChange;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
+        //vertexfall de un meshc particular
+
+
         public TgcMesh mesh;//me gustaria usar herencia en vez de esto pero ni ganas de ver como se hace
         //el tema esta en que sceneLoader me devuelve un mesh, y no se como mover eso a un meshc
         public Parallelepiped paralleliped;
@@ -44,6 +49,11 @@ namespace TGC.Group
 
             mesh.Transform = matrix*originalMesh;
             paralleliped.transform(meshToParalleliped*matrix*originalMesh);
+
+            if (matrizChange)
+            {
+                chunks.addVertexFall(this);
+            }
 #else
             mesh.Transform = originalMesh*matrix;
             paralleliped.transform(originalParalleliped*matrix);

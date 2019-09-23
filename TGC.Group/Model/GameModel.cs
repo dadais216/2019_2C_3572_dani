@@ -74,6 +74,25 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.I) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.H) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.J) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.K) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.B) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.N) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.M) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6) ||
+                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7))
+                Meshc.matrizChange = true;
+            else
+                Meshc.matrizChange = false;
 
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime;
@@ -117,7 +136,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            map.scene.Clear();
+
         }
 
         

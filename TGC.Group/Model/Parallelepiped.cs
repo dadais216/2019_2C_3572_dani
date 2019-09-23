@@ -31,8 +31,8 @@ namespace TGC.Group.Model
         //serian mas rapidas, pero seria mas lento la colision porque genero los triangulos en el momento. Espero
         //tener mas transformaciones que colisiones igual, ademas probablemente exista una colision mejor que 
         //probar con cada triangulo
-        public TGCVector3[] vertex;
-        private TGCVector3[] transformedVertex;
+        public TGCVector3[] vertex; //deberia ser estatico, son  siempre los mismos valores
+        public TGCVector3[] transformedVertex;
 
 
         //despues deberia sacar las cosas de dibujado de aca, dejar solo las colisiones y manejar lo demas por mesh
@@ -130,6 +130,7 @@ namespace TGC.Group.Model
 
             vertexBuffer.SetData(vertices, 0, LockFlags.None);
 
+            //estos deberian ser cte ahora
             vertex[0] = new TGCVector3(-x, -y, -z);
             vertex[1] = new TGCVector3(x, -y, -z);
             vertex[2] = new TGCVector3(-x, y, -z);
