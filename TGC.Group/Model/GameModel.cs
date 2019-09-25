@@ -23,7 +23,8 @@ namespace TGC.Group.Model
     public class GameModel : TgcExample
     {
 
-        Map map;
+        public Camera.Camera camera;
+        public Map map;
 
         /// <summary>
         ///     Constructor del juego.
@@ -35,13 +36,9 @@ namespace TGC.Group.Model
             Category = Game.Default.Category;
             Name = Game.Default.Name;
             Description = Game.Default.Description;
-            map = new Map(this);
+
         }
 
-
-
-
-        
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -51,13 +48,15 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+            camera = new Camera.Camera(Input);
+            map = new Map(this);
+            Camara = camera;
 
-            map.Init();
+            map.Init(camera);
+            camera.init(map);
+            //tengo que hacer un constructor y un init porque c# es una mentira
 
             matriz = TGCMatrix.Identity;
-
-            // Instancio camara
-            Camara = new Camera.Camera(Input,map);
 
 
         }

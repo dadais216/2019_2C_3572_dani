@@ -16,10 +16,14 @@ namespace TGC.Group.Model
         public const float MapSquareRad = 50000f;//deberia ser lo mismo que terrain
         public const float chunkLen= 10000f;
         public const int chunksPerDim = ((int)MapSquareRad / (int)chunkLen)*2;
-
         public Chunk[,] chunks = new Chunk[chunksPerDim, chunksPerDim];
-        public Chunks()
+
+
+        Camera.Camera camera;
+
+        public Chunks(Camera.Camera camera_)
         {
+            camera = camera_;
             for(int i=0;i<chunksPerDim;i++)
                 for(int j = 0; j < chunksPerDim; j++)
                 {
@@ -58,14 +62,21 @@ namespace TGC.Group.Model
         }
         public void render(TGCMatrix matriz)
         {
-            foreach(Chunk chunk in chunks)
+            //foreach(Chunk chunk in chunks)
+            //{
+            //    foreach(Meshc meshc in chunk.meshes)
+            //    {
+            //        meshc.transform(matriz);
+            //        meshc.mesh.Render();
+            //        //meshc.paralleliped.renderAsPolygons();
+            //    }
+            //}
+
+            foreach (Meshc meshc in fromCoordinates(camera.eyePosition).meshes)
             {
-                foreach(Meshc meshc in chunk.meshes)
-                {
-                    meshc.transform(matriz);
-                    meshc.mesh.Render();
-                    //meshc.paralleliped.renderAsPolygons();
-                }
+                meshc.transform(matriz);
+                meshc.mesh.Render();
+                meshc.paralleliped.renderAsPolygons();
             }
         }
     }

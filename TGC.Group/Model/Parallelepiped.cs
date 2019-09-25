@@ -31,11 +31,9 @@ namespace TGC.Group.Model
         //serian mas rapidas, pero seria mas lento la colision porque genero los triangulos en el momento. Espero
         //tener mas transformaciones que colisiones igual, ademas probablemente exista una colision mejor que 
         //probar con cada triangulo
-        public TGCVector3[] vertex; //deberia ser estatico, son  siempre los mismos valores
+        static public TGCVector3[] vertex = new TGCVector3[8];
         public TGCVector3[] transformedVertex;
 
-
-        //despues deberia sacar las cosas de dibujado de aca, dejar solo las colisiones y manejar lo demas por mesh
 
         /// <summary>
         ///     Crea una caja vacia
@@ -50,7 +48,6 @@ namespace TGC.Group.Model
             Transform = TGCMatrix.Identity;
 
             //triangles = new TgcTriangle[12];
-            vertex = new TGCVector3[8];
             transformedVertex = new TGCVector3[8];
         }
 
@@ -130,7 +127,8 @@ namespace TGC.Group.Model
 
             vertexBuffer.SetData(vertices, 0, LockFlags.None);
 
-            //estos deberian ser cte ahora
+
+            //totalmente al pedo porque es siempre lo mismo, deberia ponerlo en algun otro lado pero bueno
             vertex[0] = new TGCVector3(-x, -y, -z);
             vertex[1] = new TGCVector3(x, -y, -z);
             vertex[2] = new TGCVector3(-x, y, -z);

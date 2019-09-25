@@ -53,7 +53,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        private TGCVector3 eyePosition = new TGCVector3(0,9500,0);
+        public TGCVector3 eyePosition = new TGCVector3(0,9500,0);
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -73,18 +73,17 @@ namespace TGC.Group.Model.Camera
 
         private bool onGround=false;
         private float vSpeed=10;
-        private bool underRoof;
 
+        private bool underRoof;
+        private TGCVector3 eyePositionOffRoof;
 
         /// <summary>
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
         ///     MovementSpeed y JumpSpeed 500f, el directionView (0,0,-1)
         /// </summary>
-        public Camera(TgcD3dInput input, Map map_)
+        public Camera(TgcD3dInput input)
         {
             Input = input;
-            map = map_;
-            terrain = map.terrain;
 
             up = new TgcRay();
             up.Direction = new TGCVector3(0, 1, 0);
@@ -95,6 +94,12 @@ namespace TGC.Group.Model.Camera
             horizontal[1].Direction = new TGCVector3(0, 0, 1);
             horizontal[2].Direction = new TGCVector3(-1, 0, 0);
             horizontal[3].Direction = new TGCVector3(0, 0, -1);
+        }
+
+        internal void init(Map map_)
+        {
+            map = map_;
+            terrain = map_.terrain;
         }
 
         private TgcD3dInput Input { get; }
@@ -159,11 +164,15 @@ namespace TGC.Group.Model.Camera
             if (Input.keyDown(Key.D))
                 inputMove += Map.West;
 
-            TGCVector3 eyePositionBefore = new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z);
+            
 
             TGCVector3 moveXZ = TGCVector3.TransformNormal(inputMove, cameraRotation);
             moveXZ.Y = 0;
             moveXZ.Normalize();
+
+
+            if (Input.keyDown(Key.Q))
+                moveXZ += Map.South * 8;
 
             TGCVector3 moving = moveXZ * MovementSpeed * elapsedTime;
 
@@ -191,6 +200,10 @@ namespace TGC.Group.Model.Camera
                 //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
                 //sigo con elapsed porque no note una diferencia importante
                 //la solucion seria medir de forma absoluta desde el comienzo del salto
+
+
+            if(!underRoof)
+                eyePositionOffRoof= new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z);
             underRoof = false;
 
 
@@ -230,7 +243,9 @@ namespace TGC.Group.Model.Camera
                 up.Origin = eyePosition;
                 down.Origin = eyePosition;
 
-                foreach (var meshc in map.chunks.fromCoordinates(eyePosition,true).meshes)
+
+                //pasó que justo cuando cambio el chunck me quede adentro de un objeto, ver si solucionarlo
+                foreach (var meshc in map.chunks.fromCoordinates(eyePosition,false).meshes)
                 {
                     var box = meshc.paralleliped;
                     foreach (TgcRay dir in horizontal)
@@ -253,17 +268,21 @@ namespace TGC.Group.Model.Camera
                         //Logger.Log("fail");
                     }
 
-                    if (box.intersectRay(up, out t, out q) && t < border)
+                    if (box.intersectRay(up, out t, out q) && t < border*3)
                     {
                         underRoof = true;
-                        if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                        if (t < border)
                         {
-                            eyePosition = eyePositionBefore;
-                            goto setCamera;
+                            if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                            {
+                                eyePosition += new TGCVector3(eyePositionOffRoof.X - eyePosition.X, 0f, eyePositionOffRoof.Z - eyePosition.Z);
+                                //no es la mejor solucion porque causa mucho temblor, pero bueno
+                                goto setCamera;//salto el codigo de terreno porque puede hacer subir la camara
+                            }
+                            displacement += -up.Direction * (border - t);
+                            vSpeed = 0f;
                         }
-                        displacement += -up.Direction * (border - t);
-                        vSpeed = 0f;
-
+                        
                     }
 
                 }

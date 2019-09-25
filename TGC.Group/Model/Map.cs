@@ -26,9 +26,9 @@ namespace TGC.Group.Model
         internal static readonly TGCVector3 North = new TGCVector3(0, 0, 1);
         internal static readonly TGCVector3 South = -North;
 
-        GameModel game;
+        GameModel game;//deberia hacer varios de estos objetos estaticos para no tener que hacer estas giladas
 
-        public Chunks chunks=new Chunks();
+        public Chunks chunks;
 
         /*
         private readonly TgcMesh Shrub;
@@ -48,7 +48,6 @@ namespace TGC.Group.Model
         public Map(GameModel game_)
         {
             game = game_;
-            Meshc.chunks = chunks;
 
             /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
             Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
@@ -57,9 +56,11 @@ namespace TGC.Group.Model
             Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
         }
 
-        //hay algun motivo para separar construccion y init?
-        public void Init()
+        public void Init(Camera.Camera camera)
         {
+            chunks = new Chunks(camera);
+            Meshc.chunks = chunks;
+
             initSky();
 
             terrain = new TgcSimpleTerrain();
@@ -115,7 +116,7 @@ namespace TGC.Group.Model
                 //colision no tiene que ser igual al mesh
 
                 var scaleDiff = new TGCVector3(1f, 20f, 1f) * 7.5f;
-                var posDiff = new TGCVector3(0, .5f*scaleDiff.Y, 0);
+                var posDiff = new TGCVector3(-.05f*scaleDiff.X, .5f*scaleDiff.Y, .06f*scaleDiff.Z);
 
                 meshc.meshToParalleliped = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
 
@@ -123,6 +124,7 @@ namespace TGC.Group.Model
                     meshc.meshToParalleliped * meshc.originalMesh
                     );
 
+                //puede que se tengan que hacer mas puntos inicialmente
                 chunks.addVertexFall(meshc);
             }
         }
