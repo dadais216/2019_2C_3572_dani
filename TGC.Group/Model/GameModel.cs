@@ -26,6 +26,8 @@ namespace TGC.Group.Model
         public Camera.Camera camera;
         public Map map;
 
+        public static int actualFrame=0;
+
         /// <summary>
         ///     Constructor del juego.
         /// </summary>
@@ -68,10 +70,12 @@ namespace TGC.Group.Model
         /// </summary>
         /// 
 
-        TGCMatrix matriz;
+        public static TGCMatrix matriz;
         public override void Update()
         {
             PreUpdate();
+
+            actualFrame++;
 
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
                 Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
@@ -104,9 +108,9 @@ namespace TGC.Group.Model
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += ElapsedTime;
 
             //ni idea de por que la traslacion es tan lenta
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += ElapsedTime * 1000;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += ElapsedTime * 1000;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += ElapsedTime * 1000;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += ElapsedTime * 100;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += ElapsedTime * 100;
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += ElapsedTime * 100;
 
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += 0.1f;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f;
@@ -124,7 +128,7 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
-            map.Render(matriz);
+            map.Render();
             PostRender();
         }
 

@@ -53,7 +53,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        public TGCVector3 eyePosition = new TGCVector3(0,9500,0);
+        public TGCVector3 eyePosition = new TGCVector3(0, 9500, 0);
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -65,17 +65,20 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public readonly float RotationSpeed = 0.1f;
 
+
         public Map map;
         private TgcSimpleTerrain terrain;
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
 
-        private bool onGround=false;
-        private float vSpeed=10;
+        private bool onGround = false;
+        private float vSpeed = 10;
 
         private bool underRoof;
         private TGCVector3 eyePositionOffRoof;
+
+        
 
         /// <summary>
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
@@ -89,11 +92,12 @@ namespace TGC.Group.Model.Camera
             up.Direction = new TGCVector3(0, 1, 0);
             down = new TgcRay();
             down.Direction = new TGCVector3(0, -1, 0);
-            horizontal = new TgcRay[4] {new TgcRay(), new TgcRay(), new TgcRay(), new TgcRay() ,};
+            horizontal = new TgcRay[4] { new TgcRay(), new TgcRay(), new TgcRay(), new TgcRay(), };
             horizontal[0].Direction = new TGCVector3(1, 0, 0);
             horizontal[1].Direction = new TGCVector3(0, 0, 1);
             horizontal[2].Direction = new TGCVector3(-1, 0, 0);
             horizontal[3].Direction = new TGCVector3(0, 0, -1);
+
         }
 
         internal void init(Map map_)
@@ -172,7 +176,7 @@ namespace TGC.Group.Model.Camera
 
 
             if (Input.keyDown(Key.Q))
-                moveXZ += Map.South * 8;
+                moveXZ += Map.South * 32;
 
             TGCVector3 moving = moveXZ * MovementSpeed * elapsedTime;
 
@@ -243,8 +247,6 @@ namespace TGC.Group.Model.Camera
                 up.Origin = eyePosition;
                 down.Origin = eyePosition;
 
-
-                //pasó que justo cuando cambio el chunck me quede adentro de un objeto, ver si solucionarlo
                 foreach (var meshc in map.chunks.fromCoordinates(eyePosition,false).meshes)
                 {
                     var box = meshc.paralleliped;
@@ -261,11 +263,6 @@ namespace TGC.Group.Model.Camera
                         if (t < border)
                             displacement += up.Direction * (border - t);
                         onBox = true;
-                        //Logger.Log("hit");
-                    }
-                    else
-                    {
-                        //Logger.Log("fail");
                     }
 
                     if (box.intersectRay(up, out t, out q) && t < border*3)
@@ -287,16 +284,12 @@ namespace TGC.Group.Model.Camera
 
                 }
 
-                //Logger.Log(vSpeed);
-
-
+                eyePosition += displacement;
+            }
                 //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
                 //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
                 //sistema aparte es simple y es mucho mas eficiente
                 //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
-
-                eyePosition += displacement;
-            }
             var zxScale = Map.xzTerrainScale;
             var yScale = Map.yTerrainScale;
             var yOffset = Map.yTerrainOffset;
@@ -341,8 +334,29 @@ namespace TGC.Group.Model.Camera
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
-
             base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector);
+            //base.SetCamera(eyePosition, cameraRotatedTarget, cameraRotatedUpVector);
+
+            //Logger.Log(eyePosition);
+            //Logger.Log(map.chunks.fromCoordinates(eyePosition, false).center.X.ToString()+"  "+ map.chunks.fromCoordinates(eyePosition, false).center.Y.ToString());
+
+
+            // Y esta seteado para visualizarlo en debug nomas
+            var eyeUp = new TGCVector3(eyePosition.X, eyePosition.Y + 10f, eyePosition.Z);
+            triangle.a = eyeUp;
+
+            var lineVec = (cameraFinalTarget - eyePosition) * 50000f;//20f
+            var Pend = lineVec + eyePosition;
+            Pend.Y = eyeUp.Y;
+
+            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * 1f;//.3f
+            var PBeg = -lineBack + Pend;
+            var PendBack = lineBack + Pend;
+            PendBack.Y = eyeUp.Y;
+
+            triangle.b = PBeg;
+            triangle.c = PendBack;
+
         }
 
         /// <summary>
@@ -352,5 +366,41 @@ namespace TGC.Group.Model.Camera
         {
             LockCam = false;
         }
+
+        public class Triangle
+        {
+            public TGCVector3 a, b, c; //deberian ser TGCVector2 pero por conveniencia
+            public void render()
+            {
+                var line = TgcLine.fromExtremes(a, (b + c) * .5f, Color.Red);
+                var back = TgcLine.fromExtremes(b, c, Color.Green);
+                var leg1 = TgcLine.fromExtremes(a, b, Color.Yellow);
+                var leg2 = TgcLine.fromExtremes(a, c, Color.Yellow);
+
+                line.Render();
+                back.Render();
+                leg1.Render();
+                leg2.Render();
+            }
+
+            public bool enclosesPoint(TGCVector3 p)
+            {
+                //lo que se me habia ocurrido es usar producto interno entre a y b y despues entre a y p, viendo si el angulo es menor al de ab
+                //y repetir para los otros 2 vertices. Pero puede que tenga problemas en los signos y ni ganas de verlo ahora
+
+                //esto lo saque de internet
+                float s1 = c.Z - a.Z;
+                float s2 = c.X - a.X;
+                float s3 = b.Z - a.Z;
+                float s4 = p.Z - a.Z;
+
+                float w1 = (a.X * s1 + s4 * s2 - p.X * s1) / (s3 * s2 - (b.X - a.X) * s1);
+                float w2 = (s4 - w1 * s3) / s1;
+
+                return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
+            }
+        }
+        public Triangle triangle = new Triangle();
+
     }
 }

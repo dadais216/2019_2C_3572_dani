@@ -40,6 +40,8 @@ namespace TGC.Group
         //eventualmente voy a tener una lista de colisiones en vez de una sola
         public TGCMatrix meshToParalleliped;
 
+        public int lastFrameDrawn = -1;
+
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
         //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
         //porque voy a querer tener transformaciones distintas para cada cosa y seria mas comodo
@@ -59,8 +61,18 @@ namespace TGC.Group
             paralleliped.transform(originalParalleliped*matrix);
 #endif
         }
+        public void render()
+        {
+            if (lastFrameDrawn != GameModel.actualFrame)
+            {
+                lastFrameDrawn = GameModel.actualFrame;
+                transform(GameModel.matriz);
+                mesh.Render();
+                //meshc.paralleliped.renderAsPolygons();
+            }
 
-        
-        
+        }
+
+
     }
 }

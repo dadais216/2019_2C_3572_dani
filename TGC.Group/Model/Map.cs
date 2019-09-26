@@ -68,12 +68,12 @@ namespace TGC.Group.Model
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
-            PopulateMeshes("Pino\\Pino-TgcScene.xml", 500, true);
+            PopulateMeshes("Pino\\Pino-TgcScene.xml", 200, true);
 
         }
-        public void Render(TGCMatrix matriz)
+        public void Render()
         {
-            chunks.render(matriz);
+            chunks.render();
             terrain.Render();
             sky.Render();
         }
