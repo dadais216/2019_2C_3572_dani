@@ -58,7 +58,6 @@ namespace TGC.Group.Model
             camera.init(map);
             //tengo que hacer un constructor y un init porque c# es una mentira
 
-            matriz = TGCMatrix.Identity;
 
 
         }
@@ -97,9 +96,9 @@ namespace TGC.Group.Model
             else
                 Meshc.matrizChange = false;
 
-            float sgn = 1f;
+            float sgn = 2f;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
-                sgn = -1f;
+                sgn = -2f;
 
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime * sgn;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime * sgn;

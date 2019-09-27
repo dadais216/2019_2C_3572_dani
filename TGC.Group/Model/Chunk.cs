@@ -137,7 +137,7 @@ namespace TGC.Group.Model
                 {
                     foreach(Meshc m in chunk.meshes)
                     {
-                        m.transformColission(GameModel.matriz);
+                        m.transformColission();
                     }
                 }
             }
@@ -164,7 +164,7 @@ namespace TGC.Group.Model
                 }
             }
 
-            Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
+            //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
 
             camera.triangle.render();

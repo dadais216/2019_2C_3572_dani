@@ -13,7 +13,7 @@ namespace TGC.Group
     public class Meshc
     {
         public static Chunks chunks;
-        public static bool matrizChange;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
+        public static bool matrizChange=true;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
         //vertexfall de un meshc particular
 
 
@@ -31,12 +31,9 @@ namespace TGC.Group
         //creo que prefiero tirarme por tener un solo mesh porque en teoria deberia ser mas rapido, 
         //y no estoy ganando ningun beneficio por tener copias. No parece importar mucho igual
 
-        //con parallelepiped voy a mantener copias porque los necesito transformados 2 veces por frame,
-        //en la colision y el render
-
+        
         public TGCMatrix originalMesh;
         
-        public TGCMatrix[] meshToParalleliped;
 
         public int lastFrameDrawn = -1;
         public int lastFrameColissionT = -1;
@@ -45,28 +42,15 @@ namespace TGC.Group
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
         //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
         //porque voy a querer tener transformaciones distintas para cada cosa y seria mas comodo
-        public void transform(TGCMatrix matrix)
-        {
-#if true
-            mesh.Transform = matrix * originalMesh;//mesh se transforma siempre porque se comparte
-            
-#else
-            mesh.Transform = originalMesh*matrix;
-            paralleliped.transform(originalParalleliped*matrix);
-#endif
-        }
 
-        public void transformColission(TGCMatrix matrix)
+
+
+        public void transformColission()
         {
             if (matrizChange&&lastFrameColissionT!=GameModel.actualFrame)
             {
                 lastFrameColissionT = GameModel.actualFrame;
-                foreach (var m2p in meshToParalleliped)
-                {
-                    paralleliped.transform(matrix * m2p);
-                    //paralleliped.transform(m2p * matrix * originalMesh);
-
-                }
+                paralleliped.transform(GameModel.matriz * originalMesh);
                 chunks.addVertexFall(this);
             }
         }
@@ -75,7 +59,9 @@ namespace TGC.Group
             if (lastFrameDrawn != GameModel.actualFrame)
             {
                 lastFrameDrawn = GameModel.actualFrame;
-                transform(GameModel.matriz);
+
+                mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+
                 mesh.Render();
                 paralleliped.renderAsPolygons();
             }

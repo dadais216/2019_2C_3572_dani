@@ -70,6 +70,8 @@ namespace TGC.Group.Model
             terrain.loadTexture(game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
 
+            GameModel.matriz = TGCMatrix.Identity;
+
             var loader = new TgcSceneLoader();
             scene = loader.loadSceneFromFile(game.MediaDir + "church-TgcScene.xml");
             foreach(var m in scene.Meshes)
@@ -84,10 +86,25 @@ namespace TGC.Group.Model
         }
         public void Render()
         {
+
+
+
             chunks.render();
             terrain.Render();
             sky.Render();
-            scene.RenderAll();
+
+
+            foreach(var mesh in scene.Meshes)
+            {
+                mesh.UpdateMeshTransform();
+                mesh.Transform = GameModel.matriz * mesh.Transform;
+                mesh.Render();
+                var p = Parallelepiped.fromBounding(mesh.BoundingBox);
+                p.transform(mesh.Transform);
+                p.renderAsPolygons();
+            }
+
+
         }
 
         private TgcMesh GetMeshFromScene(string scenePath)
@@ -119,24 +136,17 @@ namespace TGC.Group.Model
 
                 meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
+                var box = meshc.mesh.BoundingBox;
+                var size = box.calculateSize();
+                var posb = box.calculateBoxCenter();
 
+                meshc.paralleliped = Parallelepiped.fromSizePosition(
+                        size,
+                        posb
+                    ) ;
 
-                
-                meshc.meshToParalleliped = new TGCMatrix[1];
+                meshc.transformColission();
 
-                var scaleDiff = new TGCVector3(1f, 20f, 1f) * 7.5f;
-                var posDiff = new TGCVector3(-.05f*scaleDiff.X, .5f*scaleDiff.Y, .06f*scaleDiff.Z);
-
-                meshc.meshToParalleliped[0] = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
-
-                meshc.meshToParalleliped[0] *= TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
-
-                meshc.paralleliped = Parallelepiped.fromTransform(
-                    //meshc.meshToParalleliped[0] * meshc.originalMesh
-                    meshc.meshToParalleliped[0]
-                    );
-
-                //puede que se tengan que hacer mas puntos inicialmente
                 chunks.addVertexFall(meshc);
             }
         }

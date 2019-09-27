@@ -21,17 +21,12 @@ namespace TGC.Group.Model
     //es un copy paste de box donde cambie las cosas que necesitaba
     public class Parallelepiped
     {
-        private readonly VertexBuffer vertexBuffer;
-        private readonly CustomVertex.PositionColoredTextured[] vertices;
-
-        public TGCMatrix Transform { get; private set; }
-
         //estaba entre guardar los vertices o tener los 12 triangulos directamente. Me mande por los vertices porque
         //TGCTriangle parecia meter mucho bloat, ademas las transformaciones serian mas lentas. Usando los vertices
         //serian mas rapidas, pero seria mas lento la colision porque genero los triangulos en el momento. Espero
         //tener mas transformaciones que colisiones igual, ademas probablemente exista una colision mejor que 
         //probar con cada triangulo
-        static public TGCVector3[] vertex = new TGCVector3[8];
+        public TGCVector3[] vertex = new TGCVector3[8];
         public TGCVector3[] transformedVertex;
 
 
@@ -40,113 +35,19 @@ namespace TGC.Group.Model
         /// </summary>
         public Parallelepiped()
         {
-            vertices = new CustomVertex.PositionColoredTextured[36];
-            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionColoredTextured), vertices.Length,
-                D3DDevice.Instance.Device,
-                Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColoredTextured.Format, Pool.Default);
-
-            Transform = TGCMatrix.Identity;
-
             //triangles = new TgcTriangle[12];
             transformedVertex = new TGCVector3[8];
         }
 
 
-        /// <summary>
-        ///     Liberar los recursos de la caja
-        /// </summary>
-        public void Dispose()
-        {
-            if (vertexBuffer != null && !vertexBuffer.Disposed)
-            {
-                vertexBuffer.Dispose();
-            }
-        }
-
-        /// <summary>
-        ///     Actualiza la caja en base a los valores configurados
-        /// </summary>
-        public void updateValues()
-        {
-            var c = Color.White.ToArgb();
-            var x = 1f / 2;
-            var y = 1f / 2;
-            var z = 1f / 2;
-            const float u = 1f;
-            const float v = 1f;
-            const float offsetU = 0f;
-            const float offsetV = 0f;
-
-            // Front face
-            vertices[0] = new CustomVertex.PositionColoredTextured(-x, y, z, c, offsetU, offsetV);
-            vertices[1] = new CustomVertex.PositionColoredTextured(-x, -y, z, c, offsetU, offsetV + v);
-            vertices[2] = new CustomVertex.PositionColoredTextured(x, y, z, c, offsetU + u, offsetV);
-            vertices[3] = new CustomVertex.PositionColoredTextured(-x, -y, z, c, offsetU, offsetV + v);
-            vertices[4] = new CustomVertex.PositionColoredTextured(x, -y, z, c, offsetU + u, offsetV + v);
-            vertices[5] = new CustomVertex.PositionColoredTextured(x, y, z, c, offsetU + u, offsetV);
-
-            // Back face (remember this is facing *away* from the camera, so vertices should be clockwise order)
-            vertices[6] = new CustomVertex.PositionColoredTextured(-x, y, -z, c, offsetU, offsetV);
-            vertices[7] = new CustomVertex.PositionColoredTextured(x, y, -z, c, offsetU + u, offsetV);
-            vertices[8] = new CustomVertex.PositionColoredTextured(-x, -y, -z, c, offsetU, offsetV + v);
-            vertices[9] = new CustomVertex.PositionColoredTextured(-x, -y, -z, c, offsetU, offsetV + v);
-            vertices[10] = new CustomVertex.PositionColoredTextured(x, y, -z, c, offsetU + u, offsetV);
-            vertices[11] = new CustomVertex.PositionColoredTextured(x, -y, -z, c, offsetU + u, offsetV + v);
-
-            // Top face
-            vertices[12] = new CustomVertex.PositionColoredTextured(-x, y, z, c, offsetU, offsetV);
-            vertices[13] = new CustomVertex.PositionColoredTextured(x, y, -z, c, offsetU + u, offsetV + v);
-            vertices[14] = new CustomVertex.PositionColoredTextured(-x, y, -z, c, offsetU, offsetV + v);
-            vertices[15] = new CustomVertex.PositionColoredTextured(-x, y, z, c, offsetU, offsetV);
-            vertices[16] = new CustomVertex.PositionColoredTextured(x, y, z, c, offsetU + u, offsetV);
-            vertices[17] = new CustomVertex.PositionColoredTextured(x, y, -z, c, offsetU + u, offsetV + v);
-
-            // Bottom face (remember this is facing *away* from the camera, so vertices should be clockwise order)
-            vertices[18] = new CustomVertex.PositionColoredTextured(-x, -y, z, c, offsetU, offsetV);
-            vertices[19] = new CustomVertex.PositionColoredTextured(-x, -y, -z, c, offsetU, offsetV + v);
-            vertices[20] = new CustomVertex.PositionColoredTextured(x, -y, -z, c, offsetU + u, offsetV + v);
-            vertices[21] = new CustomVertex.PositionColoredTextured(-x, -y, z, c, offsetU, offsetV);
-            vertices[22] = new CustomVertex.PositionColoredTextured(x, -y, -z, c, offsetU + u, offsetV + v);
-            vertices[23] = new CustomVertex.PositionColoredTextured(x, -y, z, c, offsetU + u, offsetV);
-
-            // Left face
-            vertices[24] = new CustomVertex.PositionColoredTextured(-x, y, z, c, offsetU, offsetV);
-            vertices[25] = new CustomVertex.PositionColoredTextured(-x, -y, -z, c, offsetU + u, offsetV + v);
-            vertices[26] = new CustomVertex.PositionColoredTextured(-x, -y, z, c, offsetU, offsetV + v);
-            vertices[27] = new CustomVertex.PositionColoredTextured(-x, y, -z, c, offsetU + u, offsetV);
-            vertices[28] = new CustomVertex.PositionColoredTextured(-x, -y, -z, c, offsetU + u, offsetV + v);
-            vertices[29] = new CustomVertex.PositionColoredTextured(-x, y, z, c, offsetU, offsetV);
-
-            // Right face (remember this is facing *away* from the camera, so vertices should be clockwise order)
-            vertices[30] = new CustomVertex.PositionColoredTextured(x, y, z, c, offsetU, offsetV);
-            vertices[31] = new CustomVertex.PositionColoredTextured(x, -y, z, c, offsetU, offsetV + v);
-            vertices[32] = new CustomVertex.PositionColoredTextured(x, -y, -z, c, offsetU + u, offsetV + v);
-            vertices[33] = new CustomVertex.PositionColoredTextured(x, y, -z, c, offsetU + u, offsetV);
-            vertices[34] = new CustomVertex.PositionColoredTextured(x, y, z, c, offsetU, offsetV);
-            vertices[35] = new CustomVertex.PositionColoredTextured(x, -y, -z, c, offsetU + u, offsetV + v);
-
-            vertexBuffer.SetData(vertices, 0, LockFlags.None);
-
-
-            //totalmente al pedo porque es siempre lo mismo, deberia ponerlo en algun otro lado pero bueno
-            vertex[0] = new TGCVector3(-x, -y, -z);
-            vertex[1] = new TGCVector3(x, -y, -z);
-            vertex[2] = new TGCVector3(-x, y, -z);
-            vertex[3] = new TGCVector3(x, y, -z);
-            vertex[4] = new TGCVector3(-x, -y, z);
-            vertex[5] = new TGCVector3(x, -y, z);
-            vertex[6] = new TGCVector3(-x, y, z);
-            vertex[7] = new TGCVector3(x, y, z);
-
-        }
+        
 
         public void transform(TGCMatrix transform)
         {
-            Transform = transform;
 
             for (int i = 0; i < 8; i++)
             {
-                transformedVertex[i] = TGCVector3.TransformCoordinate(vertex[i],Transform);
+                transformedVertex[i] = TGCVector3.TransformCoordinate(vertex[i], transform);
             }
         }
 
@@ -272,11 +173,40 @@ namespace TGC.Group.Model
 
         #region Creacion
 
-        public static Parallelepiped fromTransform(TGCMatrix transform)
+        public void updateValues(TGCVector3 size, TGCVector3 pos)
+        {
+            var x = pos.X;
+            var y = pos.Y;
+            var z = pos.Z;
+            var sx = size.X / 2;
+            var sy = size.Y / 2;
+            var sz = size.Z / 2;
+
+            vertex[0] = new TGCVector3(x - sx, y - sy, z - sz);
+            vertex[1] = new TGCVector3(x + sx, y - sy, z - sz);
+            vertex[2] = new TGCVector3(x - sx, y + sy, z - sz);
+            vertex[3] = new TGCVector3(x + sx, y + sy, z - sz);
+            vertex[4] = new TGCVector3(x - sx, y - sy, z + sz);
+            vertex[5] = new TGCVector3(x + sx, y - sy, z + sz);
+            vertex[6] = new TGCVector3(x - sx, y + sy, z + sz);
+            vertex[7] = new TGCVector3(x + sx, y + sy, z + sz);
+
+        }
+        public static Parallelepiped fromBounding(TgcBoundingAxisAlignBox b)
         {
             var box = new Parallelepiped();
-            box.updateValues();
-            box.transform(transform);
+
+            var size = b.calculateSize();
+            var pos = b.calculateBoxCenter();
+
+            box.updateValues(size,pos);
+            return box;
+        }
+
+        public static Parallelepiped fromSizePosition(TGCVector3 size, TGCVector3 pos)
+        {
+            var box = new Parallelepiped();
+            box.updateValues(size,pos);
             return box;
         }
 
