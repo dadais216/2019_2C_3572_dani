@@ -17,8 +17,7 @@ namespace TGC.Group
         //vertexfall de un meshc particular
 
 
-        public TgcMesh mesh;//me gustaria usar herencia en vez de esto pero ni ganas de ver como se hace
-        //el tema esta en que sceneLoader me devuelve un mesh, y no se como mover eso a un meshc
+        public TgcMesh mesh;
         public Parallelepiped paralleliped;
 
 
@@ -37,10 +36,11 @@ namespace TGC.Group
 
         public TGCMatrix originalMesh;
         
-        //eventualmente voy a tener una lista de colisiones en vez de una sola
-        public TGCMatrix meshToParalleliped;
+        public TGCMatrix[] meshToParalleliped;
 
         public int lastFrameDrawn = -1;
+        public int lastFrameColissionT = -1;
+
 
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
         //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
@@ -48,18 +48,27 @@ namespace TGC.Group
         public void transform(TGCMatrix matrix)
         {
 #if true
-
-            mesh.Transform = matrix*originalMesh;
-            paralleliped.transform(meshToParalleliped*matrix*originalMesh);
-
-            if (matrizChange)
-            {
-                chunks.addVertexFall(this);
-            }
+            mesh.Transform = matrix * originalMesh;//mesh se transforma siempre porque se comparte
+            
 #else
             mesh.Transform = originalMesh*matrix;
             paralleliped.transform(originalParalleliped*matrix);
 #endif
+        }
+
+        public void transformColission(TGCMatrix matrix)
+        {
+            if (matrizChange&&lastFrameColissionT!=GameModel.actualFrame)
+            {
+                lastFrameColissionT = GameModel.actualFrame;
+                foreach (var m2p in meshToParalleliped)
+                {
+                    paralleliped.transform(matrix * m2p);
+                    //paralleliped.transform(m2p * matrix * originalMesh);
+
+                }
+                chunks.addVertexFall(this);
+            }
         }
         public void render()
         {
@@ -68,11 +77,63 @@ namespace TGC.Group
                 lastFrameDrawn = GameModel.actualFrame;
                 transform(GameModel.matriz);
                 mesh.Render();
-                //meshc.paralleliped.renderAsPolygons();
+                paralleliped.renderAsPolygons();
             }
 
         }
+    }
+    public class MultiMeshc
+    {
+        //necesito tener otro tipo de mesh para manejar estructuras que contengan varios mesh y colisiones
+        //estaba entre hacer otro tipo, usar polimorfismo o hacer que todos los meshc contengan varios mesh y colisiones
+        //el polimorfismo seria mas limpio pero probablemente sea lento, tener que usar un bucle for para cada meshc
+        //comun, que son la mayoria, tambien. Creo que tener 2 tipos aparte va a ser lo mas rapido, aunque es lo mas feo
 
+        //una desventaja de tener multimesh como una estructura toda junta es que se dibuja toda o no se dibuja nada,
+        //no creo que tenga mucha importancia
+        //una ventaja es que la carga es mas simple
 
+        public TgcMesh[] meshes;
+        public Parallelepiped[] parallelipeds;
+
+        public TGCMatrix[] meshesOriginal;
+        public TGCMatrix[] parallelipedOriginal;
+
+        public int lastFrameDrawn = -1;
+
+//        public void transform(TGCMatrix matrix)
+//        {
+//#if true
+//            for (int i = 0;i < meshes.Length ;i++)
+//            {
+//                meshes[i].Transform = matrix * meshesOriginal[i];
+//            }
+//            for(int i = 0; i < parallelipeds.Length; i++)
+//            {
+//                parallelipeds[i].Transform = 
+//            }
+
+//            mesh.Transform = matrix * originalMesh;
+//            paralleliped.transform(meshToParalleliped * matrix * originalMesh);
+//            if (matrizChange)
+//            {
+//                chunks.addVertexFall(this);
+//            }
+//#else
+//            mesh.Transform = originalMesh*matrix;
+//            paralleliped.transform(originalParalleliped*matrix);
+//#endif
+////        }
+//        public void render()
+//        {
+//            if (lastFrameDrawn != GameModel.actualFrame)
+//            {
+//                lastFrameDrawn = GameModel.actualFrame;
+//                transform(GameModel.matriz);
+//                mesh.Render();
+//                //meshc.paralleliped.renderAsPolygons();
+//            }
+
+//        }
     }
 }

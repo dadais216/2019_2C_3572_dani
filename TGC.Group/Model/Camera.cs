@@ -345,11 +345,11 @@ namespace TGC.Group.Model.Camera
             var eyeUp = new TGCVector3(eyePosition.X, eyePosition.Y + 10f, eyePosition.Z);
             triangle.a = eyeUp;
 
-            var lineVec = (cameraFinalTarget - eyePosition) * 50000f;//20f
+            var lineVec = (cameraFinalTarget - eyePosition) * 200000f;
             var Pend = lineVec + eyePosition;
             Pend.Y = eyeUp.Y;
 
-            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * 1f;//.3f
+            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * .7f;
             var PBeg = -lineBack + Pend;
             var PendBack = lineBack + Pend;
             PendBack.Y = eyeUp.Y;

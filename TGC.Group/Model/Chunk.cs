@@ -28,9 +28,31 @@ namespace TGC.Group.Model
                         meshc.render();
                     }
                 }
+                //renderDebug();
+            }
+            public static Camera.Camera camera;
+            public void renderDebug()
+            {
+                var y = camera.eyePosition.Y + 6800f;
+                var r = chunkLen / 2;
+
+                var poly = new TgcConvexPolygon();
+                var face = new TGCVector3[4];
+
+
+                poly.Color = color;
+
+                face[0] = new TGCVector3(center.X + r, y, center.Z + r);
+                face[1] = new TGCVector3(center.X + r, y, center.Z - r);
+                face[2] = new TGCVector3(center.X - r, y, center.Z - r);
+                face[3] = new TGCVector3(center.X - r, y, center.Z + r);
+
+                poly.BoundingVertices = face;
+                poly.updateValues();
+                poly.Render();
             }
         }
-        public const float MapSquareRad = 60000f;//deberia ser lo mismo que terrain
+        public const float MapSquareRad = 410000f;//deberia ser lo mismo que terrain
         public const float chunkLen= 10000f;
         public const int chunksPerDim = ((int)MapSquareRad / (int)chunkLen)*2;
         public Chunk[,] chunks = new Chunk[chunksPerDim, chunksPerDim];
@@ -41,6 +63,7 @@ namespace TGC.Group.Model
         public Chunks(Camera.Camera camera_)
         {
             camera = camera_;
+            Chunk.camera = camera_;
             var random = new Random();
 
             for (int i=0;i<chunksPerDim;i++)
@@ -102,35 +125,48 @@ namespace TGC.Group.Model
         }
         public void render()
         {
-            
-            foreach (Chunk chunk in chunks)
+
+            //por ahora lo dejo aca a este codigo 
+            //se separa la transformacion de el render porque la transformacion aplica a chunks que no estan siendo
+            //renderizados tambien. Ahora se recorren todos, en la version final se van a actualizar algunos con 
+            //distintas tranformaciones
+
+            if (Meshc.matrizChange)
             {
-                var p0 = new TGCVector3(chunk.center.X, -10000, chunk.center.Z);
-                var p1 = new TGCVector3(chunk.center.X, 100000, chunk.center.Z);
-                var line = TgcLine.fromExtremes(p0, p1, Color.Pink);
-                line.Render();
-
-                var s = toIndexSpace(camera.eyePosition);
-                chunks[s.i, s.j].render();
-                chunks[s.i+1, s.j].render();
-                chunks[s.i+1, s.j+1].render();
-                chunks[s.i, s.j+1].render();
-                chunks[s.i-1, s.j+1].render();
-                chunks[s.i-1, s.j].render();
-                chunks[s.i-1, s.j-1].render();
-                chunks[s.i, s.j-1].render();
-                chunks[s.i+1, s.j-1].render();
-
-                if (camera.triangle.enclosesPoint(chunk.center))
+                foreach (Chunk chunk in chunks)
                 {
-                    chunk.render();
+                    foreach(Meshc m in chunk.meshes)
+                    {
+                        m.transformColission(GameModel.matriz);
+                    }
                 }
             }
 
 
 
 
-            //renderChunks();
+            var s = toIndexSpace(camera.eyePosition);
+            chunks[s.i, s.j].render();
+            chunks[s.i+1, s.j].render();
+            chunks[s.i+1, s.j+1].render();
+            chunks[s.i, s.j+1].render();
+            chunks[s.i-1, s.j+1].render();
+            chunks[s.i-1, s.j].render();
+            chunks[s.i-1, s.j-1].render();
+            chunks[s.i, s.j-1].render();
+            chunks[s.i+1, s.j-1].render();
+            foreach (Chunk chunk in chunks)
+            {
+
+                //if (camera.triangle.enclosesPoint(chunk.center))
+                {
+                    chunk.render();
+                }
+            }
+
+            Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
+
+
             camera.triangle.render();
 
 
@@ -156,29 +192,5 @@ namespace TGC.Group.Model
             //}
         }
 
-        public void renderChunks()
-        {
-            
-                var y = camera.eyePosition.Y + 1800f;
-                var r = chunkLen/2;
-
-                var poly = new TgcConvexPolygon();
-                var face = new TGCVector3[4];
-            foreach(var chunk in chunks)
-            {
-                var c = chunk.center;
-                poly.Color = chunk.color;
-
-                face[0] = new TGCVector3(c.X + r, y, c.Z + r);
-                face[1] = new TGCVector3(c.X + r, y, c.Z - r);
-                face[2] = new TGCVector3(c.X - r, y, c.Z - r);
-                face[3] = new TGCVector3(c.X - r, y, c.Z + r);
-
-                poly.BoundingVertices = face;
-                poly.updateValues();
-                poly.Render();
-            }
-            
-        }
     }
 }

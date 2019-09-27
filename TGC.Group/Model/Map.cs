@@ -44,6 +44,7 @@ namespace TGC.Group.Model
         public const float yTerrainScale = 40f;
         public const float yTerrainOffset = 300f;
 
+        public TgcScene scene;
 
         public Map(GameModel game_)
         {
@@ -64,37 +65,45 @@ namespace TGC.Group.Model
             initSky();
 
             terrain = new TgcSimpleTerrain();
-            terrain.loadHeightmap(game.MediaDir+"FBDV.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
+            terrain.loadHeightmap(game.MediaDir+"h.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
-            PopulateMeshes("Pino\\Pino-TgcScene.xml", 200, true);
 
+            var loader = new TgcSceneLoader();
+            scene = loader.loadSceneFromFile(game.MediaDir + "church-TgcScene.xml");
+            foreach(var m in scene.Meshes)
+            {
+                m.AutoTransformEnable = false;
+                m.Transform *= TGCMatrix.Translation(0, -215, 0)
+                    * TGCMatrix.Scaling(25, 25, 25);
+
+            }
+
+            AddTrees();
         }
         public void Render()
         {
             chunks.render();
             terrain.Render();
             sky.Render();
-        }
-
-        private TgcTexture GetTexture(string textureName)
-        {
-            return TgcTexture.createTexture(Device, game.MediaDir + textureName + ".jpg");
+            scene.RenderAll();
         }
 
         private TgcMesh GetMeshFromScene(string scenePath)
         {
             var loader = new TgcSceneLoader();
             var auxScene = loader.loadSceneFromFile(game.MediaDir + scenePath);
-            return auxScene.Meshes[0];
+            var ret= auxScene.Meshes[0];
+            ret.AutoTransformEnable = false;
+            return ret;
         }
 
-        private void PopulateMeshes(string filename, int maxElements, bool withColission)
+        private void AddTrees()
         {
-            var mesh = GetMeshFromScene(filename);
+            var mesh = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
 
-            for (var i = 0; i < maxElements; i++)
+            for (var i = 0; i < 10; i++)
             {
                 Meshc meshc = new Meshc();
                 meshc.mesh = mesh;
@@ -108,20 +117,23 @@ namespace TGC.Group.Model
 
                 var scale = TGCVector3.One * Random.Next(20, 500);
 
-                meshc.mesh.AutoTransformEnable = false;
                 meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
 
 
-                //colision no tiene que ser igual al mesh
+                
+                meshc.meshToParalleliped = new TGCMatrix[1];
 
                 var scaleDiff = new TGCVector3(1f, 20f, 1f) * 7.5f;
                 var posDiff = new TGCVector3(-.05f*scaleDiff.X, .5f*scaleDiff.Y, .06f*scaleDiff.Z);
 
-                meshc.meshToParalleliped = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
+                meshc.meshToParalleliped[0] = TGCMatrix.Scaling(scaleDiff) * TGCMatrix.Translation(posDiff);
+
+                meshc.meshToParalleliped[0] *= TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
                 meshc.paralleliped = Parallelepiped.fromTransform(
-                    meshc.meshToParalleliped * meshc.originalMesh
+                    //meshc.meshToParalleliped[0] * meshc.originalMesh
+                    meshc.meshToParalleliped[0]
                     );
 
                 //puede que se tengan que hacer mas puntos inicialmente
@@ -138,7 +150,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             sky = new TgcSkyBox();
             sky.Center = TGCVector3.Empty;
-            sky.Size = new TGCVector3(100000, 100000, 100000);
+            sky.Size = new TGCVector3(800000, 800000, 800000);
 
             //sky.Color = Color.OrangeRed;
 
