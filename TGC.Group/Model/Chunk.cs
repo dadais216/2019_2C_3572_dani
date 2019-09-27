@@ -28,7 +28,8 @@ namespace TGC.Group.Model
                         meshc.render();
                     }
                 }
-                //renderDebug();
+                if(GameModel.debugChunks)
+                    renderDebug();
             }
             public static Camera.Camera camera;
             public void renderDebug()
@@ -157,8 +158,7 @@ namespace TGC.Group.Model
             chunks[s.i+1, s.j-1].render();
             foreach (Chunk chunk in chunks)
             {
-
-                //if (camera.triangle.enclosesPoint(chunk.center))
+                if (camera.triangle.enclosesPoint(chunk.center))
                 {
                     chunk.render();
                 }
@@ -167,10 +167,10 @@ namespace TGC.Group.Model
             //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
 
-            camera.triangle.render();
 
 
-
+            if(GameModel.debugChunks)
+                camera.triangle.render();
 
 
             //foreach (Chunk chunk in chunks)

@@ -94,15 +94,15 @@ namespace TGC.Group.Model
             sky.Render();
 
 
-            foreach(var mesh in scene.Meshes)
-            {
-                mesh.UpdateMeshTransform();
-                mesh.Transform = GameModel.matriz * mesh.Transform;
-                mesh.Render();
-                var p = Parallelepiped.fromBounding(mesh.BoundingBox);
-                p.transform(mesh.Transform);
-                p.renderAsPolygons();
-            }
+            //foreach(var mesh in scene.Meshes)
+            //{
+            //    mesh.UpdateMeshTransform();
+            //    mesh.Transform = GameModel.matriz * mesh.Transform;
+            //    mesh.Render();
+            //    var p = Parallelepiped.fromBounding(mesh.BoundingBox);
+            //    p.transform(mesh.Transform);
+            //    p.renderAsPolygons();
+            //}
 
 
         }
@@ -140,10 +140,15 @@ namespace TGC.Group.Model
                 var size = box.calculateSize();
                 var posb = box.calculateBoxCenter();
 
+                size.X *= .1f;
+                size.Z *= .1f;
+
+                posb.X -= size.X * .2f;
+
                 meshc.paralleliped = Parallelepiped.fromSizePosition(
                         size,
                         posb
-                    ) ;
+                    );
 
                 meshc.transformColission();
 

@@ -63,7 +63,9 @@ namespace TGC.Group
                 mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
 
                 mesh.Render();
-                paralleliped.renderAsPolygons();
+
+                if(GameModel.debugColission)
+                    paralleliped.renderAsPolygons();
             }
 
         }

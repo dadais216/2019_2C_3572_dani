@@ -70,6 +70,11 @@ namespace TGC.Group.Model
         /// 
 
         public static TGCMatrix matriz;
+
+        public static bool debugColission = false;
+        public static bool debugChunks = false;
+        public static bool keyPressed = false;
+
         public override void Update()
         {
             PreUpdate();
@@ -119,6 +124,25 @@ namespace TGC.Group.Model
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f * sgn;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f * sgn;
             if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f * sgn;
+
+            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Z))
+            {
+                if (!keyPressed)
+                {
+                    keyPressed = true;
+                    debugColission = !debugColission;
+                }
+            }
+            else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.X))
+            {
+                if (!keyPressed)
+                {
+                    keyPressed = true;
+                    debugChunks = !debugChunks;
+                }
+            }
+            else
+                keyPressed = false;
 
 
             PostUpdate();
