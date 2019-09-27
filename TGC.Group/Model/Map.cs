@@ -44,7 +44,6 @@ namespace TGC.Group.Model
         public const float yTerrainScale = 40f;
         public const float yTerrainOffset = 300f;
 
-        public TgcScene scene;
 
         public Map(GameModel game_)
         {
@@ -72,23 +71,13 @@ namespace TGC.Group.Model
 
             GameModel.matriz = TGCMatrix.Identity;
 
-            var loader = new TgcSceneLoader();
-            scene = loader.loadSceneFromFile(game.MediaDir + "church-TgcScene.xml");
-            foreach(var m in scene.Meshes)
-            {
-                m.AutoTransformEnable = false;
-                m.Transform *= TGCMatrix.Translation(0, -215, 0)
-                    * TGCMatrix.Scaling(25, 25, 25);
-
-            }
+            
 
             AddTrees();
+            AddChurch();
         }
         public void Render()
         {
-
-
-
             chunks.render();
             terrain.Render();
             sky.Render();
@@ -154,6 +143,62 @@ namespace TGC.Group.Model
 
                 chunks.addVertexFall(meshc);
             }
+        }
+
+        void AddChurch()
+        {
+            var loader = new TgcSceneLoader();
+            var scene = loader.loadSceneFromFile(game.MediaDir + "church-TgcScene.xml");
+
+            var mm = new MultiMeshc();
+
+            mm.originalMesh = TGCMatrix.Translation(0, -215, 0)
+                    * TGCMatrix.Scaling(25, 25, 25);
+
+            int cantBoxes = 0;
+            foreach (var m in scene.Meshes)
+            {
+                if (m.Name.StartsWith("Box"))
+                {
+                    cantBoxes++;
+                }
+            }
+            mm.meshes = new TgcMesh[scene.Meshes.Count-cantBoxes];
+            mm.parallelipeds = new Parallelepiped[cantBoxes];
+
+            int meshIndex = 0;
+            int parIndex = 0;
+            foreach (var m in scene.Meshes)
+            {
+                if (m.Name.StartsWith("Box"))
+                {
+                    var par = Parallelepiped.fromBounding(m.BoundingBox);
+                    mm.parallelipeds[parIndex++] = par;
+                    par.transform(mm.originalMesh);
+                    chunks.addVertexFall(par, mm);
+                }
+                else
+                {
+                    m.AutoTransformEnable = false;
+                    mm.meshes[meshIndex++]=m;
+                }
+            }
+
+
+            
+
+
+
+            //foreach(var mesh in scene.Meshes)
+            //{
+            //    mesh.UpdateMeshTransform();
+            //    mesh.Transform = GameModel.matriz * mesh.Transform;
+            //    mesh.Render();
+            //    var p = Parallelepiped.fromBounding(mesh.BoundingBox);
+            //    p.transform(mesh.Transform);
+            //    p.renderAsPolygons();
+            //}
+
         }
 
         private void initSky()

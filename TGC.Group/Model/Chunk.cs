@@ -12,6 +12,7 @@ namespace TGC.Group.Model
         public class Chunk
         {
             public List<Meshc> meshes = new List<Meshc>();
+            public List<MultiMeshc> multimeshes = new List<MultiMeshc>();
             //en la primera aproximacion le mando la meshc entera. Supongo que seria mejor tener todo aplanado
             //pero no sé hasta donde me deja c# hacer cosas
             public TGCVector3 center;
@@ -24,6 +25,10 @@ namespace TGC.Group.Model
                 {
                     lastDrawnFrame = GameModel.actualFrame;
                     foreach (Meshc meshc in meshes)
+                    {
+                        meshc.render();
+                    }
+                    foreach(MultiMeshc meshc in multimeshes)
                     {
                         meshc.render();
                     }
@@ -117,13 +122,27 @@ namespace TGC.Group.Model
             //o a varias que no separen los vertices mas del largo de un chunk
             foreach(TGCVector3 vertex in meshc.paralleliped.transformedVertex)
             {
-                Chunk meshList = fromCoordinates(vertex);
-                if (meshList!=null&&!meshList.meshes.Contains(meshc))
+                Chunk c = fromCoordinates(vertex);
+                if (c!=null&&!c.meshes.Contains(meshc))
                 {
-                    meshList.meshes.Add(meshc);
+                    c.meshes.Add(meshc);
                 }
             }
         }
+        public void addVertexFall(Parallelepiped par, MultiMeshc meshc)
+        //aca podria haber usado las templates pero las tengo que aprender a escribir
+        // y son como las de scala y es mas rapido copiar y pegar
+        {
+            foreach (TGCVector3 vertex in par.transformedVertex)
+            {
+                Chunk c = fromCoordinates(vertex);
+                if (c != null && !c.multimeshes.Contains(meshc))
+                {
+                    c.multimeshes.Add(meshc);
+                }
+            }
+        }
+
         public void render()
         {
 
@@ -137,6 +156,10 @@ namespace TGC.Group.Model
                 foreach (Chunk chunk in chunks)
                 {
                     foreach(Meshc m in chunk.meshes)
+                    {
+                        m.transformColission();
+                    }
+                    foreach (MultiMeshc m in chunk.multimeshes)
                     {
                         m.transformColission();
                     }

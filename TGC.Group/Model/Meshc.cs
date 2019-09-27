@@ -13,7 +13,7 @@ namespace TGC.Group
     public class Meshc
     {
         public static Chunks chunks;
-        public static bool matrizChange=true;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
+        public static bool matrizChange = true;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
         //vertexfall de un meshc particular
 
 
@@ -31,9 +31,9 @@ namespace TGC.Group
         //creo que prefiero tirarme por tener un solo mesh porque en teoria deberia ser mas rapido, 
         //y no estoy ganando ningun beneficio por tener copias. No parece importar mucho igual
 
-        
+
         public TGCMatrix originalMesh;
-        
+
 
         public int lastFrameDrawn = -1;
         public int lastFrameColissionT = -1;
@@ -47,7 +47,7 @@ namespace TGC.Group
 
         public void transformColission()
         {
-            if (matrizChange&&lastFrameColissionT!=GameModel.actualFrame)
+            if (matrizChange && lastFrameColissionT != GameModel.actualFrame)
             {
                 lastFrameColissionT = GameModel.actualFrame;
                 paralleliped.transform(GameModel.matriz * originalMesh);
@@ -64,7 +64,7 @@ namespace TGC.Group
 
                 mesh.Render();
 
-                if(GameModel.debugColission)
+                if (GameModel.debugColission)
                     paralleliped.renderAsPolygons();
             }
 
@@ -74,54 +74,51 @@ namespace TGC.Group
     {
         //necesito tener otro tipo de mesh para manejar estructuras que contengan varios mesh y colisiones
         //estaba entre hacer otro tipo, usar polimorfismo o hacer que todos los meshc contengan varios mesh y colisiones
-        //el polimorfismo seria mas limpio pero probablemente sea lento, tener que usar un bucle for para cada meshc
-        //comun, que son la mayoria, tambien. Creo que tener 2 tipos aparte va a ser lo mas rapido, aunque es lo mas feo
+        //el polimorfismo seria mas limpio pero probablemente sea lento
+        //en el tercero tener que usar un bucle for para cada meshc comun, que son la mayoria, tambien. 
+        //Creo que tener 2 tipos aparte va a ser lo mas rapido, aunque es lo mas feo
 
         //una desventaja de tener multimesh como una estructura toda junta es que se dibuja toda o no se dibuja nada,
         //no creo que tenga mucha importancia
-        //una ventaja es que la carga es mas simple
+        //una ventaja es que la carga es mas simple, tengo una cosa con todas las mesh y colisiones. Manejar una transformacion
+        //coordinada tambien va a ser mas comodo
 
         public TgcMesh[] meshes;
         public Parallelepiped[] parallelipeds;
 
-        public TGCMatrix[] meshesOriginal;
-        public TGCMatrix[] parallelipedOriginal;
+        public TGCMatrix originalMesh;
 
         public int lastFrameDrawn = -1;
+        public int lastFrameColissionT = -1;
 
-//        public void transform(TGCMatrix matrix)
-//        {
-//#if true
-//            for (int i = 0;i < meshes.Length ;i++)
-//            {
-//                meshes[i].Transform = matrix * meshesOriginal[i];
-//            }
-//            for(int i = 0; i < parallelipeds.Length; i++)
-//            {
-//                parallelipeds[i].Transform = 
-//            }
+        public void transformColission()
+        {
+            if (Meshc.matrizChange && lastFrameColissionT != GameModel.actualFrame)
+            {
+                lastFrameColissionT = GameModel.actualFrame;
+                foreach (var paralleliped in parallelipeds)
+                {
+                    paralleliped.transform(GameModel.matriz * originalMesh);
+                    Meshc.chunks.addVertexFall(paralleliped, this);
+                }
+            }
+        }
+        public void render()
+        {
+            if (lastFrameDrawn != GameModel.actualFrame)
+            {
+                lastFrameDrawn = GameModel.actualFrame;
+                foreach (var mesh in meshes)
+                {
+                    mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+                    mesh.Render();
+                }
 
-//            mesh.Transform = matrix * originalMesh;
-//            paralleliped.transform(meshToParalleliped * matrix * originalMesh);
-//            if (matrizChange)
-//            {
-//                chunks.addVertexFall(this);
-//            }
-//#else
-//            mesh.Transform = originalMesh*matrix;
-//            paralleliped.transform(originalParalleliped*matrix);
-//#endif
-////        }
-//        public void render()
-//        {
-//            if (lastFrameDrawn != GameModel.actualFrame)
-//            {
-//                lastFrameDrawn = GameModel.actualFrame;
-//                transform(GameModel.matriz);
-//                mesh.Render();
-//                //meshc.paralleliped.renderAsPolygons();
-//            }
+                if (GameModel.debugColission)
+                    foreach (var paralleliped in parallelipeds)
+                        paralleliped.renderAsPolygons();
+            }
 
-//        }
+        }
     }
 }

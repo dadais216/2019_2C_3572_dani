@@ -247,9 +247,9 @@ namespace TGC.Group.Model.Camera
                 up.Origin = eyePosition;
                 down.Origin = eyePosition;
 
-                foreach (var meshc in map.chunks.fromCoordinates(eyePosition,false).meshes)
+                bool doGoto = false;
+                var handleRays = new Action<Parallelepiped>((box) =>
                 {
-                    var box = meshc.paralleliped;
                     foreach (TgcRay dir in horizontal)
                     {
                         if (box.intersectRay(dir, out t, out q) && t < border)
@@ -265,7 +265,7 @@ namespace TGC.Group.Model.Camera
                         onBox = true;
                     }
 
-                    if (box.intersectRay(up, out t, out q) && t < border*3)
+                    if (box.intersectRay(up, out t, out q) && t < border * 3)
                     {
                         underRoof = true;
                         if (t < border)
@@ -274,15 +274,33 @@ namespace TGC.Group.Model.Camera
                             {
                                 eyePosition += new TGCVector3(eyePositionOffRoof.X - eyePosition.X, 0f, eyePositionOffRoof.Z - eyePosition.Z);
                                 //no es la mejor solucion porque causa mucho temblor, pero bueno
-                                goto setCamera;//salto el codigo de terreno porque puede hacer subir la camara
+                                doGoto=true;//salto el codigo de terreno porque puede hacer subir la camara
+                                return;
                             }
                             displacement += -up.Direction * (border - t);
                             vSpeed = 0f;
                         }
-                        
-                    }
 
+                    }
+                });
+                var chunk = map.chunks.fromCoordinates(eyePosition, false);
+                foreach (var meshc in chunk.meshes)
+                {
+                    var box = meshc.paralleliped;
+                    handleRays(box);
+                    if (doGoto)
+                        goto setCamera;//C# no se banca gotos en lambdas
                 }
+                foreach (var meshc in chunk.multimeshes)
+                {
+                    foreach(var box in meshc.parallelipeds)
+                    {
+                        handleRays(box);
+                        if (doGoto)
+                            goto setCamera;//C# no se banca gotos en lambdas
+                    }
+                }
+
 
                 eyePosition += displacement;
             }
