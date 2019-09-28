@@ -59,10 +59,11 @@ namespace TGC.Group
             if (lastFrameDrawn != GameModel.actualFrame)
             {
                 lastFrameDrawn = GameModel.actualFrame;
-
-                mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
-
-                mesh.Render();
+                if (GameModel.debugMeshes)
+                {
+                    mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+                    mesh.Render();
+                }
 
                 if (GameModel.debugColission)
                     paralleliped.renderAsPolygons();
@@ -105,15 +106,17 @@ namespace TGC.Group
         }
         public void render()
         {
-            if (lastFrameDrawn != GameModel.actualFrame)
+            if(lastFrameDrawn != GameModel.actualFrame)
             {
                 lastFrameDrawn = GameModel.actualFrame;
-                foreach (var mesh in meshes)
+                if (GameModel.debugMeshes)
                 {
-                    mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
-                    mesh.Render();
+                    foreach (var mesh in meshes)
+                    {
+                        mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+                        mesh.Render();
+                    }
                 }
-
                 if (GameModel.debugColission)
                     foreach (var paralleliped in parallelipeds)
                         paralleliped.renderAsPolygons();

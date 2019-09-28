@@ -53,7 +53,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        public TGCVector3 eyePosition = new TGCVector3(0, 9500, 0);
+        public TGCVector3 eyePosition = new TGCVector3(-0, 200, -49000);
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -195,7 +195,9 @@ namespace TGC.Group.Model.Camera
                     vSpeed = 100f- Math.Max(-elapsedTime * 100, -180);
                 }
                 else
-                    vSpeed = -20f;//porque sino va pegando saltitos en la bajada
+                    vSpeed = 0f;
+                //antes estaba en -20 porque sino va pegando saltitos en la bajada
+                //ahora lo dejo en 0 porque causa mucha vibracion con bajos fps
             }
             else
                 vSpeed = Math.Max(vSpeed - elapsedTime * 100, -180);//gravedad
@@ -231,6 +233,8 @@ namespace TGC.Group.Model.Camera
 
             //Logger.Log(iters.ToString()+"   "+dist.ToString());
 
+            var step = moving * (1 / (float)iters);
+
             iters = FastMath.Min(iters, 10);//dropear iteraciones en casos extremos, sino
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
 
@@ -238,7 +242,7 @@ namespace TGC.Group.Model.Camera
 
             for (int i = 0; i < iters; i++)
             {
-                eyePosition += new TGCVector3(moving.X/iters,moving.Y/iters,moving.Z/iters);
+                eyePosition += step;
 
                 horizontal[0].Origin = eyePosition;
                 horizontal[1].Origin = eyePosition;

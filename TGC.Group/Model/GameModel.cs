@@ -73,6 +73,7 @@ namespace TGC.Group.Model
 
         public static bool debugColission = false;
         public static bool debugChunks = false;
+        public static bool debugMeshes = true;
         public static bool keyPressed = false;
 
         public override void Update()
@@ -134,6 +135,14 @@ namespace TGC.Group.Model
                 }
             }
             else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.X))
+            {
+                if (!keyPressed)
+                {
+                    keyPressed = true;
+                    debugMeshes = !debugMeshes;
+                }
+            }
+            else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.C))
             {
                 if (!keyPressed)
                 {

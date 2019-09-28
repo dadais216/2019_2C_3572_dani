@@ -44,6 +44,8 @@ namespace TGC.Group.Model
         public const float yTerrainScale = 40f;
         public const float yTerrainOffset = 300f;
 
+        public const int treesPerChunk=1;
+
 
         public Map(GameModel game_)
         {
@@ -109,39 +111,48 @@ namespace TGC.Group.Model
         {
             var mesh = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
 
-            for (var i = 0; i < 10; i++)
+
+            for (int j= 1;j < Chunks.chunksPerDim-1;j++)
+            for(int k=1;k< Chunks.chunksPerDim-1;k++)
             {
-                Meshc meshc = new Meshc();
-                meshc.mesh = mesh;
+                int mid = Chunks.chunksPerDim / 2;
+                if (((k >= mid-5) && (k <= mid + 4)) && ((j >= mid-4) && (j <= mid + 4)))
+                    continue;
 
-                var squareRad = 40000;
-                var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
+                for (var i = 0; i < treesPerChunk; i++)
+                {
+                    Meshc meshc = new Meshc();
+                    meshc.mesh = mesh;
 
+                    int squareRad = (int)(Chunks.chunkLen/2f);
+                    var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
+                    pos += chunks.chunks[j,k].center;
 
-                var hm = terrain.HeightmapData;
-                pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
+                    var hm = terrain.HeightmapData;
+                    pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
 
-                var scale = TGCVector3.One * Random.Next(20, 500);
+                    var scale = TGCVector3.One * Random.Next(20, 500);
 
-                meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
+                    meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
-                var box = meshc.mesh.BoundingBox;
-                var size = box.calculateSize();
-                var posb = box.calculateBoxCenter();
+                    var box = meshc.mesh.BoundingBox;
+                    var size = box.calculateSize();
+                    var posb = box.calculateBoxCenter();
 
-                size.X *= .1f;
-                size.Z *= .1f;
+                    size.X *= .1f;
+                    size.Z *= .1f;
 
-                posb.X -= size.X * .2f;
+                    posb.X -= size.X * .2f;
 
-                meshc.paralleliped = Parallelepiped.fromSizePosition(
-                        size,
-                        posb
-                    );
+                    meshc.paralleliped = Parallelepiped.fromSizePosition(
+                            size,
+                            posb
+                        );
 
-                meshc.transformColission();
+                    meshc.transformColission();
 
-                chunks.addVertexFall(meshc);
+                    chunks.addVertexFall(meshc);
+                }
             }
         }
 
@@ -152,8 +163,8 @@ namespace TGC.Group.Model
 
             var mm = new MultiMeshc();
 
-            mm.originalMesh = TGCMatrix.Translation(0, -215, 0)
-                    * TGCMatrix.Scaling(25, 25, 25);
+            mm.originalMesh = TGCMatrix.Translation(0, -160, 0)
+                    * TGCMatrix.Scaling(75, 75, 75);
 
             int cantBoxes = 0;
             foreach (var m in scene.Meshes)
@@ -163,8 +174,9 @@ namespace TGC.Group.Model
                     cantBoxes++;
                 }
             }
+            const int putByHand = 7;
             mm.meshes = new TgcMesh[scene.Meshes.Count-cantBoxes];
-            mm.parallelipeds = new Parallelepiped[cantBoxes];
+            mm.parallelipeds = new Parallelepiped[cantBoxes+ putByHand];
 
             int meshIndex = 0;
             int parIndex = 0;
@@ -184,11 +196,101 @@ namespace TGC.Group.Model
                 }
             }
 
+            //---
+            //+--
+            //-+-
+            //++-
+            //--+
+            //+-+
+            //-++
+            //+++
 
-            
+            //techito
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    1, 472, -257,
+                    66, 413, -257,
+                    1, 430, -257,
+                    32, 413, -257,
+                    1, 472, -214,
+                    66, 413, -214,
+                    1, 430, -214,
+                    32, 413, -214
+
+                );
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    -62, 414, -257,
+                    -29, 414, -257,
+                    1, 469, -257,
+                    1, 430, -257,
+                    -62, 414, -213,
+                    -29, 414, -213,
+                    1, 469, -213,
+                    1, 430, -213
+                );
+
+            //bordes
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    -93, 279, -257,
+                    -58, 279, -257,
+                    -58, 327, -257,
+                    -58.5f, 327.5f, -257,
+                    -93, 279, -213,
+                    -58, 279, -213,
+                    -58, 327, -213,
+                    -58.5f, 327.5f, -213
+                );
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    95, 279, -257,
+                    69, 279, -257,
+                    69, 317, -257,
+                    69.5f, 317.5f, -257,
+                    95, 279, -213,
+                    69, 279, -213,
+                    69, 317, -213,
+                    69.5f, 317.5f, -213
+                );
+
+            //fondo
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    166, 230, 260,
+                    -163, 230, 260,
+                    0, 332, 260,
+                    0.5f, 332.5f, 260,
+                    166, 230, 239,
+                    -163, 230, 239,
+                    0, 332, 239,
+                    0.5f, 332.5f, 239
+                );
 
 
+            //techo
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    172, 231, 264,
+                    0, 341, 264,
+                    172, 227, 264,
+                    0, 227f, 264,
+                    172, 231, -217,
+                    0, 341, -217,
+                    172, 227, -217,
+                    0, 227f, -217
+                );
+            mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
+                    -172, 231, 264,
+                    0, 341, 264,
+                    -172, 227, 264,
+                    0, 227f, 264,
+                    -172, 231, -217,
+                    0, 341, -217,
+                    -172, 227, -217,
+                    0, 227f, -217
+                );
 
+            for(int i = cantBoxes; i < cantBoxes + putByHand; i++)
+            {
+                var par = mm.parallelipeds[i];
+                par.transform(mm.originalMesh);
+                chunks.addVertexFall(par, mm);
+            }
             //foreach(var mesh in scene.Meshes)
             //{
             //    mesh.UpdateMeshTransform();
