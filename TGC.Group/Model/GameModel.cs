@@ -22,10 +22,6 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
-
-        public Camera.Camera camera;
-        public Map map;
-
         public static int actualFrame=0;
 
         /// <summary>
@@ -39,6 +35,7 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
 
+            g.game = this;
         }
 
 
@@ -50,16 +47,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-            camera = new Camera.Camera(Input);
-            map = new Map(this);
-            Camara = camera;
-
-            map.Init(camera);
-            camera.init(map);
-            //tengo que hacer un constructor y un init porque c# es una mentira
-
-
-
+            Camara=new Camera.Camera(Input);
+            new Map();
         }
 
         /// <summary>
@@ -153,6 +142,7 @@ namespace TGC.Group.Model
             else
                 keyPressed = false;
 
+            g.mostro.update();
 
             PostUpdate();
         }
@@ -164,7 +154,7 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
-            map.Render();
+            g.map.Render();
             PostRender();
         }
 

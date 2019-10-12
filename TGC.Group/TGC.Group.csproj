@@ -91,6 +91,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\Chunk.cs" />
+    <Compile Include="Model\g.cs" />
+    <Compile Include="Model\Mostro.cs" />
     <Compile Include="Model\Meshc.cs" />
     <Compile Include="Form\GameForm.cs">
       <SubType>Form</SubType>

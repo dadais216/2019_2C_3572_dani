@@ -36,10 +36,9 @@ namespace TGC.Group.Model
                 if(GameModel.debugChunks)
                     renderDebug();
             }
-            public static Camera.Camera camera;
             public void renderDebug()
             {
-                var y = camera.eyePosition.Y + 6800f;
+                var y = g.camera.eyePosition.Y + 6800f;
                 var r = chunkLen / 2;
 
                 var poly = new TgcConvexPolygon();
@@ -63,13 +62,8 @@ namespace TGC.Group.Model
         public const int chunksPerDim = ((int)MapSquareRad / (int)chunkLen)*2;
         public Chunk[,] chunks = new Chunk[chunksPerDim, chunksPerDim];
 
-
-        Camera.Camera camera;
-
-        public Chunks(Camera.Camera camera_)
+        public Chunks()
         {
-            camera = camera_;
-            Chunk.camera = camera_;
             var random = new Random();
 
             for (int i=0;i<chunksPerDim;i++)
@@ -169,7 +163,7 @@ namespace TGC.Group.Model
 
 
 
-            var s = toIndexSpace(camera.eyePosition);
+            var s = toIndexSpace(g.camera.eyePosition);
             chunks[s.i, s.j].render();
             chunks[s.i+1, s.j].render();
             chunks[s.i+1, s.j+1].render();
@@ -181,7 +175,7 @@ namespace TGC.Group.Model
             chunks[s.i+1, s.j-1].render();
             foreach (Chunk chunk in chunks)
             {
-                if (camera.triangle.enclosesPoint(chunk.center))
+                if (g.camera.triangle.enclosesPoint(chunk.center))
                 {
                     chunk.render();
                 }
@@ -193,7 +187,7 @@ namespace TGC.Group.Model
 
 
             if(GameModel.debugChunks)
-                camera.triangle.render();
+                g.camera.triangle.render();
 
 
             //foreach (Chunk chunk in chunks)

@@ -58,7 +58,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///  Velocidad de movimiento
         /// </summary>
-        public readonly float MovementSpeed = 4000f;
+        public readonly float MovementSpeed = 12000f;
 
         /// <summary>
         ///  Velocidad de rotacion
@@ -66,8 +66,6 @@ namespace TGC.Group.Model.Camera
         public readonly float RotationSpeed = 0.1f;
 
 
-        public Map map;
-        private TgcSimpleTerrain terrain;
         private TgcRay up;
         private TgcRay down;
         private TgcRay[] horizontal;
@@ -98,12 +96,7 @@ namespace TGC.Group.Model.Camera
             horizontal[2].Direction = new TGCVector3(-1, 0, 0);
             horizontal[3].Direction = new TGCVector3(0, 0, -1);
 
-        }
-
-        internal void init(Map map_)
-        {
-            map = map_;
-            terrain = map_.terrain;
+            g.camera = this;
         }
 
         private TgcD3dInput Input { get; }
@@ -239,7 +232,6 @@ namespace TGC.Group.Model.Camera
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
 
 
-
             for (int i = 0; i < iters; i++)
             {
                 eyePosition += step;
@@ -287,7 +279,7 @@ namespace TGC.Group.Model.Camera
 
                     }
                 });
-                var chunk = map.chunks.fromCoordinates(eyePosition, false);
+                var chunk = g.map.chunks.fromCoordinates(eyePosition, false);
                 foreach (var meshc in chunk.meshes)
                 {
                     var box = meshc.paralleliped;
@@ -312,11 +304,13 @@ namespace TGC.Group.Model.Camera
                 //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
                 //sistema aparte es simple y es mucho mas eficiente
                 //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
+            
+    
             var zxScale = Map.xzTerrainScale;
             var yScale = Map.yTerrainScale;
             var yOffset = Map.yTerrainOffset;
 
-            var hm = terrain.HeightmapData;
+            var hm = g.terrain.HeightmapData;
 
             float x = eyePosition.X / zxScale;
             float z = eyePosition.Z / zxScale;

@@ -26,8 +26,6 @@ namespace TGC.Group.Model
         internal static readonly TGCVector3 North = new TGCVector3(0, 0, 1);
         internal static readonly TGCVector3 South = -North;
 
-        GameModel game;//deberia hacer varios de estos objetos estaticos para no tener que hacer estas giladas
-
         public Chunks chunks;
 
         /*
@@ -39,51 +37,52 @@ namespace TGC.Group.Model
         */
         private TgcSkyBox sky;
 
-        public TgcSimpleTerrain terrain;
         public const float xzTerrainScale= 2000f;
         public const float yTerrainScale = 40f;
         public const float yTerrainOffset = 300f;
 
         public const int treesPerChunk=1;
 
+        public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
-        public Map(GameModel game_)
+        public Map()
         {
-            game = game_;
 
             /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
             Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
             Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
             Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
             Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
-        }
 
-        public void Init(Camera.Camera camera)
-        {
-            chunks = new Chunks(camera);
+            chunks = new Chunks();
             Meshc.chunks = chunks;
 
             initSky();
 
-            terrain = new TgcSimpleTerrain();
-            terrain.loadHeightmap(game.MediaDir+"h.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
+            var terrain = new TgcSimpleTerrain();
+            terrain.loadHeightmap(g.game.MediaDir+"h.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
-            terrain.loadTexture(game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
+            terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
 
             GameModel.matriz = TGCMatrix.Identity;
 
             
 
+            g.terrain = terrain;
             AddTrees();
             AddChurch();
+
+            mostro = new Mostro();
+
+            g.map = this;
         }
         public void Render()
         {
             chunks.render();
-            terrain.Render();
+            g.terrain.Render();
             sky.Render();
-
+            g.mostro.render();
 
             //foreach(var mesh in scene.Meshes)
             //{
@@ -98,10 +97,10 @@ namespace TGC.Group.Model
 
         }
 
-        private TgcMesh GetMeshFromScene(string scenePath)
+        static public TgcMesh GetMeshFromScene(string scenePath)
         {
             var loader = new TgcSceneLoader();
-            var auxScene = loader.loadSceneFromFile(game.MediaDir + scenePath);
+            var auxScene = loader.loadSceneFromFile(g.game.MediaDir + scenePath);
             var ret= auxScene.Meshes[0];
             ret.AutoTransformEnable = false;
             return ret;
@@ -128,7 +127,7 @@ namespace TGC.Group.Model
                     var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
                     pos += chunks.chunks[j,k].center;
 
-                    var hm = terrain.HeightmapData;
+                    var hm = g.terrain.HeightmapData;
                     pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
 
                     var scale = TGCVector3.One * Random.Next(20, 500);
@@ -148,7 +147,6 @@ namespace TGC.Group.Model
                             size,
                             posb
                         );
-
                     meshc.transformColission();
 
                     chunks.addVertexFall(meshc);
@@ -159,7 +157,7 @@ namespace TGC.Group.Model
         void AddChurch()
         {
             var loader = new TgcSceneLoader();
-            var scene = loader.loadSceneFromFile(game.MediaDir + "church-TgcScene.xml");
+            var scene = loader.loadSceneFromFile(g.game.MediaDir + "church-TgcScene.xml");
 
             var mm = new MultiMeshc();
 
@@ -316,7 +314,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             //sky.Color = Color.OrangeRed;
 
-            var texturesPath = game.MediaDir + "SkyBox\\";
+            var texturesPath = g.game.MediaDir + "SkyBox\\";
 
 
             sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "Up.jpg");
