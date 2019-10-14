@@ -12,7 +12,6 @@ namespace TGC.Group
     //idealmente deberia hacer mi propia mesh para no arrastrar un monton de cosas que no uso
     public class Meshc
     {
-        public static Chunks chunks;
         public static bool matrizChange = true;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
         //vertexfall de un meshc particular
 
@@ -51,7 +50,7 @@ namespace TGC.Group
             {
                 lastFrameColissionT = GameModel.actualFrame;
                 paralleliped.transform(GameModel.matriz * originalMesh);
-                chunks.addVertexFall(this);
+                g.chunks.addVertexFall(this);
             }
         }
         public void render()
@@ -100,7 +99,7 @@ namespace TGC.Group
                 foreach (var paralleliped in parallelipeds)
                 {
                     paralleliped.transform(GameModel.matriz * originalMesh);
-                    Meshc.chunks.addVertexFall(paralleliped, this);
+                    g.chunks.addVertexFall(paralleliped, this);
                 }
             }
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.DirectX.Direct3D;
+using TGC.Core.Collision;
 using TGC.Core.Direct3D;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
@@ -26,8 +27,6 @@ namespace TGC.Group.Model
         internal static readonly TGCVector3 North = new TGCVector3(0, 0, 1);
         internal static readonly TGCVector3 South = -North;
 
-        public Chunks chunks;
-
         /*
         private readonly TgcMesh Shrub;
         private readonly TgcMesh Shrub2;
@@ -37,11 +36,11 @@ namespace TGC.Group.Model
         */
         private TgcSkyBox sky;
 
-        public const float xzTerrainScale= 2000f;
+        public const float xzTerrainScale = 2000f;
         public const float yTerrainScale = 40f;
         public const float yTerrainOffset = 300f;
 
-        public const int treesPerChunk=1;
+        public const int treesPerChunk = 1;
 
         public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
@@ -54,24 +53,24 @@ namespace TGC.Group.Model
             Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
             Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
 
-            chunks = new Chunks();
-            Meshc.chunks = chunks;
+            g.chunks = new Chunks();
 
             initSky();
 
             var terrain = new TgcSimpleTerrain();
-            terrain.loadHeightmap(g.game.MediaDir+"h.jpg", xzTerrainScale, yTerrainScale,new TGCVector3(0, -yTerrainOffset, 0));
+            terrain.loadHeightmap(g.game.MediaDir + "h.jpg", xzTerrainScale, yTerrainScale, new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
 
             GameModel.matriz = TGCMatrix.Identity;
 
-            
+
 
             g.terrain = terrain;
             AddTrees();
             AddChurch();
+            AddCandles();
 
             mostro = new Mostro();
 
@@ -79,7 +78,7 @@ namespace TGC.Group.Model
         }
         public void Render()
         {
-            chunks.render();
+            g.chunks.render();
             g.terrain.Render();
             sky.Render();
             g.mostro.render();
@@ -101,58 +100,70 @@ namespace TGC.Group.Model
         {
             var loader = new TgcSceneLoader();
             var auxScene = loader.loadSceneFromFile(g.game.MediaDir + scenePath);
-            var ret= auxScene.Meshes[0];
+            var ret = auxScene.Meshes[0];
             ret.AutoTransformEnable = false;
             return ret;
         }
 
+        private bool coordsOccupied(int j, int k)
+        {
+            int mid = Chunks.chunksPerDim / 2;
+            return ((k >= mid - 5) && (k <= mid + 4)) && ((j >= mid - 4) && (j <= mid + 4));
+        }
+        private TGCVector3 genPosInChunk(int j, int k)
+        {
+            int squareRad = (int)(Chunks.chunkLen / 2f);
+            var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
+            pos += g.chunks.chunks[j, k].center;
+
+            var hm = g.terrain.HeightmapData;
+            pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
+            return pos;
+        }
+
         private void AddTrees()
         {
+
             var mesh = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
 
-
-            for (int j= 1;j < Chunks.chunksPerDim-1;j++)
-            for(int k=1;k< Chunks.chunksPerDim-1;k++)
-            {
-                int mid = Chunks.chunksPerDim / 2;
-                if (((k >= mid-5) && (k <= mid + 4)) && ((j >= mid-4) && (j <= mid + 4)))
-                    continue;
-
-                for (var i = 0; i < treesPerChunk; i++)
+            for (int j = 1; j < Chunks.chunksPerDim - 1; j++)
+                for (int k = 1; k < Chunks.chunksPerDim - 1; k++)
                 {
-                    Meshc meshc = new Meshc();
-                    meshc.mesh = mesh;
+                    if (coordsOccupied(j, k))
+                        continue;
 
-                    int squareRad = (int)(Chunks.chunkLen/2f);
-                    var pos = new TGCVector3(Random.Next(-squareRad, squareRad), 0, Random.Next(-squareRad, squareRad));
-                    pos += chunks.chunks[j,k].center;
+                    for (var i = 0; i < treesPerChunk; i++)
+                    {
+                        Meshc meshc = new Meshc();
+                        meshc.mesh = mesh;
 
-                    var hm = g.terrain.HeightmapData;
-                    pos.Y = (hm[(int)(pos.X / xzTerrainScale) + hm.GetLength(0) / 2, (int)(pos.Z / xzTerrainScale) + hm.GetLength(1) / 2] - yTerrainOffset) * yTerrainScale - 200f;
+                        TGCVector3 pos = genPosInChunk(j, k);
 
-                    var scale = TGCVector3.One * Random.Next(20, 500);
+                        var scale = TGCVector3.One * Random.Next(20, 500);
 
-                    meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
+                        meshc.originalMesh = TGCMatrix.Scaling(scale) * TGCMatrix.Translation(pos);
 
-                    var box = meshc.mesh.BoundingBox;
-                    var size = box.calculateSize();
-                    var posb = box.calculateBoxCenter();
+                        var box = meshc.mesh.BoundingBox;
+                        var size = box.calculateSize();
+                        var posb = box.calculateBoxCenter();
 
-                    size.X *= .1f;
-                    size.Z *= .1f;
+                        size.X *= .1f;
+                        size.Z *= .1f;
 
-                    posb.X -= size.X * .2f;
+                        posb.X -= size.X * .2f;
 
-                    meshc.paralleliped = Parallelepiped.fromSizePosition(
-                            size,
-                            posb
-                        );
-                    meshc.transformColission();
+                        meshc.paralleliped = Parallelepiped.fromSizePosition(
+                                size,
+                                posb
+                            );
+                        meshc.transformColission();
 
-                    chunks.addVertexFall(meshc);
+                        //chunks.addVertexFall(meshc);
+                    }
                 }
-            }
         }
+
+
 
         void AddChurch()
         {
@@ -173,8 +184,8 @@ namespace TGC.Group.Model
                 }
             }
             const int putByHand = 7;
-            mm.meshes = new TgcMesh[scene.Meshes.Count-cantBoxes];
-            mm.parallelipeds = new Parallelepiped[cantBoxes+ putByHand];
+            mm.meshes = new TgcMesh[scene.Meshes.Count - cantBoxes];
+            mm.parallelipeds = new Parallelepiped[cantBoxes + putByHand];
 
             int meshIndex = 0;
             int parIndex = 0;
@@ -185,12 +196,12 @@ namespace TGC.Group.Model
                     var par = Parallelepiped.fromBounding(m.BoundingBox);
                     mm.parallelipeds[parIndex++] = par;
                     par.transform(mm.originalMesh);
-                    chunks.addVertexFall(par, mm);
+                    g.chunks.addVertexFall(par, mm);
                 }
                 else
                 {
                     m.AutoTransformEnable = false;
-                    mm.meshes[meshIndex++]=m;
+                    mm.meshes[meshIndex++] = m;
                 }
             }
 
@@ -283,11 +294,11 @@ namespace TGC.Group.Model
                     0, 227f, -217
                 );
 
-            for(int i = cantBoxes; i < cantBoxes + putByHand; i++)
+            for (int i = cantBoxes; i < cantBoxes + putByHand; i++)
             {
                 var par = mm.parallelipeds[i];
                 par.transform(mm.originalMesh);
-                chunks.addVertexFall(par, mm);
+                g.chunks.addVertexFall(par, mm);
             }
             //foreach(var mesh in scene.Meshes)
             //{
@@ -327,6 +338,106 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             sky.Init();
 
+        }
+
+        private static TgcMesh candleMesh;
+
+        public static bool isCandle(Meshc m) //prefiero hacer esto a tener un bool isCollectable en meshc
+        {
+            return m.mesh == candleMesh;
+        }
+        private void AddCandles()
+        {
+            candleMesh = GetMeshFromScene("Vela-TgcScene.xml");
+            for (int i = 0; i < 9000; i++)
+            {
+                int j, k;
+                do
+                {
+                    j = Random.Next(1, Chunks.chunksPerDim - 1);
+                    k = Random.Next(1, Chunks.chunksPerDim - 1);
+                    //if (coordsOccupied(j, k)) continue;
+
+                    var pos = genPosInChunk(j, k);
+                    pos.Y += 200f;
+
+                    if (!checkColission(pos)) continue;
+
+                    var candleMeshc = new Meshc();
+                    //un poco excesivo que sea un meshc, lo eficiente seria que vela sea un tipo propio con una colision
+                    //por radio. Pero hacer eso hace agregar un nuevo tipo de meshc, lo que podria hacer el codigo mas lento
+                    //si sigo el camino de no usar polimorfismo. Igual ni ganas de agregar otro tipo. Que sea un meshc tiene
+                    //los beneficios de que se va a poder deformar, y estas colisiones van a evitar que las velas se superpongan
+                    //aunque agregar codigo para que se haga eso tampoco es una locura
+
+                    candleMeshc.mesh = candleMesh;
+                    candleMeshc.originalMesh = TGCMatrix.Scaling(new TGCVector3(20, 30, 20)) * TGCMatrix.Translation(pos);
+
+                    var box = candleMeshc.mesh.BoundingBox;
+                    var size = box.calculateSize();
+                    var posb = box.calculateBoxCenter();
+
+                    size.X *= 2.5f;
+                    size.Y *= 10f;
+                    size.Z *= 2.5f; //estaria bueno que tgc tenga multiplicacion miembro a miembro
+
+                    candleMeshc.paralleliped = Parallelepiped.fromSizePosition(
+                            size,
+                            posb
+                        );
+
+                    candleMeshc.transformColission();
+                    break;
+                } while (true);
+
+
+            }
+        }
+
+        static public bool checkColission(TGCVector3 pos)
+        {
+            //no reutlizo las colisiones de camara porque estan muy ligadas a camara, y desligarlas lo haria mas lento
+            //ademas pienso reescribir esa parte de camara asi que al pedo hacerla linda
+
+
+            var chunk = g.chunks.fromCoordinates(pos);
+            foreach (var mesh in chunk.meshes)
+            {
+                if (pointParallelipedXZColission(mesh.paralleliped, pos))
+                    return false;
+            }
+            foreach (var multimesh in chunk.multimeshes)
+            {
+                foreach (var par in multimesh.parallelipeds)
+                {
+                    if (pointParallelipedXZColission(par, pos))
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static bool pointParallelipedXZColission(Parallelepiped par, TGCVector3 pos)
+        {
+            var ray = new TgcRay();
+            ray.Direction = new TGCVector3(1, 0, 0);
+            ray.Origin = pos + new TGCVector3(-100, 0, 0);
+
+            par.intersectRay(ray, out float t, out TGCVector3 q);
+            if (t < 200f)
+            {
+                return true;
+            }
+
+            ray.Direction = new TGCVector3(0, 0, 1);
+            ray.Origin = pos + new TGCVector3(0, 0, -100);
+
+            par.intersectRay(ray, out t, out q);
+            if (t < 200f)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

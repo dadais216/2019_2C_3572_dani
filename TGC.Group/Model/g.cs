@@ -16,6 +16,7 @@ namespace TGC.Group.Model
         static public Camera.Camera camera;
         static public GameModel game;
         static public Map map;
+        static public Chunks chunks;
         static public TgcSimpleTerrain terrain;
         static public Mostro mostro;
     }

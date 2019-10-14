@@ -13,7 +13,7 @@ namespace TGC.Group.Model
         public TgcMesh mesh;
         public Mostro()
         {
-            mesh= Map.GetMeshFromScene("Robot-TgcScene.xml");
+            mesh= Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
             mesh.Transform = TGCMatrix.Scaling(TGCVector3.One * 30);
 
 
@@ -30,7 +30,7 @@ namespace TGC.Group.Model
             TGCVector3 pos = new TGCVector3(mesh.Transform.M41, mesh.Transform.M42, mesh.Transform.M43);
             var dir = g.camera.eyePosition - pos;
             dir.Normalize();
-            dir.Multiply(11000f*g.game.ElapsedTime);
+            dir.Multiply(200f*g.game.ElapsedTime);//11000f
             var newTransform = mesh.Transform;//no se por que no me deja cambiar el de mesh directamente c# de mierda
             newTransform.M41 += dir.X;
             newTransform.M42 += dir.Y;

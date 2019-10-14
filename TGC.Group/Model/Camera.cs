@@ -222,7 +222,7 @@ namespace TGC.Group.Model.Camera
             //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas
             //con fps bajos va a correr todavia mas lento pero va a ser consistente
             float dist=moving.Length();
-            int iters = (int)FastMath.Ceiling(dist/50f);
+            int iters = (int)FastMath.Ceiling(dist/45f);
 
             //Logger.Log(iters.ToString()+"   "+dist.ToString());
 
@@ -279,13 +279,23 @@ namespace TGC.Group.Model.Camera
 
                     }
                 });
-                var chunk = g.map.chunks.fromCoordinates(eyePosition, false);
+                var chunk = g.chunks.fromCoordinates(eyePosition, false);
                 foreach (var meshc in chunk.meshes)
                 {
                     var box = meshc.paralleliped;
-                    handleRays(box);
-                    if (doGoto)
-                        goto setCamera;//C# no se banca gotos en lambdas
+
+                    if (Map.isCandle(meshc))
+                    {
+                        if (Map.pointParallelipedXZColission(box, eyePosition))
+                            Logger.Log("!!!");
+                    }
+                    else
+                    {
+                        handleRays(box);
+                        if (doGoto)
+                            goto setCamera;//C# no se banca gotos en lambdas
+                    }
+
                 }
                 foreach (var meshc in chunk.multimeshes)
                 {
