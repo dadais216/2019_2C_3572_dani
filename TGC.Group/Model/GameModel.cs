@@ -143,6 +143,7 @@ namespace TGC.Group.Model
                 keyPressed = false;
 
             g.mostro.update();
+            g.hands.updateCandle();
 
             PostUpdate();
         }

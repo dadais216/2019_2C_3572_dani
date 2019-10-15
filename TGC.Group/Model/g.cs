@@ -19,5 +19,6 @@ namespace TGC.Group.Model
         static public Chunks chunks;
         static public TgcSimpleTerrain terrain;
         static public Mostro mostro;
+        static public Hands hands;
     }
 }

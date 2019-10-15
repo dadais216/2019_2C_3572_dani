@@ -82,6 +82,7 @@ namespace TGC.Group.Model
             g.terrain.Render();
             sky.Render();
             g.mostro.render();
+            g.hands.renderCandles();
 
             //foreach(var mesh in scene.Meshes)
             //{
@@ -184,7 +185,7 @@ namespace TGC.Group.Model
                 }
             }
             const int putByHand = 7;
-            mm.meshes = new TgcMesh[scene.Meshes.Count - cantBoxes];
+            mm.meshes = new TgcMesh[scene.Meshes.Count - cantBoxes -1];//esta incluido el candleplace
             mm.parallelipeds = new Parallelepiped[cantBoxes + putByHand];
 
             int meshIndex = 0;
@@ -310,7 +311,21 @@ namespace TGC.Group.Model
             //    p.renderAsPolygons();
             //}
 
+
+            
+            candlePlace= new MultiMeshc();
+            candlePlace.originalMesh = mm.originalMesh;
+            candlePlace.parallelipeds = new Parallelepiped[0];
+            candlePlace.parallelipeds[0]=Parallelepiped.fromBounding(scene.Meshes.Last().BoundingBox);
+            //pensandolo bien esto no va a andar porque multimesh esta hecho para manejar distintas meshes y no tiene estado
+            //asi que voy a necesitar hacer codigo especial para esto, y ya que estoy manejo las colisiones y todo ahi.
+            //pense en dejar esto como un hack para ver si estas en el chunk, pero es medio choto porque lo va a preguntar 
+            //por cada multimesh por cada chunk
+            //es mas simple y mas rapido manejar el candleplace con codigo propio.
+
+
         }
+        public MultiMeshc candlePlace;
 
         private void initSky()
         {
@@ -340,9 +355,9 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
         }
 
-        private static TgcMesh candleMesh;
+        public TgcMesh candleMesh;
 
-        public static bool isCandle(Meshc m) //prefiero hacer esto a tener un bool isCollectable en meshc
+        public bool isCandle(Meshc m) //prefiero hacer esto a tener un bool isCollectable en meshc
         {
             return m.mesh == candleMesh;
         }
@@ -439,5 +454,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             }
             return false;
         }
+
+        
     }
 }

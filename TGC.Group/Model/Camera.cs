@@ -10,6 +10,7 @@ using TGC.Core.Direct3D;
 using TGC.Core.Geometry;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
+using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
 
 namespace TGC.Group.Model.Camera
@@ -43,7 +44,7 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///  Se mantiene la matriz rotacion para no hacer este calculo cada vez.
         /// </summary>
-        private static TGCMatrix cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
+        public static TGCMatrix cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
 
         /// <summary>
         ///  Se traba la camara, se utiliza para ocultar el puntero del mouse y manejar la rotacion de la camara.
@@ -54,6 +55,7 @@ namespace TGC.Group.Model.Camera
         ///     Posicion de la camara
         /// </summary>
         public TGCVector3 eyePosition = new TGCVector3(-0, 200, -49000);
+        public TGCVector3 cameraRotatedTarget;
 
         /// <summary>
         ///  Velocidad de movimiento
@@ -76,6 +78,7 @@ namespace TGC.Group.Model.Camera
         private bool underRoof;
         private TGCVector3 eyePositionOffRoof;
 
+
         
 
         /// <summary>
@@ -97,6 +100,7 @@ namespace TGC.Group.Model.Camera
             horizontal[3].Direction = new TGCVector3(0, 0, -1);
 
             g.camera = this;
+            g.hands=new Hands();
         }
 
         private TgcD3dInput Input { get; }
@@ -280,14 +284,18 @@ namespace TGC.Group.Model.Camera
                     }
                 });
                 var chunk = g.chunks.fromCoordinates(eyePosition, false);
+                Meshc setToRemove = null;
                 foreach (var meshc in chunk.meshes)
                 {
                     var box = meshc.paralleliped;
 
-                    if (Map.isCandle(meshc))
+                    if (g.map.isCandle(meshc))
                     {
                         if (Map.pointParallelipedXZColission(box, eyePosition))
-                            Logger.Log("!!!");
+                        {
+                            setToRemove = meshc;
+                        }
+
                     }
                     else
                     {
@@ -297,6 +305,13 @@ namespace TGC.Group.Model.Camera
                     }
 
                 }
+
+                if (setToRemove != null)
+                {
+                    if(g.hands.maybePickCandle())
+                        chunk.meshes.Remove(setToRemove);
+                }
+
                 foreach (var meshc in chunk.multimeshes)
                 {
                     foreach(var box in meshc.parallelipeds)
@@ -354,7 +369,7 @@ namespace TGC.Group.Model.Camera
 
         setCamera:
 
-            TGCVector3 cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+            cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
             TGCVector3 cameraFinalTarget = eyePosition + cameraRotatedTarget;
             // Se calcula el nuevo vector de up producido por el movimiento del update.
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
@@ -383,15 +398,11 @@ namespace TGC.Group.Model.Camera
             triangle.b = PBeg;
             triangle.c = PendBack;
 
+
+
+
         }
 
-        /// <summary>
-        ///     Cuando se elimina esto hay que desbloquear la camera
-        /// </summary>
-        ~Camera()
-        {
-            LockCam = false;
-        }
 
         public class Triangle
         {
@@ -428,5 +439,17 @@ namespace TGC.Group.Model.Camera
         }
         public Triangle triangle = new Triangle();
 
+
+
+
+
+
+        /// <summary>
+        ///     Cuando se elimina esto hay que desbloquear la camera
+        /// </summary>
+        ~Camera()
+        {
+            LockCam = false;
+        }
     }
 }
