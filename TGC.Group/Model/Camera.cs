@@ -325,11 +325,10 @@ namespace TGC.Group.Model.Camera
 
                 eyePosition += displacement;
             }
-                //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
-                //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
-                //sistema aparte es simple y es mucho mas eficiente
-                //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
-            
+            //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
+            //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
+            //sistema aparte es simple y es mucho mas eficiente
+            //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
     
             var zxScale = Map.xzTerrainScale;
             var yScale = Map.yTerrainScale;

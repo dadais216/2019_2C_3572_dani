@@ -144,6 +144,10 @@ namespace TGC.Group.Model
 
             g.mostro.update();
             g.hands.updateCandle();
+            g.map.updateCandlePlace();
+
+
+
 
             PostUpdate();
         }

@@ -3,7 +3,7 @@
   <texturesExport enabled="True" dir="Textures" />
   <lightmapExport enabled="False" dir="LightMaps" />
   <sceneBoundingBox min="[-172.521,-2.4798,-265.541]" max="[172.521,470.897,265.541]" />
-  <materials count="4">
+  <materials count="3">
     <m name="Standardmaterial" type="Standardmaterial">
       <ambient>[0,0,0,0]</ambient>
       <diffuse>[0,0,0,0]</diffuse>
@@ -28,16 +28,8 @@
       <alphaBlendEnable>False</alphaBlendEnable>
       <bitmap uvTiling="[1,1]" uvOffset="[1,1]">stone-texturePiso.jpg</bitmap>
     </m>
-    <m name="Standardmaterial" type="Standardmaterial">
-      <ambient>[0,0,0,0]</ambient>
-      <diffuse>[0,0,0,0]</diffuse>
-      <specular>[0,0,0,0]</specular>
-      <opacity>1</opacity>
-      <alphaBlendEnable>False</alphaBlendEnable>
-      <bitmap uvTiling="[1,1]" uvOffset="[1,1]">candle.bmp</bitmap>
-    </m>
   </materials>
-  <meshes count="30">
+  <meshes count="29">
     <mesh name="Altar01" layer="Default" type="Original" matId="0" color="[1,1,1]" visibility="1.0" lightmap="">
       <boundingBox min="[-142.362,0.3426,166.7473]" max="[141.34,8.237,236.537]" />
       <coordinatesIdx count="36">0 1 2 2 3 0 4 5 6 6 7 4 0 3 5 5 4 0 3 2 6 6 5 3 2 1 7 7 6 2 1 0 4 4 7 1 </coordinatesIdx>
@@ -490,22 +482,6 @@
       <textCoordsLightMapIdx count="0">
       </textCoordsLightMapIdx>
       <vertices count="24">-163.8491 236.0322 261.4936 -163.8491 0.962 261.4936 168.8652 236.0322 261.4936 168.8652 0.962 261.4936 -163.8491 236.0322 238.2702 168.8652 236.0322 238.2702 -163.8491 0.962 238.2702 168.8652 0.962 238.2702 </vertices>
-      <normals count="24">0 0 1 0 0 1 0 0 1 0 0 1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 </normals>
-      <texCoords count="8">0 0 0 1 1 0 1 1 </texCoords>
-      <colors count="3">255 255 255 </colors>
-      <texCoordsLightMap count="0">
-      </texCoordsLightMap>
-      <userProps count="0" />
-    </mesh>
-    <mesh name="CandlePlace" layer="Default" type="Original" matId="3" color="[1,1,1]" visibility="1.0" lightmap="">
-      <boundingBox min="[-47.6588,0,4.04]" max="[65.8758,55.0924,132.886]" />
-      <coordinatesIdx count="36">0 1 2 1 3 2 4 5 6 6 5 7 0 5 4 0 2 5 1 6 7 1 7 3 0 6 1 4 6 0 2 3 7 5 2 7 </coordinatesIdx>
-      <textCoordsIdx count="36">0 1 2 1 3 2 0 2 1 1 2 3 0 3 1 0 2 3 0 1 3 0 3 2 0 3 1 2 3 0 0 1 3 2 0 3 </textCoordsIdx>
-      <colorsIdx count="36">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </colorsIdx>
-      <matIds count="1">0 </matIds>
-      <textCoordsLightMapIdx count="0">
-      </textCoordsLightMapIdx>
-      <vertices count="24">-47.6588 55.0924 132.886 -47.6588 0 132.886 65.8758 55.0924 132.886 65.8758 0 132.886 -47.6588 55.0924 4.04 65.8758 55.0924 4.04 -47.6588 0 4.04 65.8758 0 4.04 </vertices>
       <normals count="24">0 0 1 0 0 1 0 0 1 0 0 1 0 0 -1 0 0 -1 0 0 -1 0 0 -1 </normals>
       <texCoords count="8">0 0 0 1 1 0 1 1 </texCoords>
       <colors count="3">255 255 255 </colors>

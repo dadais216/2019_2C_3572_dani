@@ -56,6 +56,17 @@ namespace TGC.Group.Model
                 poly.updateValues();
                 poly.Render();
             }
+            public void renderDebugColission()
+            {
+                foreach (Meshc meshc in meshes)
+                {
+                    meshc.renderDebugColission();
+                }
+                foreach (MultiMeshc meshc in multimeshes)
+                {
+                    meshc.renderDebugColission();
+                }
+            }
         }
         public const float MapSquareRad = 410000f;//deberia ser lo mismo que terrain
         public const float chunkLen= 10000f;

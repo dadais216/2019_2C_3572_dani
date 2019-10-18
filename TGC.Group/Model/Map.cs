@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,14 +76,22 @@ namespace TGC.Group.Model
             mostro = new Mostro();
 
             g.map = this;
+
+            precomputeCandlePolygonVertex();
         }
         public void Render()
         {
             g.chunks.render();
+
+            if (GameModel.debugColission)
+                g.chunks.fromCoordinates(g.camera.eyePosition, false).renderDebugColission();
+
             g.terrain.Render();
             sky.Render();
             g.mostro.render();
             g.hands.renderCandles();
+            if (renderCandlePlace)
+                renderCandles();
 
             //foreach(var mesh in scene.Meshes)
             //{
@@ -125,7 +134,7 @@ namespace TGC.Group.Model
         private void AddTrees()
         {
 
-            var mesh = GetMeshFromScene("Pino\\Pino-TgcScene.xml");
+            var mesh = GetMeshFromScene("Pino-TgcScene.xml");
 
             for (int j = 1; j < Chunks.chunksPerDim - 1; j++)
                 for (int k = 1; k < Chunks.chunksPerDim - 1; k++)
@@ -185,7 +194,7 @@ namespace TGC.Group.Model
                 }
             }
             const int putByHand = 7;
-            mm.meshes = new TgcMesh[scene.Meshes.Count - cantBoxes -1];//esta incluido el candleplace
+            mm.meshes = new TgcMesh[scene.Meshes.Count - cantBoxes];
             mm.parallelipeds = new Parallelepiped[cantBoxes + putByHand];
 
             int meshIndex = 0;
@@ -301,6 +310,15 @@ namespace TGC.Group.Model
                 par.transform(mm.originalMesh);
                 g.chunks.addVertexFall(par, mm);
             }
+
+            //la pared del fondo justo no cae en ningun vertex, la agrego a mano
+            var c = g.chunks.fromCoordinates(new TGCVector3(-7168f, -11072f, 18671f));
+            if (!c.multimeshes.Contains(mm))
+            {
+                c.multimeshes.Add(mm);
+            }
+
+
             //foreach(var mesh in scene.Meshes)
             //{
             //    mesh.UpdateMeshTransform();
@@ -311,21 +329,10 @@ namespace TGC.Group.Model
             //    p.renderAsPolygons();
             //}
 
-
-            
-            candlePlace= new MultiMeshc();
-            candlePlace.originalMesh = mm.originalMesh;
-            candlePlace.parallelipeds = new Parallelepiped[0];
-            candlePlace.parallelipeds[0]=Parallelepiped.fromBounding(scene.Meshes.Last().BoundingBox);
-            //pensandolo bien esto no va a andar porque multimesh esta hecho para manejar distintas meshes y no tiene estado
-            //asi que voy a necesitar hacer codigo especial para esto, y ya que estoy manejo las colisiones y todo ahi.
-            //pense en dejar esto como un hack para ver si estas en el chunk, pero es medio choto porque lo va a preguntar 
-            //por cada multimesh por cada chunk
-            //es mas simple y mas rapido manejar el candleplace con codigo propio.
+            //centro de la iglesia ( -2879,753   -10917,6   3882,9  )
 
 
         }
-        public MultiMeshc candlePlace;
 
         private void initSky()
         {
@@ -343,12 +350,13 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             var texturesPath = g.game.MediaDir + "SkyBox\\";
 
 
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "Up.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "Down.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "Left.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "Right.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "Front.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "Back.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "lun4_up.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "lun4_dn.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "lun4_lf.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "lun4_rt.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "lun4_bk.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "lun4_ft.jpg");
+
             sky.SkyEpsilon = 25f;
 
             sky.Init();
@@ -386,7 +394,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     //aunque agregar codigo para que se haga eso tampoco es una locura
 
                     candleMeshc.mesh = candleMesh;
-                    candleMeshc.originalMesh = TGCMatrix.Scaling(new TGCVector3(20, 30, 20)) * TGCMatrix.Translation(pos);
+                    candleMeshc.originalMesh = TGCMatrix.Scaling(new TGCVector3(10, 15, 10)) * TGCMatrix.Translation(pos);
 
                     var box = candleMeshc.mesh.BoundingBox;
                     var size = box.calculateSize();
@@ -455,6 +463,65 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             return false;
         }
 
-        
+        TGCVector3 candlePlacePos = new TGCVector3(0f,-11220,0f);
+        int candlesPlaced=0;
+        bool renderCandlePlace = false;
+        int targetCandles=9;
+        public void updateCandlePlace()
+        {
+            //el candleplace podria implementarse como un tercer tipo de meshc tambien, pero como no estoy usando polimorfismo
+            //agregar mas tipos haria el codigo mas lento,y aunque no lo fuera seria peor igual, y no se justifica solo por esto.
+            //Pareceria que multimesh podria usarse, teniendo una sola colision e inicialmente ningun mesh, y se le van agregando
+            //velas conforme se vayan poniendo. Pero no funcionaria porque multimesh esta hecho para manejar meshes unicas que
+            //vienen de un conjunto, no puede manejar la misma mesh muchas veces con transformaciones distintas. 
+            //Y aunque se pudiera se va a necesitar codigo especial para manejar el estado, y ya que estoy manejo todo ahi de
+            //forma mas limpia y eficiente 
+
+            if ((candlePlacePos - g.camera.eyePosition).LengthSq() < 9985474)
+            {
+                candlesPlaced = Math.Min(targetCandles, candlesPlaced + g.hands.state);
+                g.hands.state = 0;
+            }
+
+
+            //si el centro de la iglesia se renderizó en el frame anterior, renderizar candleplace en este
+            renderCandlePlace = g.chunks.chunks[41, 41].lastDrawnFrame == GameModel.actualFrame - 1 ||
+                                g.chunks.chunks[40, 40].lastDrawnFrame == GameModel.actualFrame - 1;
+            
+        }
+
+        public TGCVector3[] candlePlaceVertex;
+        public void precomputeCandlePolygonVertex()
+        {
+            candlePlaceVertex = new TGCVector3[targetCandles];
+            double radius = 1800d;
+            double turnStep = 2d * 3.1415d / (double)targetCandles;
+            for (int i = 0; i < targetCandles; i++)
+            {
+                var vertex = turnStep * i;
+                candlePlaceVertex[i] = new TGCVector3(
+                    candlePlacePos.X + (float)(Math.Cos(vertex) * radius), 
+                    candlePlacePos.Y, 
+                    candlePlacePos.Z + (float)(Math.Sin(vertex) * radius));
+            }
+
+        }
+
+        public void renderCandles()
+        {
+            var scale=TGCMatrix.Scaling(new TGCVector3(10, 15, 10));
+
+            for(int i = 0; i < candlesPlaced; i++)
+            {
+                candleMesh.Transform = scale * TGCMatrix.Translation(candlePlaceVertex[i]);
+                candleMesh.Render();
+
+                for(int j = 0; j < i; j++)
+                {
+                    TgcLine.fromExtremes(candlePlaceVertex[i], candlePlaceVertex[j], Color.Red).Render();
+                }
+
+            }
+        }
     }
 }

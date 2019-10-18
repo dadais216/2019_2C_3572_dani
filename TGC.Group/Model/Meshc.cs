@@ -64,10 +64,13 @@ namespace TGC.Group
                     mesh.Render();
                 }
 
-                if (GameModel.debugColission)
-                    paralleliped.renderAsPolygons();
             }
 
+        }
+
+        public void renderDebugColission()
+        {
+            paralleliped.renderAsPolygons();
         }
     }
     public class MultiMeshc
@@ -116,11 +119,14 @@ namespace TGC.Group
                         mesh.Render();
                     }
                 }
-                if (GameModel.debugColission)
-                    foreach (var paralleliped in parallelipeds)
-                        paralleliped.renderAsPolygons();
             }
 
+        }
+
+        public void renderDebugColission()
+        {
+            foreach (var paralleliped in parallelipeds)
+                paralleliped.renderAsPolygons();
         }
     }
 }
