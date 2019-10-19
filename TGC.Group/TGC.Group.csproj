@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\Chunk.cs" />
+    <Compile Include="Model\CameraSprites.cs" />
     <Compile Include="Model\Hands.cs" />
     <Compile Include="Model\g.cs" />
     <Compile Include="Model\Mostro.cs" />

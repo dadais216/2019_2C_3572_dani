@@ -11,10 +11,11 @@ namespace TGC.Group.Model
     public class Mostro
     {
         public TgcMesh mesh;
+        public TGCVector3 pos=new TGCVector3(0,0,0);
+        
         public Mostro()
         {
             mesh= Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
-            mesh.Transform = TGCMatrix.Scaling(TGCVector3.One * 30);
 
 
             g.mostro = this;
@@ -27,15 +28,21 @@ namespace TGC.Group.Model
 
         public void update()
         {
-            TGCVector3 pos = new TGCVector3(mesh.Transform.M41, mesh.Transform.M42, mesh.Transform.M43);
-            var dir = g.camera.eyePosition - pos;
+            var dir = g.camera.eyePosition - pos;           
             dir.Normalize();
-            dir.Multiply(200f*g.game.ElapsedTime);//11000f
-            var newTransform = mesh.Transform;//no se por que no me deja cambiar el de mesh directamente c# de mierda
-            newTransform.M41 += dir.X;
-            newTransform.M42 += dir.Y;
-            newTransform.M43 += dir.Z;
-            mesh.Transform = newTransform;
+            dir.Multiply(5500f*g.game.ElapsedTime);//11000f
+            pos += dir;
+
+            var lookAt = new TGCVector3(dir.X, 0, dir.Z);
+            lookAt.Normalize();
+            var lookin = new TGCVector3(0, 0, -1);
+
+            mesh.Transform =
+                TGCMatrix.RotationAxis(TGCVector3.Cross(lookAt, lookin),
+                                     -(float)Math.Acos(TGCVector3.Dot(lookAt, lookin))) 
+                * TGCMatrix.Scaling(TGCVector3.One * 30) 
+                * TGCMatrix.Translation(pos);
+            //Logger.Log(rot);
         }
 
 

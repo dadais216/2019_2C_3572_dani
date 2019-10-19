@@ -36,6 +36,7 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
 
             g.game = this;
+
         }
 
 
@@ -47,7 +48,9 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-            Camara=new Camera.Camera(Input);
+            g.input = Input;
+            g.cameraSprites = new CameraSprites();
+            Camara=new Camera.Camera();
             new Map();
         }
 
@@ -71,84 +74,88 @@ namespace TGC.Group.Model
 
             actualFrame++;
 
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.I) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.H) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.J) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.K) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.B) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.N) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.M) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6) ||
-                Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7))
-                Meshc.matrizChange = true;
-            else
-                Meshc.matrizChange = false;
-
-            float sgn = 2f;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
-                sgn = -2f;
-
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.H)) matriz.M21 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.J)) matriz.M22 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K)) matriz.M23 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.B)) matriz.M31 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += ElapsedTime * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += ElapsedTime * sgn;
-
-            //ni idea de por que la traslacion es tan lenta
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += ElapsedTime * 100 * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += ElapsedTime * 100 * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += ElapsedTime * 100 * sgn;
-
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += 0.1f * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f * sgn;
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f * sgn;
-
-            if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Z))
+            if (g.cameraSprites.gameStart)
             {
-                if (!keyPressed)
-                {
-                    keyPressed = true;
-                    debugColission = !debugColission;
-                }
-            }
-            else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.X))
-            {
-                if (!keyPressed)
-                {
-                    keyPressed = true;
-                    debugMeshes = !debugMeshes;
-                }
-            }
-            else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.C))
-            {
-                if (!keyPressed)
-                {
-                    keyPressed = true;
-                    debugChunks = !debugChunks;
-                }
+                g.cameraSprites.updateMenu();
+
             }
             else
-                keyPressed = false;
+            {
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.I) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.H) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.J) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.K) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.B) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.N) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.M) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6) ||
+                    Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7))
+                    Meshc.matrizChange = true;
+                else
+                    Meshc.matrizChange = false;
 
-            g.mostro.update();
-            g.hands.updateCandle();
-            g.map.updateCandlePlace();
+                float sgn = 2f;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
+                    sgn = -2f;
 
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.I)) matriz.M13 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.H)) matriz.M21 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.J)) matriz.M22 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K)) matriz.M23 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.B)) matriz.M31 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.N)) matriz.M32 += ElapsedTime * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.M)) matriz.M33 += ElapsedTime * sgn;
 
+                //ni idea de por que la traslacion es tan lenta
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D1)) matriz.M41 += ElapsedTime * 100 * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D2)) matriz.M42 += ElapsedTime * 100 * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D3)) matriz.M43 += ElapsedTime * 100 * sgn;
 
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D4)) matriz.M14 += 0.1f * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f * sgn;
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f * sgn;
 
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Z))
+                {
+                    if (!keyPressed)
+                    {
+                        keyPressed = true;
+                        debugColission = !debugColission;
+                    }
+                }
+                else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.X))
+                {
+                    if (!keyPressed)
+                    {
+                        keyPressed = true;
+                        debugMeshes = !debugMeshes;
+                    }
+                }
+                else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.C))
+                {
+                    if (!keyPressed)
+                    {
+                        keyPressed = true;
+                        debugChunks = !debugChunks;
+                    }
+                }
+                else
+                    keyPressed = false;
+
+                g.mostro.update();
+                g.hands.updateCandle();
+                g.map.updateCandlePlace();
+            }
             PostUpdate();
         }
         /// <summary>
@@ -159,7 +166,15 @@ namespace TGC.Group.Model
         public override void Render()
         {
             PreRender();
+
+            if (g.cameraSprites.gameStart)
+            {
+                g.cameraSprites.renderMenu();
+                Meshc.matrizChange = false;//medio garca hacerlo aca pero necesito actualizarlo para que no me destruya los fps
+            }
+
             g.map.Render();
+            g.cameraSprites.renderStaminaBar();
             PostRender();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Input;
 using TGC.Core.Terrain;
 
 namespace TGC.Group.Model
@@ -20,5 +21,7 @@ namespace TGC.Group.Model
         static public TgcSimpleTerrain terrain;
         static public Mostro mostro;
         static public Hands hands;
+        static public CameraSprites cameraSprites;
+        static public TgcD3dInput input;
     }
 }

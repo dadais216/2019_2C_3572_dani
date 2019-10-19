@@ -26,11 +26,16 @@ namespace TGC.Group.Model
             //lo mismo para la izquierda, y esta lo de pasar la vela a la otra mano si se apaga la derecha
              */
 
+#if false
+            var up = g.camera.UpVector;
+#else
+            var up = TGCVector3.Up;
+#endif
             var forwardPos = g.camera.eyePosition + g.camera.cameraRotatedTarget * 10f;
             if (state > 0)
             {
                 var rotatedPos= forwardPos 
-                            + TGCVector3.Cross(g.camera.eyePosition - forwardPos, TGCVector3.Up) * .4f
+                            + TGCVector3.Cross(g.camera.eyePosition - forwardPos, up) * .4f
                             + TGCVector3.Down * 4f;
 
                 //Camera.Camera.cameraRotation * iria al principio, pero sacandole los elementos en y
@@ -42,7 +47,7 @@ namespace TGC.Group.Model
             if (state == 2)
             {
                 var rotatedPos = forwardPos
-                            + TGCVector3.Cross(g.camera.eyePosition - forwardPos, TGCVector3.Up) * -.4f
+                            + TGCVector3.Cross(g.camera.eyePosition - forwardPos, up) * -.4f
                             + TGCVector3.Down * 4f;
 
                 //Camera.Camera.cameraRotation * iria al principio, pero sacandole los elementos en y

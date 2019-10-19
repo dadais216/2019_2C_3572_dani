@@ -33,13 +33,13 @@ namespace TGC.Group.Model.Camera
         private readonly TGCVector3 directionView = Map.South;
 
 
-        private static float leftrightRot = FastMath.PI_HALF;
+        private static float leftrightRot = 2.803196f;
 
         //No hace falta la base ya que siempre es la misma, la base se arma segun las rotaciones de esto costados y updown.
         /// <summary>
         ///
         /// </summary>
-        private static float updownRot = -FastMath.PI / 10.0f;
+        private static float updownRot = 0.5277546f;
 
         /// <summary>
         ///  Se mantiene la matriz rotacion para no hacer este calculo cada vez.
@@ -54,13 +54,14 @@ namespace TGC.Group.Model.Camera
         /// <summary>
         ///     Posicion de la camara
         /// </summary>
-        public TGCVector3 eyePosition = new TGCVector3(-0, 200, -49000);
+        public TGCVector3 eyePosition = new TGCVector3(-0, -10800, -45000);
         public TGCVector3 cameraRotatedTarget;
 
         /// <summary>
         ///  Velocidad de movimiento
         /// </summary>
-        public readonly float MovementSpeed = 12000f;
+        public readonly float MovementSpeed = 7000f;
+        public float stamina = 5000f;
 
         /// <summary>
         ///  Velocidad de rotacion
@@ -85,10 +86,8 @@ namespace TGC.Group.Model.Camera
         ///     Constructor de la camara a partir de un TgcD3dInput el cual ya tiene por default el eyePosition (0,0,0), el mouseCenter a partir del centro del a pantalla, RotationSpeed 1.0f,
         ///     MovementSpeed y JumpSpeed 500f, el directionView (0,0,-1)
         /// </summary>
-        public Camera(TgcD3dInput input)
+        public Camera()
         {
-            Input = input;
-
             up = new TgcRay();
             up.Direction = new TGCVector3(0, 1, 0);
             down = new TgcRay();
@@ -101,9 +100,9 @@ namespace TGC.Group.Model.Camera
 
             g.camera = this;
             g.hands=new Hands();
-        }
+            
 
-        private TgcD3dInput Input { get; }
+        }
 
         /// <summary>
         ///  Condicion para trabar y destrabar la camara y ocultar el puntero de mouse.
@@ -136,8 +135,9 @@ namespace TGC.Group.Model.Camera
 
         public override void UpdateCamera(float elapsedTime)
         {
+
             //Lock camera
-            if (Input.keyPressed(Key.L))
+            if (g.input.keyPressed(Key.L))
             {
                 LockCam = !lockCam;
             }
@@ -145,24 +145,24 @@ namespace TGC.Group.Model.Camera
             var inputMove = TGCVector3.Empty;
             if (lockCam)
             {
-                leftrightRot -= -Input.XposRelative * RotationSpeed;
-                updownRot -= Input.YposRelative * RotationSpeed;
+                leftrightRot -= -g.input.XposRelative * RotationSpeed;
+                updownRot -= g.input.YposRelative * RotationSpeed;
                 // Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
                 cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
                 Cursor.Position = mouseCenter;
             }
 
+            if (g.cameraSprites.gameStart)
+                goto setCamera;
 
 
-
-
-            if (Input.keyDown(Key.W))
+            if (g.input.keyDown(Key.W))
                 inputMove += Map.South;
-            if (Input.keyDown(Key.S))
+            if (g.input.keyDown(Key.S))
                 inputMove += Map.North;
-            if (Input.keyDown(Key.A))
+            if (g.input.keyDown(Key.A))
                 inputMove += Map.East;
-            if (Input.keyDown(Key.D))
+            if (g.input.keyDown(Key.D))
                 inputMove += Map.West;
 
             
@@ -172,10 +172,15 @@ namespace TGC.Group.Model.Camera
             moveXZ.Normalize();
 
 
-            if (Input.keyDown(Key.Q))
-                moveXZ += Map.South * 32;
 
             TGCVector3 moving = moveXZ * MovementSpeed * elapsedTime;
+            if (g.input.keyDown(Key.LeftShift) && onGround && stamina>500f)
+                moving *= 3f;
+
+            stamina -= moving.Length()/40f;
+            stamina = Math.Min(stamina+ (MovementSpeed * elapsedTime)/40f, 5000f);
+
+
 
             var displacement = new TGCVector3(0, 0, 0);
             const float border = 100f;
@@ -187,9 +192,10 @@ namespace TGC.Group.Model.Camera
             //salto
             if (onGround)
             {
-                if (Input.keyDown(Key.Space) && !underRoof)
+                if (g.input.keyDown(Key.Space) && !underRoof && stamina>1000f)
                 {
-                    vSpeed = 100f- Math.Max(-elapsedTime * 100, -180);
+                    stamina -= 1000f;
+                    vSpeed = 100f- Math.Max(-elapsedTime * 100, -380);
                 }
                 else
                     vSpeed = 0f;
@@ -197,7 +203,7 @@ namespace TGC.Group.Model.Camera
                 //ahora lo dejo en 0 porque causa mucha vibracion con bajos fps
             }
             else
-                vSpeed = Math.Max(vSpeed - elapsedTime * 100, -180);//gravedad
+                vSpeed = Math.Max(vSpeed - elapsedTime * 100, -480);//gravedad
                 //v=a*t
                 //x=v*t
                 //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
@@ -228,13 +234,11 @@ namespace TGC.Group.Model.Camera
             float dist=moving.Length();
             int iters = (int)FastMath.Ceiling(dist/45f);
 
-            //Logger.Log(iters.ToString()+"   "+dist.ToString());
 
             var step = moving * (1 / (float)iters);
 
             iters = FastMath.Min(iters, 10);//dropear iteraciones en casos extremos, sino
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
-
 
             for (int i = 0; i < iters; i++)
             {
@@ -367,14 +371,13 @@ namespace TGC.Group.Model.Camera
 
 
         setCamera:
-
             cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
             TGCVector3 cameraFinalTarget = eyePosition + cameraRotatedTarget;
             // Se calcula el nuevo vector de up producido por el movimiento del update.
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
-            base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector);
+            base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector); //cambiar por TGCVector3.Up cuando restringa la camara
             //base.SetCamera(eyePosition, cameraRotatedTarget, cameraRotatedUpVector);
 
             //Logger.Log(eyePosition);
