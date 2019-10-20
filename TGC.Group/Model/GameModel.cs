@@ -50,7 +50,8 @@ namespace TGC.Group.Model
         {
             g.input = Input;
             g.cameraSprites = new CameraSprites();
-            Camara=new Camera.Camera();
+            g.cameraSprites.initMenu();
+            Camara =new Camera.Camera();
             new Map();
         }
 
@@ -66,7 +67,6 @@ namespace TGC.Group.Model
         public static bool debugColission = false;
         public static bool debugChunks = false;
         public static bool debugMeshes = true;
-        public static bool keyPressed = false;
 
         public override void Update()
         {
@@ -101,9 +101,9 @@ namespace TGC.Group.Model
                 else
                     Meshc.matrizChange = false;
 
-                float sgn = 2f;
+                float sgn = .5f;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
-                    sgn = -2f;
+                    sgn = -.5f;
 
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y)) matriz.M11 += ElapsedTime * sgn;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.U)) matriz.M12 += ElapsedTime * sgn;
@@ -125,37 +125,26 @@ namespace TGC.Group.Model
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f * sgn;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f * sgn;
 
-                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Z))
+                if (g.cameraSprites.debugVisualizations)
                 {
-                    if (!keyPressed)
+                    if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.Z))
                     {
-                        keyPressed = true;
                         debugColission = !debugColission;
                     }
-                }
-                else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.X))
-                {
-                    if (!keyPressed)
+                    else if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.X))
                     {
-                        keyPressed = true;
                         debugMeshes = !debugMeshes;
                     }
-                }
-                else if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.C))
-                {
-                    if (!keyPressed)
+                    else if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.C))
                     {
-                        keyPressed = true;
                         debugChunks = !debugChunks;
                     }
                 }
-                else
-                    keyPressed = false;
-
                 g.mostro.update();
                 g.hands.updateCandle();
                 g.map.updateCandlePlace();
             }
+
             PostUpdate();
         }
         /// <summary>

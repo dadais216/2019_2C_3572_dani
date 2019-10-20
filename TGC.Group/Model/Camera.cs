@@ -136,6 +136,9 @@ namespace TGC.Group.Model.Camera
         public override void UpdateCamera(float elapsedTime)
         {
 
+            if (g.cameraSprites.gameStart)
+                goto setCamera;
+
             //Lock camera
             if (g.input.keyPressed(Key.L))
             {
@@ -151,9 +154,6 @@ namespace TGC.Group.Model.Camera
                 cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
                 Cursor.Position = mouseCenter;
             }
-
-            if (g.cameraSprites.gameStart)
-                goto setCamera;
 
 
             if (g.input.keyDown(Key.W))
@@ -178,7 +178,7 @@ namespace TGC.Group.Model.Camera
                 moving *= 3f;
 
             stamina -= moving.Length()/40f;
-            stamina = Math.Min(stamina+ (MovementSpeed * elapsedTime)/40f, 5000f);
+            stamina = Math.Min(stamina+ (MovementSpeed * elapsedTime)/(g.cameraSprites.infiniteStamina? 1f:35f), 5000f);
 
 
 
@@ -237,7 +237,7 @@ namespace TGC.Group.Model.Camera
 
             var step = moving * (1 / (float)iters);
 
-            iters = FastMath.Min(iters, 10);//dropear iteraciones en casos extremos, sino
+            iters = FastMath.Min(iters, 20);//dropear iteraciones en casos extremos, sino
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
 
             for (int i = 0; i < iters; i++)

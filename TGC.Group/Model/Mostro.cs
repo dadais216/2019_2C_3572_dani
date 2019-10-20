@@ -30,7 +30,7 @@ namespace TGC.Group.Model
         {
             var dir = g.camera.eyePosition - pos;           
             dir.Normalize();
-            dir.Multiply(5500f*g.game.ElapsedTime);//11000f
+            dir.Multiply(5500f*(g.cameraSprites.squeletonHalfSpeed?8f:1f)*g.game.ElapsedTime);//11000f
             pos += dir;
 
             var lookAt = new TGCVector3(dir.X, 0, dir.Z);

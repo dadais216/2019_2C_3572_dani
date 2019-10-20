@@ -69,15 +69,14 @@ namespace TGC.Group.Model
 
 
             g.terrain = terrain;
-            AddTrees();
-            AddChurch();
-            AddCandles();
+            addTrees();
+            addChurch();
+            //addCandles();
 
             mostro = new Mostro();
 
             g.map = this;
 
-            precomputeCandlePolygonVertex();
         }
         public void Render()
         {
@@ -131,7 +130,7 @@ namespace TGC.Group.Model
             return pos;
         }
 
-        private void AddTrees()
+        private void addTrees()
         {
 
             var mesh = GetMeshFromScene("Pino-TgcScene.xml");
@@ -175,7 +174,7 @@ namespace TGC.Group.Model
 
 
 
-        void AddChurch()
+        void addChurch()
         {
             var loader = new TgcSceneLoader();
             var scene = loader.loadSceneFromFile(g.game.MediaDir + "church-TgcScene.xml");
@@ -369,10 +368,10 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         {
             return m.mesh == candleMesh;
         }
-        private void AddCandles()
+        public void addCandles()
         {
             candleMesh = GetMeshFromScene("Vela-TgcScene.xml");
-            for (int i = 0; i < 9000; i++)
+            for (int i = 0; i < g.cameraSprites.candlesInMap; i++)
             {
                 int j, k;
                 do
@@ -466,7 +465,6 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         TGCVector3 candlePlacePos = new TGCVector3(0f,-11220,0f);
         int candlesPlaced=0;
         bool renderCandlePlace = false;
-        int targetCandles=9;
         public void updateCandlePlace()
         {
             //el candleplace podria implementarse como un tercer tipo de meshc tambien, pero como no estoy usando polimorfismo
@@ -479,7 +477,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             if ((candlePlacePos - g.camera.eyePosition).LengthSq() < 9985474)
             {
-                candlesPlaced = Math.Min(targetCandles, candlesPlaced + g.hands.state);
+                candlesPlaced = Math.Min(g.cameraSprites.candlesRequired, candlesPlaced + g.hands.state);
                 g.hands.state = 0;
             }
 
@@ -493,10 +491,10 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         public TGCVector3[] candlePlaceVertex;
         public void precomputeCandlePolygonVertex()
         {
-            candlePlaceVertex = new TGCVector3[targetCandles];
+            candlePlaceVertex = new TGCVector3[g.cameraSprites.candlesRequired];
             double radius = 1800d;
-            double turnStep = 2d * 3.1415d / (double)targetCandles;
-            for (int i = 0; i < targetCandles; i++)
+            double turnStep = 2d * 3.1415d / (double)g.cameraSprites.candlesRequired;
+            for (int i = 0; i < g.cameraSprites.candlesRequired; i++)
             {
                 var vertex = turnStep * i;
                 candlePlaceVertex[i] = new TGCVector3(
