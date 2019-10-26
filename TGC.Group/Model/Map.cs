@@ -383,7 +383,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     var pos = genPosInChunk(j, k);
                     pos.Y += 200f;
 
-                    if (!checkColission(pos)) continue;
+                    if (checkColission(pos,100f)) continue;
 
                     var candleMeshc = new Meshc();
                     //un poco excesivo que sea un meshc, lo eficiente seria que vela sea un tipo propio con una colision
@@ -416,7 +416,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             }
         }
 
-        static public bool checkColission(TGCVector3 pos)
+        public bool checkColission(TGCVector3 pos,float colissionLen)
         {
             //no reutlizo las colisiones de camara porque estan muy ligadas a camara, y desligarlas lo haria mas lento
             //ademas pienso reescribir esa parte de camara asi que al pedo hacerla linda
@@ -425,37 +425,35 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             var chunk = g.chunks.fromCoordinates(pos);
             foreach (var mesh in chunk.meshes)
             {
-                if (pointParallelipedXZColission(mesh.paralleliped, pos))
-                    return false;
+                if (pointParallelipedXZColission(mesh.paralleliped, pos, colissionLen))
+                    return true;
             }
             foreach (var multimesh in chunk.multimeshes)
             {
                 foreach (var par in multimesh.parallelipeds)
                 {
-                    if (pointParallelipedXZColission(par, pos))
-                        return false;
+                    if (pointParallelipedXZColission(par, pos, colissionLen))
+                        return true;
                 }
             }
-            return true;
+            return false;
         }
 
-        public static bool pointParallelipedXZColission(Parallelepiped par, TGCVector3 pos)
+        public bool pointParallelipedXZColission(Parallelepiped par, TGCVector3 pos, float colissionLen)
         {
             var ray = new TgcRay();
             ray.Direction = new TGCVector3(1, 0, 0);
-            ray.Origin = pos + new TGCVector3(-100, 0, 0);
+            ray.Origin = pos + new TGCVector3(-colissionLen, 0, 0);
 
-            par.intersectRay(ray, out float t, out TGCVector3 q);
-            if (t < 200f)
+            if (par.intersectRay(ray, out float t, out TGCVector3 q)&&t < 2f* colissionLen)
             {
                 return true;
             }
 
             ray.Direction = new TGCVector3(0, 0, 1);
-            ray.Origin = pos + new TGCVector3(0, 0, -100);
+            ray.Origin = pos + new TGCVector3(0, 0, -colissionLen);
 
-            par.intersectRay(ray, out t, out q);
-            if (t < 200f)
+            if (par.intersectRay(ray, out t, out q)&&t < 2f* colissionLen)
             {
                 return true;
             }

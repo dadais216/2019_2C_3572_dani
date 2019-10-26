@@ -295,7 +295,7 @@ namespace TGC.Group.Model.Camera
 
                     if (g.map.isCandle(meshc))
                     {
-                        if (Map.pointParallelipedXZColission(box, eyePosition))
+                        if (g.map.pointParallelipedXZColission(box, eyePosition,100f))
                         {
                             setToRemove = meshc;
                         }
