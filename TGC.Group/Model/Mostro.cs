@@ -20,8 +20,9 @@ namespace TGC.Group.Model
         TGCVector3 lookAt;
         TGCVector3 lookin;
 
-        public int mode = 0;//0 seguir jugador, 1 evitar colision, 2 script
+        public int mode = 1;//0 ataque, 1 seguimiento, 2 busqueda
 
+        float speed = 3500f;
 
         public Mostro()
         {
@@ -51,6 +52,12 @@ namespace TGC.Group.Model
 
         }
 
+        bool speedGoingUp=true;
+        float acceleration = 200f;
+
+        TGCVector3 obj;
+        bool setObj = true;
+
         int sidePref = 1;
         float swithSideTimer = 0;
         public void update()
@@ -58,28 +65,76 @@ namespace TGC.Group.Model
             dir = TGCVector3.Empty;
             if (mode == 0)
             {
-                dir = g.camera.eyePosition - pos;
-                dir.Normalize();
-                dir.Multiply(3500f * (g.cameraSprites.squeletonHalfSpeed ? .5f : 1f) * g.game.ElapsedTime);//11000f
-
-                if(!addaptDirIfColission())
+                //va hacia el jugador, la aceleracion salta entre + y - cada tanto
+                speedToPlayer();
+            }
+            if (mode == 1)
+            {
+                //mientras se lo este mirando no ataca al jugador, se queda cerca
+                if (g.camera.triangle.enclosesPoint(pos))
                 {
-                    swithSideTimer += g.game.ElapsedTime;
-                    if (swithSideTimer > 3f)
+                    if (setObj)
                     {
-                        swithSideTimer = 0;
-                        sidePref = -sidePref;
+                        setObj = false;
+
+                        if (speed > 3500f)
+                        {
+                            speed -= g.game.ElapsedTime * acceleration;
+                        }
+
+
+                        //aca estoy consiguiendo un valor en un radio del jugador, mas o menos en la direccion que mira
+                        //seguro que hay una forma mejor de calcular esto
+                        obj=g.camera.cameraRotatedTarget*100f 
+                            + TGCVector3.Cross(g.camera.cameraRotatedTarget * 100f,TGCVector3.Up)*g.map.Random.Next(-10000,10000);
+                        obj.Normalize();
+                        obj *= 2000f;
+                        obj += g.camera.eyePosition;
+
                     }
-
-
-                    lookAt = new TGCVector3(dir.X, 0, dir.Z);
-                    lookAt.Normalize();
-                    lookin = new TGCVector3(0, 0, -1);
+                    dir = obj - pos;
+                    Logger.Log(dir.Length());
+                    if (dir.Length() < 500f)
+                    {
+                        setObj = true;
+                    }
                 }
+                else
+                {
+                    setObj = true;
+                    speedToPlayer();
+                    Logger.Log(":(");
+                }
+
+                dir = obj - pos; 
+            }
+            if(mode == 2)
+            {
+                //dir en el cielo, no se cambia hasta que se llegue
+            }
+            dir.Normalize();
+            dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .5f : 1f) * g.game.ElapsedTime);//11000f
+
+            if(!addaptDirIfColission())
+            {
+                swithSideTimer += g.game.ElapsedTime;
+                if (swithSideTimer > 3f)
+                {
+                    swithSideTimer = 0;
+                    sidePref = -sidePref;
+                }
+
+
+                lookAt = new TGCVector3(dir.X, 0, dir.Z);
+                lookAt.Normalize();
+                lookin = new TGCVector3(0, 0, -1);
+            }
+            else
+            {
+                setObj = true;
             }
 
 
-            Logger.Log(sidePref.ToString() + "   " + swithSideTimer.ToString());
 
 
             pos += dir;
@@ -101,13 +156,32 @@ namespace TGC.Group.Model
 
 
 
-        render:
             mesh.Transform =
                 TGCMatrix.RotationAxis(TGCVector3.Cross(lookAt, lookin),
                                      -(float)Math.Acos(TGCVector3.Dot(lookAt, lookin)))
                 * TGCMatrix.Scaling(TGCVector3.One * 30)
                 * TGCMatrix.Translation(pos);
             //Logger.Log(rot);
+        }
+
+        private void speedToPlayer()
+        {
+            dir = g.camera.eyePosition - pos;
+
+            if (speedGoingUp)
+            {
+                speed += g.game.ElapsedTime * acceleration;
+                if (speed > 8500f)
+                    speedGoingUp = false;
+            }
+            else
+            {
+                speed -= g.game.ElapsedTime * acceleration * 1.1f;
+                if (speed < 4000f)
+                {
+                    speedGoingUp = true;
+                }
+            }
         }
 
         public bool addaptDirIfColission()

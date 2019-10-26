@@ -18,7 +18,7 @@ namespace TGC.Group.Model
     public class Map
     {
         private readonly Device Device = D3DDevice.Instance.Device;
-        private readonly Random Random = new Random();
+        public readonly Random Random = new Random();
 
         internal static readonly TGCVector3 Origin = new TGCVector3(0, 0000, 0);
         internal static readonly TGCVector3 Up = TGCVector3.Up;
