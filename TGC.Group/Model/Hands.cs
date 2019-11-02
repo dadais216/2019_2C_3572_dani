@@ -102,6 +102,7 @@ namespace TGC.Group.Model
             if (state == 2)
                 return false;
             state++;
+            g.mostro.mode = 1;
             return true;
         }
 

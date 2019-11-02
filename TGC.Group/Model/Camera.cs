@@ -136,9 +136,8 @@ namespace TGC.Group.Model.Camera
         public override void UpdateCamera(float elapsedTime)
         {
 
-            if (g.cameraSprites.gameStart)
+            if (g.game.gameState!= 1)
                 goto setCamera;
-
             //Lock camera
             if (g.input.keyPressed(Key.L))
             {
@@ -371,12 +370,19 @@ namespace TGC.Group.Model.Camera
 
 
         setCamera:
-            cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
-            TGCVector3 cameraFinalTarget = eyePosition + cameraRotatedTarget;
-            // Se calcula el nuevo vector de up producido por el movimiento del update.
+            TGCVector3 cameraFinalTarget;
+            if (g.game.gameState != 2)
+            {
+                cameraRotatedTarget = TGCVector3.TransformNormal(directionView, cameraRotation);
+                cameraFinalTarget = eyePosition + cameraRotatedTarget;
+            }
+            else
+            {
+                cameraFinalTarget = g.mostro.pos + TGCVector3.Up * g.mostro.height - eyePosition;
+            }
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
-
+        
             base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector); //cambiar por TGCVector3.Up cuando restringa la camara
             //base.SetCamera(eyePosition, cameraRotatedTarget, cameraRotatedUpVector);
 
@@ -404,6 +410,7 @@ namespace TGC.Group.Model.Camera
 
 
         }
+
 
 
         public class Triangle

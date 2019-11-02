@@ -68,18 +68,21 @@ namespace TGC.Group.Model
         public static bool debugChunks = false;
         public static bool debugMeshes = true;
 
+        public int gameState = 0;//0 menu inicio, 1 juego, 2 muerte
+
+
         public override void Update()
         {
             PreUpdate();
 
             actualFrame++;
 
-            if (g.cameraSprites.gameStart)
+            if (gameState==0)
             {
                 g.cameraSprites.updateMenu();
 
             }
-            else
+            else if(gameState==1)
             {
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
                     Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
@@ -156,14 +159,20 @@ namespace TGC.Group.Model
         {
             PreRender();
 
-            if (g.cameraSprites.gameStart)
+            if (gameState==0)
             {
                 g.cameraSprites.renderMenu();
                 Meshc.matrizChange = false;//medio garca hacerlo aca pero necesito actualizarlo para que no me destruya los fps
             }
 
             g.map.Render();
-            g.cameraSprites.renderStaminaBar();
+            g.mostro.render();
+
+            if (gameState == 1)
+            {
+                g.cameraSprites.renderStaminaBar();
+                g.hands.renderCandles();
+            }
             PostRender();
         }
 

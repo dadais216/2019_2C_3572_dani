@@ -44,12 +44,11 @@ namespace TGC.Group.Model
 
         }
 
-        public bool gameStart=true;
         public void updateMenu()
         {
             if (g.input.keyDown(Microsoft.DirectX.DirectInput.Key.W))
             {
-                gameStart = false;
+                g.game.gameState = 1;
 
                 g.map.precomputeCandlePolygonVertex();
                 Meshc.matrizChange = true;//hack, igual eventualmente no voy a usar la matriz esta

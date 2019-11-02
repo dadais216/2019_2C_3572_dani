@@ -58,7 +58,7 @@ namespace TGC.Group.Model
 
             initSky();
 
-            var terrain = new TgcSimpleTerrain();
+            var terrain = new Terrain();
             terrain.loadHeightmap(g.game.MediaDir + "h.jpg", xzTerrainScale, yTerrainScale, new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
@@ -87,8 +87,6 @@ namespace TGC.Group.Model
 
             g.terrain.Render();
             sky.Render();
-            g.mostro.render();
-            g.hands.renderCandles();
             if (renderCandlePlace)
                 renderCandles();
 
@@ -477,6 +475,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             {
                 candlesPlaced = Math.Min(g.cameraSprites.candlesRequired, candlesPlaced + g.hands.state);
                 g.hands.state = 0;
+                g.mostro.mode = 0;
             }
 
 

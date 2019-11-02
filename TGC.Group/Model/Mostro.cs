@@ -20,7 +20,7 @@ namespace TGC.Group.Model
         TGCVector3 lookAt;
         TGCVector3 lookin;
 
-        public int mode = 1;//0 ataque, 1 seguimiento, 2 busqueda
+        public int mode = 0;//0 ataque, 1 seguimiento, 2 busqueda
 
         float speed = 3500f;
 
@@ -33,7 +33,7 @@ namespace TGC.Group.Model
         }
 
         const float colissionLen = 200f;
-        const float height = 1500f;
+        public float height = 1500f;
 
         public void render()
         {
@@ -88,7 +88,7 @@ namespace TGC.Group.Model
                         obj=g.camera.cameraRotatedTarget*100f 
                             + TGCVector3.Cross(g.camera.cameraRotatedTarget * 100f,TGCVector3.Up)*g.map.Random.Next(-10000,10000);
                         obj.Normalize();
-                        obj *= 2000f;
+                        obj *= 2000f+1000*g.hands.state;
                         obj += g.camera.eyePosition;
 
                     }
@@ -103,10 +103,9 @@ namespace TGC.Group.Model
                 {
                     setObj = true;
                     speedToPlayer();
-                    Logger.Log(":(");
+                    Logger.Log(":("+dir.Length().ToString());
                 }
 
-                dir = obj - pos; 
             }
             if(mode == 2)
             {
@@ -134,26 +133,7 @@ namespace TGC.Group.Model
                 setObj = true;
             }
 
-
-
-
             pos += dir;
-
-
-
-        //if (g.map.checkColission(pos + dir + TGCVector3.Up * height, colissionLen))
-        //{
-        //    dir = TGCVector3.Cross(dir, TGCVector3.Up) * toSide;
-        //    if (g.map.checkColission(pos + dir + TGCVector3.Up * height, colissionLen))
-        //    {
-        //        dir = TGCVector3.Cross(dir, TGCVector3.Up) * .5f + -dir * .5f;
-        //    }
-
-
-
-        //    swithSideTimer = 0f;
-        //}
-
 
 
             mesh.Transform =
@@ -181,6 +161,11 @@ namespace TGC.Group.Model
                 {
                     speedGoingUp = true;
                 }
+            }
+
+            if (dir.Length() < 300f)
+            {
+                g.game.gameState = 2;
             }
         }
 
