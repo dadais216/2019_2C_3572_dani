@@ -378,7 +378,9 @@ namespace TGC.Group.Model.Camera
             }
             else
             {
-                cameraFinalTarget = g.mostro.pos + TGCVector3.Up * g.mostro.height - eyePosition;
+                var mostroDir = g.mostro.pos + TGCVector3.Up * g.mostro.height;
+                mostroDir.Normalize(); //se normaliza por el largo del lineVec
+                cameraFinalTarget =  eyePosition - mostroDir;
             }
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
@@ -395,6 +397,7 @@ namespace TGC.Group.Model.Camera
             triangle.a = eyeUp;
 
             var lineVec = (cameraFinalTarget - eyePosition) * 200000f;
+
             var Pend = lineVec + eyePosition;
             Pend.Y = eyeUp.Y;
 

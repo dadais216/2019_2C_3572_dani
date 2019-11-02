@@ -11,7 +11,7 @@ namespace TGC.Core.Terrain
     /// <summary>
     ///     Permite crear la malla de un terreno en base a una textura de Heightmap
     /// </summary>
-    public class Terrain : IRenderObject
+    public class Terrain
     {
         protected Effect effect;
 
@@ -109,22 +109,6 @@ namespace TGC.Core.Terrain
             D3DDevice.Instance.Device.DrawPrimitives(PrimitiveType.TriangleList, 0, totalVertices / 3);
             effect.EndPass();
             effect.End();
-        }
-
-        /// <summary>
-        ///     Libera los recursos del Terreno
-        /// </summary>
-        public void Dispose()
-        {
-            if (vbTerrain != null)
-            {
-                vbTerrain.Dispose();
-            }
-
-            if (terrainTexture != null)
-            {
-                terrainTexture.Dispose();
-            }
         }
 
         /// <summary>

@@ -51,7 +51,6 @@ namespace TGC.Group.Model
                 g.game.gameState = 1;
 
                 g.map.precomputeCandlePolygonVertex();
-                Meshc.matrizChange = true;//hack, igual eventualmente no voy a usar la matriz esta
                 g.map.addCandles();
                 return;
             }

@@ -101,8 +101,6 @@ namespace TGC.Group.Model
                     Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6) ||
                     Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7))
                     Meshc.matrizChange = true;
-                else
-                    Meshc.matrizChange = false;
 
                 float sgn = .5f;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
@@ -162,7 +160,6 @@ namespace TGC.Group.Model
             if (gameState==0)
             {
                 g.cameraSprites.renderMenu();
-                Meshc.matrizChange = false;//medio garca hacerlo aca pero necesito actualizarlo para que no me destruya los fps
             }
 
             g.map.Render();

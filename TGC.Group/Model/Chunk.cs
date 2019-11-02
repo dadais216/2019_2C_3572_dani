@@ -158,6 +158,7 @@ namespace TGC.Group.Model
 
             if (Meshc.matrizChange)
             {
+                Logger.Log("!!!!!!!!!!!!!!!");
                 foreach (Chunk chunk in chunks)
                 {
                     foreach(Meshc m in chunk.meshes)
@@ -169,6 +170,7 @@ namespace TGC.Group.Model
                         m.transformColission();
                     }
                 }
+                Meshc.matrizChange = false;
             }
 
 
@@ -184,13 +186,17 @@ namespace TGC.Group.Model
             chunks[s.i-1, s.j-1].render();
             chunks[s.i, s.j-1].render();
             chunks[s.i+1, s.j-1].render();
+
+            int chunksInTriangle = 0;
             foreach (Chunk chunk in chunks)
             {
                 if (g.camera.triangle.enclosesPoint(chunk.center))
                 {
+                    chunksInTriangle++;
                     chunk.render();
                 }
             }
+            //Logger.Log(chunksInTriangle.ToString());
 
             //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
