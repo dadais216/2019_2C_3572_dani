@@ -58,7 +58,7 @@ namespace TGC.Group.Model
             {
                 selectorState= selectorState < 3?
                     (selectorState==2?2:selectorState+1):
-                    (selectorState == 8 ? 8 : selectorState + 1);
+                    (selectorState == 9 ? 9 : selectorState + 1);
             }
             if (g.input.keyPressed(Microsoft.DirectX.DirectInput.Key.UpArrow))
             {
@@ -73,8 +73,9 @@ namespace TGC.Group.Model
                     case 2: selectorState = 3;break;
                     case 3: infiniteStamina = !infiniteStamina;break;
                     case 4: squeletonHalfSpeed = !squeletonHalfSpeed;break;
-                    case 7: debugVisualizations = !debugVisualizations;break;
-                    case 8: selectorState = 2;break;
+                    case 7: inmunity = !inmunity; break;
+                    case 8: debugVisualizations = !debugVisualizations;break;
+                    case 9: selectorState = 2;break;
                 }
                 actualStateDraw = selectorState;
             }
@@ -154,11 +155,11 @@ namespace TGC.Group.Model
 
             text6.Align = TgcText2D.TextAlign.LEFT;
             text6.Color = Color.White;
-            text6.Text = "estamina infinita\nesqueleto mitad velocidad\ncantidad de velas requeridas:\nvelas en mapa:\nvisualizacion debug (z colisiones,x meshes,c chunks)\natras";
+            text6.Text = "estamina infinita\nesqueleto mitad velocidad\ncantidad de velas requeridas:\nvelas en mapa:\ninmunidad\nvisualizacion debug (z colisiones,x meshes,c chunks)\natras";
             text6.Size = new Size(1000, 1000);
             text6.Position = new Point(250, 450);
             text6.changeFont(commonFont);
-
+            
             selector.Align = TgcText2D.TextAlign.LEFT;
             selector.Color = Color.White;
             selector.Text = ">";
@@ -190,7 +191,8 @@ namespace TGC.Group.Model
         public bool squeletonHalfSpeed = false;
         public int candlesRequired = 9;
         public int candlesInMap = 500;
-        public bool debugVisualizations = true;
+        public bool debugVisualizations = false;
+        public bool inmunity = false;
 
         public void renderMenu()
         {
@@ -224,12 +226,17 @@ namespace TGC.Group.Model
                 }
                 if (squeletonHalfSpeed)
                 {
-                    seleccionado.Position = new Point(225, 450+39);
+                    seleccionado.Position = new Point(225, 450+38);
+                    seleccionado.render();
+                }
+                if (inmunity)
+                {
+                    seleccionado.Position = new Point(225, 450 + 38 * 4);
                     seleccionado.render();
                 }
                 if (debugVisualizations)
                 {
-                    seleccionado.Position = new Point(225, 450 + 39*4);
+                    seleccionado.Position = new Point(225, 450 + 38*5);
                     seleccionado.render();
                 }
                 candlesRequiredText.Text = candlesRequired.ToString();

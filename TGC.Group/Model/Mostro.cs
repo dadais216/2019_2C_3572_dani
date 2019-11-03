@@ -39,20 +39,15 @@ namespace TGC.Group.Model
         {
             mesh.Render();
 
-
-            TGCVector3 colDir = new TGCVector3(dir.X, 0, dir.Z);
-            colDir.Normalize();
-            colDir *= 350f;
-
-            var cPos = pos + TGCVector3.Up * height;
-            TgcLine.fromExtremes(cPos - colDir, cPos + colDir, Color.Red).Render();
-            TGCVector3 cross = TGCVector3.Cross(colDir, TGCVector3.Up);
-            TgcLine.fromExtremes(cPos - cross, cPos + cross, Color.Red).Render();
-
-
+            if (g.cameraSprites.debugVisualizations)
+            {
+                TgcLine.fromExtremes(cPos, cPos + colDir, Color.Red).Render();
+                TGCVector3 cross = TGCVector3.Cross(colDir, TGCVector3.Up);
+                TgcLine.fromExtremes(cPos, cPos + cross * sidePref, Color.Green).Render();
+            }
         }
 
-        bool speedGoingUp=true;
+        bool speedGoingUp = true;
         float acceleration = 200f;
 
         TGCVector3 obj;
@@ -60,6 +55,9 @@ namespace TGC.Group.Model
 
         int sidePref = 1;
         float swithSideTimer = 0;
+
+        TGCVector3 colDir;
+        TGCVector3 cPos;
         public void update()
         {
             dir = TGCVector3.Empty;
@@ -85,10 +83,10 @@ namespace TGC.Group.Model
 
                         //aca estoy consiguiendo un valor en un radio del jugador, mas o menos en la direccion que mira
                         //seguro que hay una forma mejor de calcular esto
-                        obj=g.camera.cameraRotatedTarget*100f 
-                            + TGCVector3.Cross(g.camera.cameraRotatedTarget * 100f,TGCVector3.Up)*g.map.Random.Next(-10000,10000);
+                        obj = g.camera.cameraRotatedTarget * 100f
+                            + TGCVector3.Cross(g.camera.cameraRotatedTarget * 100f, TGCVector3.Up) * g.map.Random.Next(-10000, 10000);
                         obj.Normalize();
-                        obj *= 2000f+1000*g.hands.state;
+                        obj *= 2000f + 1000 * g.hands.state;
                         obj += g.camera.eyePosition;
 
                     }
@@ -103,19 +101,85 @@ namespace TGC.Group.Model
                 {
                     setObj = true;
                     speedToPlayer();
-                    Logger.Log(":("+dir.Length().ToString());
+                    Logger.Log(":(" + dir.Length().ToString());
                 }
 
             }
-            if(mode == 2)
+            if (mode == 2)
             {
                 //dir en el cielo, no se cambia hasta que se llegue
             }
             dir.Normalize();
             dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .5f : 1f) * g.game.ElapsedTime);//11000f
 
-            if(!addaptDirIfColission())
+            colDir = new TGCVector3(dir.X, 0, dir.Z);
+            colDir.Normalize();
+            colDir *= 1000;
+
+            //colDir.X = Math.Max(colDir.X, dir.X);
+            //colDir.Z = Math.Max(colDir.Z, dir.Z);//puede que sea demasiado precavido esto
+
+
+            cPos = pos + TGCVector3.Up * height;
+
+
+            var chunk = g.chunks.fromCoordinates(pos);
+
+            float len = colDir.Length();
+            float t;
+            TGCVector3 q;//esta porque c# me obliga
+
+            var ray = new TgcRay();
+            ray.Direction = colDir;
+            ray.Origin = cPos;
+
+
+            var intersecRay = new Func<bool>(() =>
             {
+                foreach (var mesh in chunk.meshes)
+                {
+                    if (mesh.paralleliped.intersectRay(ray, out t, out q) && t < len)
+                        return true;
+                }
+                foreach (var multimesh in chunk.multimeshes)
+                {
+                    foreach (var par in multimesh.parallelipeds)
+                    {
+                        if (par.intersectRay(ray, out t, out q) && t < len)
+                            return true;
+                    }
+                }
+                return false;
+            });
+
+
+            if (intersecRay())
+            {
+                setObj = true;
+
+                ray.Direction = TGCVector3.Cross(colDir, TGCVector3.Up);// * sidePref;
+                if (intersecRay())
+                {
+                    ray.Direction = -ray.Direction;
+                    if (intersecRay())
+                    {
+                        dir = -dir;
+                    }
+                    else
+                    {
+                        dir = -TGCVector3.Cross(dir, TGCVector3.Up);// * sidePref;
+                    }
+                    //sidePref = -sidePref;
+                }
+                else
+                {
+                    dir = TGCVector3.Cross(dir, TGCVector3.Up);// * sidePref;
+                }
+
+            }
+            else
+            {
+                //si no hay nada enfrente mirar al jugador
                 swithSideTimer += g.game.ElapsedTime;
                 if (swithSideTimer > 3f)
                 {
@@ -128,10 +192,10 @@ namespace TGC.Group.Model
                 lookAt.Normalize();
                 lookin = new TGCVector3(0, 0, -1);
             }
-            else
-            {
-                setObj = true;
-            }
+
+
+
+
 
             pos += dir;
 
@@ -163,65 +227,14 @@ namespace TGC.Group.Model
                 }
             }
 
-            if (dir.Length() < 300f)
+            if (dir.Length() < 300f && !g.cameraSprites.inmunity)
             {
                 g.game.gameState = 2;
             }
         }
 
-        public bool addaptDirIfColission()
-        {
-            var chunk = g.chunks.fromCoordinates(pos);
-            foreach (var mesh in chunk.meshes)
-            {
-                if (pointParallelipedXZColission(mesh.paralleliped))
-                    return true;
-            }
-            foreach (var multimesh in chunk.multimeshes)
-            {
-                foreach (var par in multimesh.parallelipeds)
-                {
-                    if (pointParallelipedXZColission(par))
-                        return true;
-                }
-            }
-            return false;
-        }
-
-        public bool pointParallelipedXZColission(Parallelepiped par)
-        {
-            TGCVector3 colDir = new TGCVector3(dir.X, 0, dir.Z);
-            colDir.Normalize();
-            colDir *= 350f;
-
-            var cPos = pos + TGCVector3.Up * height;
-
-            var ray = new TgcRay();
-            ray.Direction = colDir;
-            ray.Origin = cPos;
-
-            float len = colDir.Length(); //es cte, ver que es y ponerlo
-
-            
-            if (par.intersectRay(ray, out float t, out TGCVector3 q)&&t < len)
-            {
-                ray.Direction = TGCVector3.Cross(colDir, TGCVector3.Up)*sidePref;
-                ray.Origin = cPos - ray.Direction;
 
 
-                dir = TGCVector3.Cross(dir, TGCVector3.Up)*sidePref;
-                if (par.intersectRay(ray, out t, out q)&&t < len)
-                {
-                    dir = -dir;
-                    sidePref = -sidePref;
-                }
-                return true;
-            }
-
-            return false;//no hay nada enfrente
-
-
-        }
 
     }
 }

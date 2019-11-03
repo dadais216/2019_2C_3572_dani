@@ -54,7 +54,7 @@ namespace TGC.Group.Model
         public bool intersectRay(TgcRay ray, out float dist, out TGCVector3 q)
         {
             float t;
-            dist = 9000;
+            dist = 9999999;
             var face=new TGCVector3[4];
            
             face[0] = transformedVertex[0];
@@ -100,7 +100,7 @@ namespace TGC.Group.Model
             if (TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
                 dist = Math.Min(t, dist);
 
-            if (dist != 9000)
+            if (dist != 9999999)
             {
                 t = dist;
                 return true;

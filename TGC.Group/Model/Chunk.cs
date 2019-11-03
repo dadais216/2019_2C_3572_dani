@@ -158,7 +158,6 @@ namespace TGC.Group.Model
 
             if (Meshc.matrizChange)
             {
-                Logger.Log("!!!!!!!!!!!!!!!");
                 foreach (Chunk chunk in chunks)
                 {
                     foreach(Meshc m in chunk.meshes)
