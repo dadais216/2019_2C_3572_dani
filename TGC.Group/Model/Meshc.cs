@@ -116,6 +116,12 @@ namespace TGC.Group
                     foreach (var mesh in meshes)
                     {
                         mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+
+                        //no esta claro si quiero aplicar el mismo shader para todos los meshc, pero por ahora si
+                        mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+                        mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+                        mesh.Effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
+
                         mesh.Render();
                     }
                 }

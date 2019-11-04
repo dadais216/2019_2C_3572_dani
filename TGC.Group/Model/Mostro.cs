@@ -157,7 +157,7 @@ namespace TGC.Group.Model
             {
                 setObj = true;
 
-                ray.Direction = TGCVector3.Cross(colDir, TGCVector3.Up);// * sidePref;
+                ray.Direction = TGCVector3.Cross(colDir, TGCVector3.Up) * sidePref;
                 if (intersecRay())
                 {
                     ray.Direction = -ray.Direction;
@@ -167,13 +167,13 @@ namespace TGC.Group.Model
                     }
                     else
                     {
-                        dir = -TGCVector3.Cross(dir, TGCVector3.Up);// * sidePref;
+                        dir = -TGCVector3.Cross(dir, TGCVector3.Up) * sidePref;
                     }
-                    //sidePref = -sidePref;
+                    sidePref = -sidePref;
                 }
                 else
                 {
-                    dir = TGCVector3.Cross(dir, TGCVector3.Up);// * sidePref;
+                    dir = TGCVector3.Cross(dir, TGCVector3.Up) * sidePref;
                 }
 
             }
@@ -192,9 +192,6 @@ namespace TGC.Group.Model
                 lookAt.Normalize();
                 lookin = new TGCVector3(0, 0, -1);
             }
-
-
-
 
 
             pos += dir;

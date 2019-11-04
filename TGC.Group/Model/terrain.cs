@@ -28,7 +28,9 @@ namespace TGC.Core.Terrain
             AlphaBlendEnable = false;
 
             //Shader
-            effect= TGCShaders.Instance.TgcMeshSpotLightShader;// TGCShaders.Instance.TgcMeshSpotLightShader;
+
+            //effect= TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "TgcMeshSpotLightShader.fx");
+            effect = TGCShaders.Instance.TgcMeshSpotLightShader;
             technique = "DIFFUSE_MAP";
 
 
@@ -99,21 +101,10 @@ namespace TGC.Core.Terrain
                 return;
 
 
-
-            effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
             effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(TGCVector3.Down));
-            effect.SetValue("lightIntensity", 200f);
-            effect.SetValue("lightAttenuation", .2f);
-            effect.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
-            effect.SetValue("spotLightExponent", .0f);
+            effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
 
-            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Black));
-            effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-            effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.Yellow));
-            effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Blue));
-            effect.SetValue("materialSpecularExp", .9f);
 
 
             effect.SetValue("texDiffuseMap", terrainTexture);

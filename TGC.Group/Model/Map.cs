@@ -10,6 +10,7 @@ using TGC.Core.Direct3D;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Shaders;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
 
@@ -45,6 +46,7 @@ namespace TGC.Group.Model
 
         public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
+        public Effect shaderComun;
         public Map()
         {
 
@@ -68,6 +70,22 @@ namespace TGC.Group.Model
 
 
 
+            //shader comun
+            shaderComun = TGCShaders.Instance.TgcMeshSpotLightShader;
+            shaderComun.SetValue("lightIntensity", 200f);
+            shaderComun.SetValue("lightAttenuation", .2f);
+            shaderComun.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
+            shaderComun.SetValue("spotLightExponent", .0f);
+            shaderComun.SetValue("lightColor", ColorValue.FromColor(Color.White));
+
+            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Black));
+            shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
+            shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            shaderComun.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
+            shaderComun.SetValue("materialSpecularExp", .9f);
+
+
+
             g.terrain = terrain;
             addTrees();
             addChurch();
@@ -80,6 +98,11 @@ namespace TGC.Group.Model
         }
         public void Render()
         {
+
+            shaderComun.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+            shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+            shaderComun.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
+
             g.chunks.render();
 
             if (GameModel.debugColission)
@@ -131,7 +154,31 @@ namespace TGC.Group.Model
         private void addTrees()
         {
 
-            var mesh = GetMeshFromScene("Pino-TgcScene.xml");
+            var pino = GetMeshFromScene("Pino-TgcScene.xml");
+
+
+            Effect effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+            /*
+            effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
+            effect.SetValue("lightIntensity", 200f);
+            effect.SetValue("lightAttenuation", .2f);
+            effect.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
+            effect.SetValue("spotLightExponent",.0f);
+
+            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Black));
+            effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
+            effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
+            effect.SetValue("materialSpecularExp", .9f);
+            */
+
+            pino.Effect = effect;
+
+            
+            pino.Technique = "DIFFUSE_MAP";
+
+
+
 
             for (int j = 1; j < Chunks.chunksPerDim - 1; j++)
                 for (int k = 1; k < Chunks.chunksPerDim - 1; k++)
@@ -142,7 +189,7 @@ namespace TGC.Group.Model
                     for (var i = 0; i < treesPerChunk; i++)
                     {
                         Meshc meshc = new Meshc();
-                        meshc.mesh = mesh;
+                        meshc.mesh = pino;
 
                         TGCVector3 pos = genPosInChunk(j, k);
 
@@ -328,7 +375,11 @@ namespace TGC.Group.Model
 
             //centro de la iglesia ( -2879,753   -10917,6   3882,9  )
 
-
+            foreach(var mesh in mm.meshes)
+            {
+                mesh.Effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+                mesh.Technique = "DIFFUSE_MAP";
+            }
         }
 
         private void initSky()
