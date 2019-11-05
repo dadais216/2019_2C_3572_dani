@@ -113,6 +113,8 @@ namespace TGC.Group.Model
             if (renderCandlePlace)
                 renderCandles();
 
+
+
             //foreach(var mesh in scene.Meshes)
             //{
             //    mesh.UpdateMeshTransform();
@@ -420,6 +422,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         public void addCandles()
         {
             candleMesh = GetMeshFromScene("Vela-TgcScene.xml");
+            Meshc.matrizChange = true;
             for (int i = 0; i < g.cameraSprites.candlesInMap; i++)
             {
                 int j, k;
@@ -460,9 +463,8 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     candleMeshc.transformColission();
                     break;
                 } while (true);
-
-
             }
+            Meshc.matrizChange = false;
         }
 
         public bool checkColission(TGCVector3 pos,float colissionLen)

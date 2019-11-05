@@ -4,10 +4,14 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using Microsoft.DirectX.DirectSound;
 using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Sound;
+
 
 namespace TGC.Group.Model
 {
@@ -24,10 +28,19 @@ namespace TGC.Group.Model
 
         float speed = 3500f;
 
+        Tgc3dSound musica;
+
         public Mostro()
         {
             mesh = Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
 
+            
+
+            musica = new Tgc3dSound(g.game.MediaDir + "tambo_tambo-la_cumbita.wav", pos, g.game.DirectSound.DsDevice);
+            musica.MinDistance = 80f;
+            g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
+           
+            musica.play(true);
 
             g.mostro = this;
         }
@@ -91,7 +104,6 @@ namespace TGC.Group.Model
 
                     }
                     dir = obj - pos;
-                    Logger.Log(dir.Length());
                     if (dir.Length() < 500f)
                     {
                         setObj = true;
@@ -101,7 +113,6 @@ namespace TGC.Group.Model
                 {
                     setObj = true;
                     speedToPlayer();
-                    Logger.Log(":(" + dir.Length().ToString());
                 }
 
             }
@@ -203,6 +214,9 @@ namespace TGC.Group.Model
                 * TGCMatrix.Scaling(TGCVector3.One * 30)
                 * TGCMatrix.Translation(pos);
             //Logger.Log(rot);
+
+            musica.Position = pos;
+            g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
         }
 
         private void speedToPlayer()
