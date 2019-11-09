@@ -72,13 +72,11 @@ namespace TGC.Group.Model
 
             //shader comun
             shaderComun = TGCShaders.Instance.TgcMeshSpotLightShader;
-            shaderComun.SetValue("lightIntensity", 200f);
             shaderComun.SetValue("lightAttenuation", .2f);
             shaderComun.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
             shaderComun.SetValue("spotLightExponent", .0f);
             shaderComun.SetValue("lightColor", ColorValue.FromColor(Color.White));
 
-            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Black));
             shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
             shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
             shaderComun.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
@@ -99,9 +97,12 @@ namespace TGC.Group.Model
         public void Render()
         {
 
+            shaderComun.SetValue("lightIntensity", 150f+500f*g.hands.state);
+
             shaderComun.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             shaderComun.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
+            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced*2,0,0)));
 
             g.chunks.render();
 
@@ -155,28 +156,9 @@ namespace TGC.Group.Model
 
         private void addTrees()
         {
-
             var pino = GetMeshFromScene("Pino-TgcScene.xml");
-
-
             Effect effect = TGCShaders.Instance.TgcMeshSpotLightShader;
-            /*
-            effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
-            effect.SetValue("lightIntensity", 200f);
-            effect.SetValue("lightAttenuation", .2f);
-            effect.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
-            effect.SetValue("spotLightExponent",.0f);
-
-            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.Black));
-            effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-            effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
-            effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
-            effect.SetValue("materialSpecularExp", .9f);
-            */
-
             pino.Effect = effect;
-
-            
             pino.Technique = "DIFFUSE_MAP";
 
 
@@ -512,7 +494,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         }
 
         TGCVector3 candlePlacePos = new TGCVector3(0f,-11220,0f);
-        int candlesPlaced=0;
+        public int candlesPlaced=0;
         bool renderCandlePlace = false;
         public void updateCandlePlace()
         {
