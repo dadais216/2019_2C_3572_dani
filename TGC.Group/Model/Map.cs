@@ -56,6 +56,17 @@ namespace TGC.Group.Model
             Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
             Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
 
+            //shader comun
+            shaderComun = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx"); ;
+            shaderComun.SetValue("lightAttenuation", .2f);
+            shaderComun.SetValue("lightColor", ColorValue.FromColor(Color.White));
+
+            shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
+            shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            shaderComun.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
+            shaderComun.SetValue("materialSpecularExp", .9f);
+
+
             g.chunks = new Chunks();
 
             initSky();
@@ -64,23 +75,10 @@ namespace TGC.Group.Model
             terrain.loadHeightmap(g.game.MediaDir + "h.jpg", xzTerrainScale, yTerrainScale, new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
-
+            terrain.Effect = shaderComun;
 
             GameModel.matriz = TGCMatrix.Identity;
 
-
-
-            //shader comun
-            shaderComun = TGCShaders.Instance.TgcMeshSpotLightShader;
-            shaderComun.SetValue("lightAttenuation", .2f);
-            shaderComun.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
-            shaderComun.SetValue("spotLightExponent", .0f);
-            shaderComun.SetValue("lightColor", ColorValue.FromColor(Color.White));
-
-            shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-            shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
-            shaderComun.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
-            shaderComun.SetValue("materialSpecularExp", .9f);
 
 
 
@@ -101,7 +99,6 @@ namespace TGC.Group.Model
 
             shaderComun.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            shaderComun.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
             shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced*2,0,0)));
 
             g.chunks.render();
@@ -157,9 +154,9 @@ namespace TGC.Group.Model
         private void addTrees()
         {
             var pino = GetMeshFromScene("Pino-TgcScene.xml");
-            Effect effect = TGCShaders.Instance.TgcMeshSpotLightShader;
-            pino.Effect = effect;
+            pino.Effect = shaderComun;
             pino.Technique = "DIFFUSE_MAP";
+            pino.AlphaBlendEnable = false;//no se porque lo tenia seteado en true 
 
 
 
@@ -361,7 +358,7 @@ namespace TGC.Group.Model
 
             foreach(var mesh in mm.meshes)
             {
-                mesh.Effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+                mesh.Effect = shaderComun;
                 mesh.Technique = "DIFFUSE_MAP";
             }
         }

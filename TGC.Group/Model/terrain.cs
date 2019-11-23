@@ -100,13 +100,6 @@ namespace TGC.Core.Terrain
             if (!Enabled)
                 return;
 
-
-            effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
-
-
-
             effect.SetValue("texDiffuseMap", terrainTexture);
 
 

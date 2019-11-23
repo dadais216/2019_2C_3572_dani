@@ -54,7 +54,8 @@ namespace TGC.Group.Model
             //mesh.Technique = "DIFFUSE_MAP";
 
             musica = new Tgc3dSound(g.game.MediaDir + "tambo_tambo-la_cumbita.wav", pos, g.game.DirectSound.DsDevice);
-            musica.MinDistance = 80f;
+            musica.MinDistance = 60f;
+
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
            
             musica.play(true);
