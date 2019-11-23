@@ -396,12 +396,16 @@ namespace TGC.Group.Model.Camera
             var eyeUp = new TGCVector3(eyePosition.X, eyePosition.Y + 10f, eyePosition.Z);
             triangle.a = eyeUp;
 
-            var lineVec = (cameraFinalTarget - eyePosition) * 200000f;
+            //cuando agregue niebla cambiar estos dos
+            var far = 200000f;
+            var sideStrech = .7f;
+
+            var lineVec = (cameraFinalTarget - eyePosition) * far;
 
             var Pend = lineVec + eyePosition;
             Pend.Y = eyeUp.Y;
 
-            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * .7f;
+            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * sideStrech;
             var PBeg = -lineBack + Pend;
             var PendBack = lineBack + Pend;
             PendBack.Y = eyeUp.Y;

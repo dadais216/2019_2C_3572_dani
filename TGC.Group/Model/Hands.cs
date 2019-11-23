@@ -103,6 +103,10 @@ namespace TGC.Group.Model
                 return false;
             state++;
             g.mostro.mode = 1;
+            for (int i = 0; i < Map.lightCount; i++)
+            {
+                g.map.lightPosition[i] = TGCVector3.One * float.MaxValue;
+            }
             return true;
         }
 

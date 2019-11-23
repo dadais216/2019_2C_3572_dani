@@ -33,14 +33,14 @@ sampler2D lightMap = sampler_state
 float3 materialEmissiveColor; //Color RGB
 float3 materialAmbientColor; //Color RGB
 float4 materialDiffuseColor; //Color ARGB (tiene canal Alpha)
-float3 materialSpecularColor; //Color RGB
-float materialSpecularExp; //Exponente de specular
 
 //Parametros de la Luz
 float3 lightColor; //Color RGB de la luz
-float4 lightPosition; //Posicion de la luz
+float4 lightEye;
+float4 lightPosition[9]; //Posicion de la luz
 float4 eyePosition; //Posicion de la camara
-float lightIntensity; //Intensidad de la luz
+float lightIntensityEye;
+float lightIntensity;
 float lightAttenuation; //Factor de atenuacion de la luz
 
 /**************************************************************************************/
@@ -63,8 +63,6 @@ struct VS_OUTPUT_DIFFUSE_MAP
 	float2 Texcoord : TEXCOORD0;
 	float3 WorldPosition : TEXCOORD1;
 	float3 WorldNormal : TEXCOORD2;
-	float3 LightVec	: TEXCOORD3;
-	float3 HalfAngleVec	: TEXCOORD4;
 };
 
 //Vertex Shader
@@ -84,16 +82,9 @@ VS_OUTPUT_DIFFUSE_MAP vs_DiffuseMap(VS_INPUT_DIFFUSE_MAP input)
 	/* Pasar normal a World-Space
 	Solo queremos rotarla, no trasladarla ni escalarla.
 	Por eso usamos matInverseTransposeWorld en vez de matWorld */
-	output.WorldNormal = mul(input.Normal, matInverseTransposeWorld).xyz;
+	output.WorldNormal = mul(input.Normal, matWorld);
 
-	//LightVec (L): vector que va desde el vertice hacia la luz. Usado en Diffuse y Specular
-	output.LightVec = lightPosition.xyz - output.WorldPosition;
-
-	//ViewVec (V): vector que va desde el vertice hacia la camara.
-	float3 viewVector = eyePosition.xyz - output.WorldPosition;
-
-	//HalfAngleVec (H): vector de reflexion simplificado de Phong-Blinn (H = |V + L|). Usado en Specular
-	output.HalfAngleVec = viewVector + output.LightVec;
+	
 
 	return output;
 }
@@ -104,22 +95,47 @@ struct PS_DIFFUSE_MAP
 	float2 Texcoord : TEXCOORD0;
 	float3 WorldPosition : TEXCOORD1;
 	float3 WorldNormal : TEXCOORD2;
-	float3 LightVec	: TEXCOORD3;
-	float3 HalfAngleVec	: TEXCOORD4;
 };
+
+
+float4 light(float4 lightPos, float4 lightIntensity_, float4 texelColor,float3 Nn,PS_DIFFUSE_MAP input) {
+
+	//Normalizar vectores
+	float3 lightVec = lightPos.xyz - input.WorldPosition;
+	float3 viewVector = eyePosition.xyz - input.WorldPosition;
+	float3 halfAngleVec = viewVector + lightVec;
+
+
+	//if (dot(input.WorldNormal, lightVec) < 0)
+	//	return float4(0, 0, 0, 0);
+	//else {
+		float3 Ln = normalize(lightVec);
+		float3 Hn = normalize(halfAngleVec);
+
+		//Calcular atenuacion por distancia
+		float distAtten = length(lightPos.xyz - input.WorldPosition) * lightAttenuation;
+
+		float4 intensity = lightIntensity_ / distAtten;
+
+		//Componente Ambient
+		float3 ambientLight = intensity * lightColor * materialAmbientColor;
+
+		//Componente Diffuse: N dot L
+		float3 n_dot_l = dot(Nn, Ln);
+		float3 diffuseLight = intensity * lightColor * materialDiffuseColor.rgb * max(0.0, n_dot_l); //Controlamos que no de negativo
+
+
+		/* Color final: modular (Emissive + Ambient + Diffuse) por el color de la textura, y luego sumar Specular.
+		   El color Alpha sale del diffuse material */
+		return float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * texelColor, 0);
+	//}
+
+
+}
 
 //Pixel Shader
 float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 {
-	//Normalizar vectores
-	float3 Nn = normalize(input.WorldNormal);
-	float3 Ln = normalize(input.LightVec);
-	float3 Hn = normalize(input.HalfAngleVec);
-
-	//Calcular atenuacion por distancia
-	float distAtten = length(lightPosition.xyz - input.WorldPosition) * lightAttenuation;
-
-	lightIntensity /= distAtten;
 
 	//Obtener texel de la textura
 	float4 texelColor = tex2D(diffuseMap, input.Texcoord);
@@ -129,23 +145,15 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 	if (texelColor.r+ texelColor.g + texelColor.b >2) //para sacar bordes blancos en los arboles, deberia estar en ellos nomas
 		discard;
 
-	//Componente Ambient
-	float3 ambientLight = lightIntensity * lightColor * materialAmbientColor;
+	float3 Nn = normalize(input.WorldNormal);
 
-	//Componente Diffuse: N dot L
-	float3 n_dot_l = dot(Nn, Ln);
-	float3 diffuseLight = lightIntensity * lightColor * materialDiffuseColor.rgb * max(0.0, n_dot_l); //Controlamos que no de negativo
+	float4 finalColor=float4(0,0,0, materialDiffuseColor.a);
+	finalColor+=light(eyePosition, lightIntensityEye, texelColor, Nn, input);
 
-	//Componente Specular: (N dot H)^exp
-	float3 n_dot_h = dot(Nn, Hn);
-	float3 specularLight = n_dot_l <= 0.0
-			? float3(0.0, 0.0, 0.0)
-			: (lightIntensity * lightColor * materialSpecularColor * pow(max(0.0, n_dot_h), materialSpecularExp));
-
-	/* Color final: modular (Emissive + Ambient + Diffuse) por el color de la textura, y luego sumar Specular.
-	   El color Alpha sale del diffuse material */
-	float4 finalColor = float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * texelColor + specularLight, materialDiffuseColor.a);
-
+	for (int i = 0; i < 9; i++) {
+		finalColor += light(lightPosition[i], lightIntensity, texelColor, Nn, input);
+	}
+	
 	return finalColor;
 }
 

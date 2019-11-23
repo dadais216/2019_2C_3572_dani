@@ -48,7 +48,7 @@ namespace TGC.Group.Form
 
         private void GameForm_Load(object sender, EventArgs e)
         {
-            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             // FullScreen, van en este orden para que queda oculta la barra de Windows.
             WindowState = FormWindowState.Normal;
             // FormBorderStyle = FormBorderStyle.None;
@@ -79,7 +79,7 @@ namespace TGC.Group.Form
         /// </summary>
         public void InitGraphics()
         {
-            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             // Se inicio la aplicación
             ApplicationRunning = true;
 
@@ -159,7 +159,7 @@ namespace TGC.Group.Form
         /// </summary>
         public void ExecuteModel()
         {
-            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             // Ejecutar Init
             try
             {
@@ -180,7 +180,7 @@ namespace TGC.Group.Form
         /// </summary>
         public void StopCurrentExample()
         {
-            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             if (Modelo == null) return;
             Modelo.Dispose();
             Modelo = null;
@@ -191,7 +191,7 @@ namespace TGC.Group.Form
         /// </summary>
         public void ShutDown()
         {
-            Logger.Log(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             ApplicationRunning = false;
             StopCurrentExample();
 

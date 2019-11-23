@@ -113,7 +113,6 @@
     <Compile Include="Model\Map.cs" />
     <Compile Include="Model\Parallelepiped.cs" />
     <Compile Include="Model\GameModel.cs" />
-    <Compile Include="Model\Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form\GameForm.resx">

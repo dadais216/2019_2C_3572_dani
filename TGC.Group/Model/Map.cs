@@ -47,6 +47,10 @@ namespace TGC.Group.Model
         public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
         public Effect shaderComun;
+
+        public const int lightCount = 9;//cambiar en shader tambien
+        public TGCVector3[] lightPosition = new TGCVector3[lightCount];
+        public int lightIndex;
         public Map()
         {
 
@@ -63,8 +67,6 @@ namespace TGC.Group.Model
 
             shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
             shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
-            shaderComun.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
-            shaderComun.SetValue("materialSpecularExp", .9f);
 
 
             g.chunks = new Chunks();
@@ -79,7 +81,10 @@ namespace TGC.Group.Model
 
             GameModel.matriz = TGCMatrix.Identity;
 
-
+            for (int i = 0; i < lightCount; i++)
+            {
+                lightPosition[i] = TGCVector3.One*float.MaxValue;
+            }
 
 
             g.terrain = terrain;
@@ -92,24 +97,35 @@ namespace TGC.Group.Model
             g.map = this;
 
         }
+
         public void Render()
         {
 
-            shaderComun.SetValue("lightIntensity", 150f+500f*g.hands.state);
+            shaderComun.SetValue("lightIntensityEye", 50f+(250f + Random.Next(-50, 50)) *g.hands.state);
 
-            shaderComun.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+            shaderComun.SetValue("lightIntensity", 250f+Random.Next(-50,50));
             shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced*2,0,0)));
+            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced*candlesPlaced/12,0,0)));
+            shaderComun.SetValue("lightEye", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+            for(int i = 0; i < lightCount; i++)
+            {
+                //lightPos del frame anterior, no deberian ser muy distintas y ahorro tener que recorrer los chunks 2 veces
+                //para conseguir las luces actuales
+                shaderComun.SetValue("lightPosition["+i.ToString()+"]", TGCVector3.Vector3ToFloat4Array(lightPosition[i]));
+            }
 
+            lightIndex = 0;
+            sky.Render();
+            if (renderCandlePlace)
+                renderCandles();
             g.chunks.render();
+
+
 
             if (GameModel.debugColission)
                 g.chunks.fromCoordinates(g.camera.eyePosition, false).renderDebugColission();
 
             g.terrain.Render();
-            sky.Render();
-            if (renderCandlePlace)
-                renderCandles();
 
 
 
@@ -414,7 +430,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     var pos = genPosInChunk(j, k);
                     pos.Y += 200f;
 
-                    if (checkColission(pos,100f)) continue;
+                    if (checkColission(pos,200f)) continue;
 
                     var candleMeshc = new Meshc();
                     //un poco excesivo que sea un meshc, lo eficiente seria que vela sea un tipo propio con una colision
@@ -543,7 +559,9 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                 candleMesh.Transform = scale * TGCMatrix.Translation(candlePlaceVertex[i]);
                 candleMesh.Render();
 
-                for(int j = 0; j < i; j++)
+                lightPosition[lightIndex++] = candlePlaceVertex[i];
+
+                for (int j = 0; j < i; j++)
                 {
                     TgcLine.fromExtremes(candlePlaceVertex[i], candlePlaceVertex[j], Color.Red).Render();
                 }

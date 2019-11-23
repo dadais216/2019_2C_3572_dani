@@ -26,6 +26,10 @@ namespace TGC.Group.Model
                     lastDrawnFrame = GameModel.actualFrame;
                     foreach (Meshc meshc in meshes)
                     {
+                        if (g.map.lightIndex!=Map.lightCount && g.map.isCandle(meshc))
+                        {
+                            g.map.lightPosition[g.map.lightIndex++] = meshc.position();
+                        }
                         meshc.render();
                     }
                     foreach(MultiMeshc meshc in multimeshes)
@@ -99,7 +103,7 @@ namespace TGC.Group.Model
             {
                 var ret = chunks[x, z];
                 if(print)
-                    Logger.Log(ret.meshes.Count.ToString() + "    " + x.ToString() + "   " + z.ToString());
+                    Console.WriteLine(ret.meshes.Count.ToString() + "    " + x.ToString() + "   " + z.ToString());
 
                 return ret;
             }
@@ -195,7 +199,7 @@ namespace TGC.Group.Model
                     chunk.render();
                 }
             }
-            //Logger.Log(chunksInTriangle.ToString());
+            //Console.WriteLine(chunksInTriangle.ToString());
 
             //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
