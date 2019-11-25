@@ -1,4 +1,5 @@
 
+//copy paste de punto de luz
 
 /**************************************************************************************/
 /* Variables comunes */
@@ -138,6 +139,11 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
 	//Obtener texel de la textura
 	float4 texelColor = tex2D(diffuseMap, input.Texcoord);
+
+	if (texelColor.a == 0)
+		discard;
+	if (texelColor.r+ texelColor.g + texelColor.b >2) //para sacar bordes blancos en los arboles, deberia estar en ellos nomas
+		discard;
 
 	float3 Nn = normalize(input.WorldNormal);
 

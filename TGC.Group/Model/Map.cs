@@ -47,27 +47,43 @@ namespace TGC.Group.Model
 
         public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
-        public Effect shaderComun;
+        public class Shaders
+        {
+            public Effect comun;
+            public Effect arbol;
+
+            //intente usar templates pero parece que no se la bancan
+            public void setValue(string s,float t)
+            {
+                comun.SetValue(s, t);
+                arbol.SetValue(s, t);
+            }
+            public void setValue(string s, ColorValue t)
+            {
+                comun.SetValue(s, t);
+                arbol.SetValue(s, t);
+            }
+            public void setValue(string s, float[] t)
+            {
+                comun.SetValue(s, t);
+                arbol.SetValue(s, t);
+            }
+
+        }
+        Shaders shader=new Shaders();
 
         public const int lightCount = 9;//cambiar en shader tambien
         public TGCVector3[] lightPosition = new TGCVector3[lightCount];
         public int lightIndex;
         public Map()
         {
+            shader.comun = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx");
+            shader.arbol = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "arbol.fx");
 
-            /*Shrub = GetMeshFromScene("Arbusto\\Arbusto-TgcScene.xml");
-            Shrub2 = GetMeshFromScene("Arbusto2\\Arbusto2-TgcScene.xml");
-            Plant = GetMeshFromScene("Planta\\Planta-TgcScene.xml");
-            Plant2 = GetMeshFromScene("Planta2\\Planta2-TgcScene.xml");
-            Plant3 = GetMeshFromScene("Planta3\\Planta3-TgcScene.xml");*/
-
-            //shader comun
-            shaderComun = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx"); ;
-            shaderComun.SetValue("lightAttenuation", .2f);
-            shaderComun.SetValue("lightColor", ColorValue.FromColor(Color.White));
-
-            shaderComun.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-            shaderComun.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            shader.setValue("lightAttenuation", .2f);
+            shader.setValue("lightColor", ColorValue.FromColor(Color.White));
+            shader.setValue("materialAmbientColor", ColorValue.FromColor(Color.White));
+            shader.setValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
 
 
             g.chunks = new Chunks();
@@ -78,7 +94,7 @@ namespace TGC.Group.Model
             terrain.loadHeightmap(g.game.MediaDir + "h.jpg", xzTerrainScale, yTerrainScale, new TGCVector3(0, -yTerrainOffset, 0));
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
-            terrain.Effect = shaderComun;
+            terrain.Effect = shader.comun;
 
             GameModel.matriz = TGCMatrix.Identity;
 
@@ -101,17 +117,17 @@ namespace TGC.Group.Model
 
         public void Render()
         {
-            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced<5?0:(candlesPlaced-5),0,0)));
+            shader.setValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced<5?0:(candlesPlaced-5),0,0)));
 
-            shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            shaderComun.SetValue("lightIntensityEye", 50f+(250f + Random.Next(-50, 50)) *g.hands.state);
+            shader.setValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
+            shader.setValue("lightIntensityEye", 50f+(250f + Random.Next(-50, 50)) *g.hands.state);
 
             for(int i = 0; i < lightCount; i++)
             {
                 //lightPos del frame anterior, no deberian ser muy distintas y ahorro tener que recorrer los chunks 2 veces
                 //para conseguir las luces actuales
-                shaderComun.SetValue("lightPosition["+i.ToString()+"]", TGCVector3.Vector3ToFloat4Array(lightPosition[i]));
-                shaderComun.SetValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
+                shader.setValue("lightPosition["+i.ToString()+"]", TGCVector3.Vector3ToFloat4Array(lightPosition[i]));
+                shader.setValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
             }
 
             foreach(var pos in lightPosition)
@@ -166,7 +182,7 @@ namespace TGC.Group.Model
         private void addTrees()
         {
             var pino = GetMeshFromScene("Pino-TgcScene.xml");
-            pino.Effect = shaderComun;
+            pino.Effect = shader.arbol;
             pino.Technique = "DIFFUSE_MAP";
             pino.AlphaBlendEnable = false;//no se porque lo tenia seteado en true 
 
@@ -368,7 +384,7 @@ namespace TGC.Group.Model
 
             foreach (var mesh in mm.meshes)
             {
-                mesh.Effect = shaderComun;
+                mesh.Effect = shader.comun;
                 mesh.Technique = "DIFFUSE_MAP";
             }
         }
