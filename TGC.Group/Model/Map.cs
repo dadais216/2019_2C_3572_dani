@@ -13,6 +13,7 @@ using TGC.Core.SceneLoader;
 using TGC.Core.Shaders;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
+using static TGC.Group.Model.Chunks;
 
 namespace TGC.Group.Model
 {
@@ -451,7 +452,15 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                             posb
                         );
 
-                    candleMeshc.transformColission();
+                    //no uso  transformColission porque hace caer 4 vertices, lo que tiene potencial de registrar la 
+                    //vela en mas de un chunk
+                    candleMeshc.paralleliped.transform(GameModel.matriz * candleMeshc.originalMesh);
+                    Chunk c = g.chunks.fromCoordinates(candleMeshc.paralleliped.transformedVertex[0]);
+                    if (c != null)
+                    {
+                        c.meshes.Add(candleMeshc);
+                    }
+
                     break;
                 } while (true);
             }

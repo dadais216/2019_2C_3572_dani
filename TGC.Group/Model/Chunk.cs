@@ -28,10 +28,6 @@ namespace TGC.Group.Model
                     {
                         //meshc.render();
 
-                        if (meshc == g.camera.setToRemove)
-                        {
-                            Console.WriteLine("O-O");
-                        }
 
                         if (g.map.isCandle(meshc))
                         {
@@ -40,8 +36,8 @@ namespace TGC.Group.Model
                                 //se priorizan las mas cercanas
                                 //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
                                 int maxIndex = 0;
-                                float maxDistSq = TGCVector3.LengthSq(g.map.lightPosition[0] - g.camera.eyePosition);
-                                for (int i = 1; i < Map.lightCount; i++)
+                                float maxDistSq = float.NegativeInfinity;
+                                for (int i = 0; i < Map.lightCount; i++)
                                 {
                                     if (g.map.lightPosition[i] == meshc.position())
                                     //si la luz ya esta no volverla a poner
