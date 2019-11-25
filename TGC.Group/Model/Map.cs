@@ -114,11 +114,11 @@ namespace TGC.Group.Model
                 shaderComun.SetValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
             }
 
-            //foreach(var pos in lightPosition)
-            //{
-            //    Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
-            //}
-            //Console.WriteLine("----");
+            foreach(var pos in lightPosition)
+            {
+                Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
+            }
+            Console.WriteLine("----");
 
             lightIndex = 0;
             sky.Render();
@@ -451,6 +451,9 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                             size,
                             posb
                         );
+
+                    candleMeshc.mesh.Transform = GameModel.matriz * candleMeshc.originalMesh;
+                    //actualizo el transform porque se accede desde la luz para saber su pos. Se podria consultar a un vertice tambien
 
                     //no uso  transformColission porque hace caer 4 vertices, lo que tiene potencial de registrar la 
                     //vela en mas de un chunk

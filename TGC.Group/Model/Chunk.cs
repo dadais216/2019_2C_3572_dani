@@ -33,9 +33,9 @@ namespace TGC.Group.Model
                         {
                             //if (g.map.lightIndex >= Map.lightCount)//optimizacion, se podria dejar el branch de true
                             //{
-                                //se priorizan las mas cercanas
-                                //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
-                                int maxIndex = 0;
+                            //se priorizan las mas cercanas
+                            //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
+                            int maxIndex = 0;
                                 float maxDistSq = float.NegativeInfinity;
                                 for (int i = 0; i < Map.lightCount; i++)
                                 {
@@ -66,16 +66,17 @@ namespace TGC.Group.Model
                         //hay un bug bastante oscuro
                         //todas las luces se van hacia el jugador, porque de alguna manera eyePosition cae
                         //en todos los lightPositions. No sé por que. 
-                        //si render esta antes de todo no pasa, no entiendo por que.
-                        
-                        //hay un bug con el bucle, la primera posicion no se compara con los meshc y genera duplicados
-                        //eso no explica por que pasa lo otro igual
+                        //si render esta antes de todo no pasa,
+                        //el unico efecto que tiene el render es actualizar el Transform, que es lo que lee 
+                        //position(), por lo que tiene sentido que haya un cambio. Pero no termina de explicar las cosas.
+                        //retornar originalMesh de position() tambien soluciona el problema, y mientras no haya transformaciones
+                        //estaria todo bien.
 
                         //pareciera que eyeposition se filtra por lo menos al primero porque de alguna manera se sigue
                         //accediendo al mesh, que ahora esta en la mano, aunque no se deberia porque se borro del chunk
-                        //y se esta accediendo apartir del chunk
+                        //y se esta accediendo apartir del chunk. Puede que no sea esto igual porque consulte si 
+                        //el mesh==setToRemove y dio false
 
-                        //una vela puede quedar duplicada por estar justo en 2 chunks, creo que esto no tiene nada que ver
 
                     }
                     foreach(MultiMeshc meshc in multimeshes)
