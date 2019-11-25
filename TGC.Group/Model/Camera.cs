@@ -131,7 +131,7 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         /// <param name="elapsedTime"></param>
 
-
+        public Meshc setToRemove;
 
         public override void UpdateCamera(float elapsedTime)
         {
@@ -287,7 +287,7 @@ namespace TGC.Group.Model.Camera
                     }
                 });
                 var chunk = g.chunks.fromCoordinates(eyePosition, false);
-                Meshc setToRemove = null;
+                setToRemove = null;
                 foreach (var meshc in chunk.meshes)
                 {
                     var box = meshc.paralleliped;

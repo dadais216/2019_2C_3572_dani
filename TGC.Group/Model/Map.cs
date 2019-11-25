@@ -100,19 +100,24 @@ namespace TGC.Group.Model
 
         public void Render()
         {
+            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced<5?0:(candlesPlaced-5),0,0)));
 
+            shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             shaderComun.SetValue("lightIntensityEye", 50f+(250f + Random.Next(-50, 50)) *g.hands.state);
 
-            shaderComun.SetValue("lightIntensity", 250f+Random.Next(-50,50));
-            shaderComun.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            shaderComun.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced*candlesPlaced/12,0,0)));
-            shaderComun.SetValue("lightEye", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
             for(int i = 0; i < lightCount; i++)
             {
                 //lightPos del frame anterior, no deberian ser muy distintas y ahorro tener que recorrer los chunks 2 veces
                 //para conseguir las luces actuales
                 shaderComun.SetValue("lightPosition["+i.ToString()+"]", TGCVector3.Vector3ToFloat4Array(lightPosition[i]));
+                shaderComun.SetValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
             }
+
+            //foreach(var pos in lightPosition)
+            //{
+            //    Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
+            //}
+            //Console.WriteLine("----");
 
             lightIndex = 0;
             sky.Render();
@@ -128,16 +133,6 @@ namespace TGC.Group.Model
             g.terrain.Render();
 
 
-
-            //foreach(var mesh in scene.Meshes)
-            //{
-            //    mesh.UpdateMeshTransform();
-            //    mesh.Transform = GameModel.matriz * mesh.Transform;
-            //    mesh.Render();
-            //    var p = Parallelepiped.fromBounding(mesh.BoundingBox);
-            //    p.transform(mesh.Transform);
-            //    p.renderAsPolygons();
-            //}
 
 
         }
@@ -352,27 +347,25 @@ namespace TGC.Group.Model
                 g.chunks.addVertexFall(par, mm);
             }
 
-            //la pared del fondo justo no cae en ningun vertex, la agrego a mano
-            var c = g.chunks.fromCoordinates(new TGCVector3(-7168f, -11072f, 18671f));
-            if (!c.multimeshes.Contains(mm))
-            {
-                c.multimeshes.Add(mm);
-            }
+            //partes de la iglesia no caen en ningun vertex, las agrego manualmente
+            var addToChunk = new Action<TGCVector3>(v => {
+                var c = g.chunks.fromCoordinates(v);
+                if (!c.multimeshes.Contains(mm))
+                {
+                    c.multimeshes.Add(mm);
+                }
+            });
 
+            addToChunk(new TGCVector3(-7168f, 0, 18671f));
+            addToChunk(new TGCVector3(124, 0, -345));
+            addToChunk(new TGCVector3(-1991, 0, -8930));
+            addToChunk(new TGCVector3(-3159, 0, 3621));
+            addToChunk(new TGCVector3(2258, 0, 3767));
 
-            //foreach(var mesh in scene.Meshes)
-            //{
-            //    mesh.UpdateMeshTransform();
-            //    mesh.Transform = GameModel.matriz * mesh.Transform;
-            //    mesh.Render();
-            //    var p = Parallelepiped.fromBounding(mesh.BoundingBox);
-            //    p.transform(mesh.Transform);
-            //    p.renderAsPolygons();
-            //}
-
+            
             //centro de la iglesia ( -2879,753   -10917,6   3882,9  )
 
-            foreach(var mesh in mm.meshes)
+            foreach (var mesh in mm.meshes)
             {
                 mesh.Effect = shaderComun;
                 mesh.Technique = "DIFFUSE_MAP";
@@ -423,14 +416,17 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                 int j, k;
                 do
                 {
-                    j = Random.Next(1, Chunks.chunksPerDim - 1);
-                    k = Random.Next(1, Chunks.chunksPerDim - 1);
-                    //if (coordsOccupied(j, k)) continue;
+                    //j = Random.Next(1, Chunks.chunksPerDim - 1);
+                    //k = Random.Next(1, Chunks.chunksPerDim - 1);
+
+                    j = 41;
+                    k = 37;
+
 
                     var pos = genPosInChunk(j, k);
                     pos.Y += 200f;
 
-                    if (checkColission(pos,200f)) continue;
+                    if (checkColission(pos,450f)) continue;
 
                     var candleMeshc = new Meshc();
                     //un poco excesivo que sea un meshc, lo eficiente seria que vela sea un tipo propio con una colision

@@ -26,11 +26,61 @@ namespace TGC.Group.Model
                     lastDrawnFrame = GameModel.actualFrame;
                     foreach (Meshc meshc in meshes)
                     {
-                        if (g.map.lightIndex!=Map.lightCount && g.map.isCandle(meshc))
+                        //meshc.render();
+
+                        if (meshc == g.camera.setToRemove)
                         {
-                            g.map.lightPosition[g.map.lightIndex++] = meshc.position();
+                            Console.WriteLine("O-O");
                         }
+
+                        if (g.map.isCandle(meshc))
+                        {
+                            //if (g.map.lightIndex >= Map.lightCount)//optimizacion, se podria dejar el branch de true
+                            //{
+                                //se priorizan las mas cercanas
+                                //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
+                                int maxIndex = 0;
+                                float maxDistSq = TGCVector3.LengthSq(g.map.lightPosition[0] - g.camera.eyePosition);
+                                for (int i = 1; i < Map.lightCount; i++)
+                                {
+                                    if (g.map.lightPosition[i] == meshc.position())
+                                    //si la luz ya esta no volverla a poner
+                                    //una luz puede estar mas de una vez porque se reutilizan las de frames previos cuando
+                                    //en el triangulo actual hay menos de 9
+                                    {
+                                        goto loop;
+                                    }
+                                    var dist = TGCVector3.LengthSq(g.map.lightPosition[i] - g.camera.eyePosition);
+                                    if (dist > maxDistSq)
+                                    {
+                                        maxDistSq = dist;
+                                        maxIndex = i;
+                                    }
+                                }
+                                if (TGCVector3.LengthSq(meshc.position() - g.camera.eyePosition) < maxDistSq)
+                                    g.map.lightPosition[maxIndex] = meshc.position();
+                            //}
+                            //else
+                            //{
+                            //    g.map.lightPosition[g.map.lightIndex++] = meshc.position();
+                            //}
+                        }
+                        loop:;
                         meshc.render();
+                        //hay un bug bastante oscuro
+                        //todas las luces se van hacia el jugador, porque de alguna manera eyePosition cae
+                        //en todos los lightPositions. No sé por que. 
+                        //si render esta antes de todo no pasa, no entiendo por que.
+                        
+                        //hay un bug con el bucle, la primera posicion no se compara con los meshc y genera duplicados
+                        //eso no explica por que pasa lo otro igual
+
+                        //pareciera que eyeposition se filtra por lo menos al primero porque de alguna manera se sigue
+                        //accediendo al mesh, que ahora esta en la mano, aunque no se deberia porque se borro del chunk
+                        //y se esta accediendo apartir del chunk
+
+                        //una vela puede quedar duplicada por estar justo en 2 chunks, creo que esto no tiene nada que ver
+
                     }
                     foreach(MultiMeshc meshc in multimeshes)
                     {

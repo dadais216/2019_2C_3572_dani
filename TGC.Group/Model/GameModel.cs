@@ -75,6 +75,9 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+            if (ElapsedTime > .5f)
+                ElapsedTime = .5f;//cuando estoy debuggeando a veces el tiempo salta un monton, el esqueleto sale del mapa y crashea el juego
+
             actualFrame++;
 
             if (gameState==0)

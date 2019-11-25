@@ -36,11 +36,10 @@ float4 materialDiffuseColor; //Color ARGB (tiene canal Alpha)
 
 //Parametros de la Luz
 float3 lightColor; //Color RGB de la luz
-float4 lightEye;
 float4 lightPosition[9]; //Posicion de la luz
+float lightIntensity[9];
 float4 eyePosition; //Posicion de la camara
 float lightIntensityEye;
-float lightIntensity;
 float lightAttenuation; //Factor de atenuacion de la luz
 
 /**************************************************************************************/
@@ -151,7 +150,7 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 	finalColor+=light(eyePosition, lightIntensityEye, texelColor, Nn, input);
 
 	for (int i = 0; i < 9; i++) {
-		finalColor += light(lightPosition[i], lightIntensity, texelColor, Nn, input);
+		finalColor += light(lightPosition[i], lightIntensity[i], texelColor, Nn, input);
 	}
 	
 	return finalColor;
