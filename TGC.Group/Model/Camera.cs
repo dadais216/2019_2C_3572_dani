@@ -310,7 +310,7 @@ namespace TGC.Group.Model.Camera
 
                 if (setToRemove != null)
                 {
-                    if(g.hands.maybePickCandle())
+                    if(g.hands.maybePickCandle(setToRemove))
                         chunk.meshes.Remove(setToRemove);
                 }
 

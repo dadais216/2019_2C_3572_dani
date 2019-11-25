@@ -190,7 +190,7 @@ namespace TGC.Group.Model
         public bool infiniteStamina = false;
         public bool squeletonHalfSpeed = true;
         public int candlesRequired = 9;
-        public int candlesInMap = 3;
+        public int candlesInMap = 300;
         public bool debugVisualizations = true;
         public bool inmunity = true;
 

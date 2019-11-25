@@ -417,12 +417,8 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                 int j, k;
                 do
                 {
-                    //j = Random.Next(1, Chunks.chunksPerDim - 1);
-                    //k = Random.Next(1, Chunks.chunksPerDim - 1);
-
-                    j = 41;
-                    k = 37;
-
+                    j = Random.Next(1, Chunks.chunksPerDim - 1);
+                    k = Random.Next(1, Chunks.chunksPerDim - 1);
 
                     var pos = genPosInChunk(j, k);
                     pos.Y += 200f;
@@ -451,9 +447,6 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                             size,
                             posb
                         );
-
-                    candleMeshc.mesh.Transform = GameModel.matriz * candleMeshc.originalMesh;
-                    //actualizo el transform porque se accede desde la luz para saber su pos. Se podria consultar a un vertice tambien
 
                     //no uso  transformColission porque hace caer 4 vertices, lo que tiene potencial de registrar la 
                     //vela en mas de un chunk
@@ -515,7 +508,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         }
 
         TGCVector3 candlePlacePos = new TGCVector3(0f,-11220,0f);
-        public int candlesPlaced=0;
+        public int candlesPlaced=9;
         bool renderCandlePlace = false;
         public void updateCandlePlace()
         {
@@ -567,13 +560,55 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                 candleMesh.Transform = scale * TGCMatrix.Translation(candlePlaceVertex[i]);
                 candleMesh.Render();
 
-                lightPosition[lightIndex++] = candlePlaceVertex[i];
+                maybeLightCandleAt(candlePlaceVertex[i]);
 
                 for (int j = 0; j < i; j++)
                 {
                     TgcLine.fromExtremes(candlePlaceVertex[i], candlePlaceVertex[j], Color.Red).Render();
                 }
 
+            }
+        }
+
+        public void maybeLightCandleAt(TGCVector3 pos)
+        {
+
+            //si voy por el primer branch ilumino los mas cercanos entre los que estaban y los que se estan viendo
+            //si voy por el segundo solo ilumino los que se estan viendo
+
+            //por ahora me quedo con un punto intermedio, la primera mitad va a visibles y el resto a cercanos
+
+            if (g.map.lightIndex > Map.lightCount/2)
+            //if(g.map.lightIndex >= Map.lightCount)
+            //if(true)
+            {
+                //se priorizan las mas cercanas
+                //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
+                int maxIndex = 0;
+                float maxDistSq = float.NegativeInfinity;
+                for (int i = 0; i < Map.lightCount; i++)
+                {
+                    if (g.map.lightPosition[i] == pos)
+                    //si la luz ya esta no volverla a poner
+                    //una luz puede estar mas de una vez porque se reutilizan las de frames previos cuando
+                    //en el triangulo actual hay menos de 9
+                    {
+                        return;
+                    }
+                    var dist = TGCVector3.LengthSq(g.map.lightPosition[i] - g.camera.eyePosition);
+                    if (dist > maxDistSq)
+                    {
+                        maxDistSq = dist;
+                        maxIndex = i;
+                    }
+                }
+                if (TGCVector3.LengthSq(pos - g.camera.eyePosition) < maxDistSq)
+                    g.map.lightPosition[maxIndex] = pos;
+                lightIndex++;
+            }
+            else
+            {
+                lightPosition[lightIndex++] = pos;
             }
         }
     }

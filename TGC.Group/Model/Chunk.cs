@@ -26,58 +26,14 @@ namespace TGC.Group.Model
                     lastDrawnFrame = GameModel.actualFrame;
                     foreach (Meshc meshc in meshes)
                     {
-                        //meshc.render();
-
+                        meshc.render();
+                        //se tiene que renderizar primero porque se esta usando el Transform de mesh, que se comparte
+                        //con todas las velas
 
                         if (g.map.isCandle(meshc))
                         {
-                            //if (g.map.lightIndex >= Map.lightCount)//optimizacion, se podria dejar el branch de true
-                            //{
-                            //se priorizan las mas cercanas
-                            //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
-                            int maxIndex = 0;
-                                float maxDistSq = float.NegativeInfinity;
-                                for (int i = 0; i < Map.lightCount; i++)
-                                {
-                                    if (g.map.lightPosition[i] == meshc.position())
-                                    //si la luz ya esta no volverla a poner
-                                    //una luz puede estar mas de una vez porque se reutilizan las de frames previos cuando
-                                    //en el triangulo actual hay menos de 9
-                                    {
-                                        goto loop;
-                                    }
-                                    var dist = TGCVector3.LengthSq(g.map.lightPosition[i] - g.camera.eyePosition);
-                                    if (dist > maxDistSq)
-                                    {
-                                        maxDistSq = dist;
-                                        maxIndex = i;
-                                    }
-                                }
-                                if (TGCVector3.LengthSq(meshc.position() - g.camera.eyePosition) < maxDistSq)
-                                    g.map.lightPosition[maxIndex] = meshc.position();
-                            //}
-                            //else
-                            //{
-                            //    g.map.lightPosition[g.map.lightIndex++] = meshc.position();
-                            //}
+                            g.map.maybeLightCandleAt(meshc.position());
                         }
-                        loop:;
-                        meshc.render();
-                        //hay un bug bastante oscuro
-                        //todas las luces se van hacia el jugador, porque de alguna manera eyePosition cae
-                        //en todos los lightPositions. No sé por que. 
-                        //si render esta antes de todo no pasa,
-                        //el unico efecto que tiene el render es actualizar el Transform, que es lo que lee 
-                        //position(), por lo que tiene sentido que haya un cambio. Pero no termina de explicar las cosas.
-                        //retornar originalMesh de position() tambien soluciona el problema, y mientras no haya transformaciones
-                        //estaria todo bien.
-
-                        //pareciera que eyeposition se filtra por lo menos al primero porque de alguna manera se sigue
-                        //accediendo al mesh, que ahora esta en la mano, aunque no se deberia porque se borro del chunk
-                        //y se esta accediendo apartir del chunk. Puede que no sea esto igual porque consulte si 
-                        //el mesh==setToRemove y dio false
-
-
                     }
                     foreach(MultiMeshc meshc in multimeshes)
                     {

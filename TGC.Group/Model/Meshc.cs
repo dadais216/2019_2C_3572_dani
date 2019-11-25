@@ -68,6 +68,7 @@ namespace TGC.Group
 
         }
 
+        //solo valido despues de actualizar transform
         public TGCVector3 position()
         {
             return new TGCVector3(mesh.Transform.M41,mesh.Transform.M42,mesh.Transform.M43);
