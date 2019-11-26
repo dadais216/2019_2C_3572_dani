@@ -19,9 +19,9 @@ TGC, Tgcito  |  Apellido, Nombre
 <img src="https://github.com/dadais216/2019_2C_3572_dani/tree/master/facultad/foto.jpeg" height="500"> | Daniel Martin
 
 ## ScreenShot ##
-![screenshot1](https://github.com/dadais216/2019_2C_3572_dani/tree/master/facultad/1.jpeg)
-![screenshot2](https://github.com/dadais216/2019_2C_3572_dani/tree/master/facultad/2.jpeg)
-![screenshot3](https://github.com/dadais216/2019_2C_3572_dani/tree/master/facultad/3.jpeg)
+![screenshot1](https://github.com/dadais216/2019_2C_3572_dani/blob/master/facultad/1.jpeg)
+![screenshot2](https://github.com/dadais216/2019_2C_3572_dani/blob/master/facultad/2.jpeg)
+![screenshot3](https://github.com/dadais216/2019_2C_3572_dani/blob/master/facultad/3.jpeg)
 
 ## Game Play ##
 [![Watch the video](https://img.youtube.com/vi/Lr6LZRLfWqw/0.jpg)](https://www.youtube.com/watch?v=Lr6LZRLfWqw)
