@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.Text;
+using TGC.Group.Form;
 
 namespace TGC.Group.Model
 {
@@ -116,11 +117,22 @@ namespace TGC.Group.Model
         int actualStateDraw = -1;
         public void initMenu()
         {
+            var w=GameForm.ActiveForm.Width;
+            var h = GameForm.ActiveForm.Height;
+
+            var x = w / 30;
+            var y = h / 30;
+
+            //los sizes tambien deberian depender de x y pero eh
+
             text.Align = TgcText2D.TextAlign.LEFT;
             text.Color = Color.White;
             text.Text = "TITULO";
             text.Size = new Size(1000, 1000);
-            text.Position = new Point(60, 60);
+            //text.Position = new Point(60, 60);
+            text.Position = new Point(2*x, 2* y);
+
+
             text.changeFont(new Font("TimesNewRoman", 45, FontStyle.Bold));
 
             var commonFont = new Font("TimesNewRoman", 25, FontStyle.Bold);
@@ -129,35 +141,40 @@ namespace TGC.Group.Model
             text2.Color = Color.White;
             text2.Text = "w para comerzar";
             text2.Size = new Size(1000, 1000);
-            text2.Position = new Point(50, 120);
+            //text2.Position = new Point(50, 120);
+            text2.Position=new Point(2 * x, 4 * y);
             text2.changeFont(commonFont);
 
             text3.Align = TgcText2D.TextAlign.LEFT;
             text3.Color = Color.White;
             text3.Text = "objetivo\ncontroles\ntrucos";
             text3.Size = new Size(1000, 1000);
-            text3.Position = new Point(40, 450);
+            //text3.Position = new Point(40, 450);
+            text3.Position = new Point(1*x, 18*y);
             text3.changeFont(commonFont);
 
             text4.Align = TgcText2D.TextAlign.LEFT;
             text4.Color = Color.White;
             text4.Text = "llevar 9 velas al centro de la iglesia";
             text4.Size = new Size(1000, 1000);
-            text4.Position = new Point(340, 450);
+            //text4.Position = new Point(340, 450);
+            text4.Position = new Point(10*x, 18*y);
             text4.changeFont(commonFont);
 
             text5.Align = TgcText2D.TextAlign.LEFT;
             text5.Color = Color.White;
             text5.Text = "wasd  - moverse\nshift  - correr\nh    - ???";
             text5.Size = new Size(1000, 1000);
-            text5.Position = new Point(340, 450);
+            //text5.Position = new Point(340, 450);
+            text5.Position = new Point(10*x, 18*y);
             text5.changeFont(commonFont);
 
             text6.Align = TgcText2D.TextAlign.LEFT;
             text6.Color = Color.White;
             text6.Text = "estamina infinita\nesqueleto mitad velocidad\ncantidad de velas requeridas:\nvelas en mapa:\ninmunidad\nvisualizacion debug (z colisiones,x meshes,c chunks)\natras";
             text6.Size = new Size(1000, 1000);
-            text6.Position = new Point(250, 450);
+            //text6.Position = new Point(250, 450);
+            text6.Position = new Point(8*x, 18*y);
             text6.changeFont(commonFont);
             
             selector.Align = TgcText2D.TextAlign.LEFT;
@@ -175,24 +192,26 @@ namespace TGC.Group.Model
             candlesRequiredText.Align = TgcText2D.TextAlign.LEFT;
             candlesRequiredText.Color = Color.White;
             candlesRequiredText.Size = new Size(1000, 1000);
-            candlesRequiredText.Position = new Point(710, 528);
+            //candlesRequiredText.Position = new Point(710, 528);
+            candlesRequiredText.Position = new Point(22*x, 21*y);
             candlesRequiredText.changeFont(commonFont);
 
             candlesInMapText.Align = TgcText2D.TextAlign.LEFT;
             candlesInMapText.Color = Color.White;
             candlesInMapText.Size = new Size(1000, 1000);
-            candlesInMapText.Position = new Point(490, 567);
+            //candlesInMapText.Position = new Point(490, 567);
+            candlesInMapText.Position = new Point(15*x, 23*y);
             candlesInMapText.changeFont(commonFont);
 
 
         }
 
         public bool infiniteStamina = false;
-        public bool squeletonHalfSpeed = true;
+        public bool squeletonHalfSpeed = false;
         public int candlesRequired = 9;
-        public int candlesInMap = 300;
-        public bool debugVisualizations = true;
-        public bool inmunity = true;
+        public int candlesInMap = 30;
+        public bool debugVisualizations = false;
+        public bool inmunity = false;
 
         public void renderMenu()
         {

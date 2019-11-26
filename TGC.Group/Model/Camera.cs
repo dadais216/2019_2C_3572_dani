@@ -260,10 +260,11 @@ namespace TGC.Group.Model.Camera
                         }
                     }
 
-                    if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < border)
+                    var playerHeight = 9f;
+                    if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < playerHeight * border)
                     {
-                        if (t < border)
-                            displacement += up.Direction * (border - t);
+                        if (t < playerHeight * border)
+                            displacement += up.Direction * (playerHeight * border - t);
                         onBox = true;
                     }
 

@@ -120,7 +120,11 @@ namespace TGC.Group.Model
             shader.setValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0,candlesPlaced<5?0:(candlesPlaced-5),0,0)));
 
             shader.setValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            shader.setValue("lightIntensityEye", 50f+(250f + Random.Next(-50, 50)) *g.hands.state);
+            shader.setValue("lightIntensityEye", 50f+(g.hands.state>0?
+                                                                (g.hands.state == 1?
+                                                                250f + Random.Next(-50, 50)
+                                                                : 250f + Random.Next(-50, 50)+ 250f + Random.Next(-50, 50))
+                                                     :0));
 
             for(int i = 0; i < lightCount; i++)
             {
@@ -130,13 +134,15 @@ namespace TGC.Group.Model
                 shader.setValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
             }
 
-            foreach(var pos in lightPosition)
-            {
-                Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
-            }
-            Console.WriteLine("----");
+            //foreach(var pos in lightPosition)
+            //{
+            //    Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
+            //}
+            //Console.WriteLine("----");
+
 
             lightIndex = 0;
+
             sky.Render();
             if (renderCandlePlace)
                 renderCandles();
@@ -439,7 +445,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     var pos = genPosInChunk(j, k);
                     pos.Y += 200f;
 
-                    if (checkColission(pos,450f)) continue;
+                    if (checkColission(pos,700f)) continue;
 
                     var candleMeshc = new Meshc();
                     //un poco excesivo que sea un meshc, lo eficiente seria que vela sea un tipo propio con una colision
@@ -524,7 +530,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         }
 
         TGCVector3 candlePlacePos = new TGCVector3(0f,-11220,0f);
-        public int candlesPlaced=9;
+        public int candlesPlaced=0;
         bool renderCandlePlace = false;
         public void updateCandlePlace()
         {
@@ -594,9 +600,19 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             //por ahora me quedo con un punto intermedio, la primera mitad va a visibles y el resto a cercanos
 
-            if (g.map.lightIndex > Map.lightCount/2)
+
+            //me di cuenta que la segunda rama tiene un bug, puede insertar velas repetidas.
+            //si agrego un chequeo para que no haga eso, y hay mas velas que su capacidad, va a saltar entre unas
+            //y otras y causar flicker
+            //la solucion a eso es limpiar el tramo ese cada frame, pero se lleva medio choto con la otra trama
+
+            //la mejor solucion seria hacer un sistema distinto; mantener una lista ordenada de mas cercanos, presentes
+            //y pasados. Los mas 4 mas lejanos pueden ser reemplazados entre frames
+
+
+            //if (g.map.lightIndex < Map.lightCount/2)
             //if(g.map.lightIndex >= Map.lightCount)
-            //if(true)
+            if(true)
             {
                 //se priorizan las mas cercanas
                 //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
