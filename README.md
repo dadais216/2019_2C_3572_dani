@@ -16,7 +16,7 @@ Proyecto plantilla para los trabajos prácticos de la asignatura electiva [Técn
 ## Integrantes ##
 TGC, Tgcito  |  Apellido, Nombre
 ------------ | -------------
-<img src="https://github.com/dadais216/2019_2C_3572_dani/tree/master/facultad/foto.jpeg" height="500"> | Daniel Martin
+<img src="https://github.com/dadais216/2019_2C_3572_dani/blob/master/facultad/foto.jpeg" height="500"> | Daniel Martin
 
 ## ScreenShot ##
 ![screenshot1](https://github.com/dadais216/2019_2C_3572_dani/blob/master/facultad/1.jpeg)
