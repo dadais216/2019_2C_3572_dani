@@ -413,10 +413,10 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             sky.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "lun4_up.jpg");
             sky.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "lun4_dn.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "lun4_lf.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "lun4_rt.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "lun4_bk.jpg");
-            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "lun4_ft.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "lun4_lf2.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "lun4_rt2.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "lun4_bk2.jpg");
+            sky.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "lun4_ft2.jpg");
 
             sky.SkyEpsilon = 25f;
 

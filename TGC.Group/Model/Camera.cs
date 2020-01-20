@@ -68,10 +68,7 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public readonly float RotationSpeed = 0.1f;
 
-
-        private TgcRay up;
-        private TgcRay down;
-        private TgcRay[] horizontal;
+        private TgcRay down,forward,ortog;
 
         private bool onGround = false;
         private float vSpeed = 10;
@@ -88,15 +85,10 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public Camera()
         {
-            up = new TgcRay();
-            up.Direction = new TGCVector3(0, 1, 0);
             down = new TgcRay();
+            forward = new TgcRay();
+            ortog = new TgcRay();
             down.Direction = new TGCVector3(0, -1, 0);
-            horizontal = new TgcRay[4] { new TgcRay(), new TgcRay(), new TgcRay(), new TgcRay(), };
-            horizontal[0].Direction = new TGCVector3(1, 0, 0);
-            horizontal[1].Direction = new TGCVector3(0, 0, 1);
-            horizontal[2].Direction = new TGCVector3(-1, 0, 0);
-            horizontal[3].Direction = new TGCVector3(0, 0, -1);
 
             g.camera = this;
             g.hands=new Hands();
@@ -180,8 +172,6 @@ namespace TGC.Group.Model.Camera
 
 
 
-            var displacement = new TGCVector3(0, 0, 0);
-            const float border = 100f;
 
             float t;
             TGCVector3 q;
@@ -216,18 +206,36 @@ namespace TGC.Group.Model.Camera
 
 
 
-            moving += up.Direction* vSpeed*elapsedTime * 100;
+            moving += -down.Direction* vSpeed*elapsedTime * 100;
 
             //rayos colision
 
-            //se podrian tirar rayos en las diagonales para manejar mejor esquinas tambien.
-            //se podria tirar rayos solo en las direcciones ortogonales que me estoy moviendo
-            //se podria tirar solo un rayo horizontal en la direccion que me muevo y sacar el
-            //desplazamiento haciendo cuentas con la normal del triangulo
+            //tirar solo un rayo horizontal en la direccion que me muevo y sacar el
+            //desplazamiento haciendo cuentas con la normal del triangulo no andaria si me estoy moviendo
+            //a una esquina, porque nomas reconoceria una de las paredes
+
+
+            //lo que hice durante casi todo el desarrollo es tirar 6 rayos en cada direccion ortogonal y 
+            //desplazar segun estos. Despues lo baje a 3, haciendo lo mismo.
+            //el problema de esto es que no maneja bien las esquinas. En un frame puede estar justo afuera
+            //y en el proximo justo adentro. No es normal que pase pero con un par de intentos se logra.
+            //desviar un poco los rayos no termina de solucionar el problema, si hay una caja mas o menos alineada
+            //atraviesa igual
+
+            //lo que voy a hacer es tirar un rayo en la orientacion que se esta moviendo, otro ortogonal a ese.
+            //puede que sea suficiente.
+            //Bueno probe hacer eso y el rayo diagonal puede justo pasar entre las dos paredes sin tocar ninguna,
+            //y ademas el movimiento se sentia un poco mas raro.
+
+            //la ultima solucion que se me ocurrio es que no haya esquinas, hacer que una pared sobresalga un poco.
+            //ya que estoy con eso no hay necesidad de tirar rayos especiales, voy a volver a ortogonales
+
+
+
 
             //en la colision se asume que el centro del personaje nunca atraviesa la pared
 
-            //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas
+            //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas.
             //con fps bajos va a correr todavia mas lento pero va a ser consistente
             float dist=moving.Length();
             int iters = (int)FastMath.Ceiling(dist/45f);
@@ -238,37 +246,61 @@ namespace TGC.Group.Model.Camera
             iters = FastMath.Min(iters, 20);//dropear iteraciones en casos extremos, sino
                                             //el elapsedTime va a ser todavia mas grande en el proximo frame
 
+            var displacement = new TGCVector3(0, 0, 0);
+            const float border = 100f;
+
             for (int i = 0; i < iters; i++)
             {
                 eyePosition += step;
 
-                horizontal[0].Origin = eyePosition;
-                horizontal[1].Origin = eyePosition;
-                horizontal[2].Origin = eyePosition;
-                horizontal[3].Origin = eyePosition;
-                up.Origin = eyePosition;
-                down.Origin = eyePosition;
+                forward.Direction = g.camera.cameraRotatedTarget;
+
+                forward.Direction.Normalize();
+                forward.Origin = eyePosition + -forward.Direction * border;
+
+                ortog.Direction = TGCVector3.Cross(forward.Direction,TGCVector3.Up);
+
+                ortog.Direction.Normalize();
+                ortog.Origin = eyePosition + -ortog.Direction * border;
+
+
+                down.Origin = new TGCVector3(eyePosition.X, eyePosition.Y+border, eyePosition.Z);
 
                 bool doGoto = false;
                 var handleRays = new Action<Parallelepiped>((box) =>
                 {
-                    foreach (TgcRay dir in horizontal)
-                    {
-                        if (box.intersectRay(dir, out t, out q) && t < border)
-                        {
-                            displacement += -dir.Direction * (border - t);
-                        }
-                    }
+                    var handleHor = new Action<TgcRay>((ray) =>
+                      {
+                        //lo malo un rayo por direccion en vez de dos es que si tengo 2 paredes
+                        //casi paralelas y me voy acercando a la interseccion voy a atravesar una
+                        //de las dos, porque la colision frena con la primera. Se podría cambiar 
+                        //intersecRay para que siga pero creo que nunca va a aparecer algo asi en el mapa.
+                        //Podria pasar si dejo que los arboles roten.
+                        if (box.intersectRay(ray, out t, out q) && t < 2 * border)
+                          {
+                              if (t < border)
+                              {
+                                  displacement += ray.Direction * t;
+                              }
+                              else
+                              {
+                                  displacement += -ray.Direction * (2*border - t);
+                              }
+                          }
+                          TgcLine.fromExtremes(ray.Origin,ray.Origin+ray.Direction*2*border).Render();
+                      });
+                    handleHor(forward);
+                    handleHor(ortog);
 
                     var playerHeight = 9f;
                     if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < playerHeight * border)
                     {
                         if (t < playerHeight * border)
-                            displacement += up.Direction * (playerHeight * border - t);
+                            displacement += -down.Direction * (playerHeight * border - t);
                         onBox = true;
                     }
 
-                    if (box.intersectRay(up, out t, out q) && t < border * 3)
+                    /*if (box.intersectRay(up, out t, out q) && t < border * 3)
                     {
                         underRoof = true;
                         if (t < border)
@@ -284,7 +316,7 @@ namespace TGC.Group.Model.Camera
                             vSpeed = 0f;
                         }
 
-                    }
+                    }*/
                 });
                 var chunk = g.chunks.fromCoordinates(eyePosition, false);
                 Meshc setToRemove = null;

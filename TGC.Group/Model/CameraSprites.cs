@@ -206,12 +206,12 @@ namespace TGC.Group.Model
 
         }
 
-        public bool infiniteStamina = false;
-        public bool squeletonHalfSpeed = false;
+        public bool infiniteStamina = true;
+        public bool squeletonHalfSpeed = true;
         public int candlesRequired = 9;
-        public int candlesInMap = 30;
-        public bool debugVisualizations = false;
-        public bool inmunity = false;
+        public int candlesInMap = 40;
+        public bool debugVisualizations = true;
+        public bool inmunity = true;
 
         public void renderMenu()
         {
