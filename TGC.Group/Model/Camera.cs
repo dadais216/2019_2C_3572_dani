@@ -68,7 +68,7 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public readonly float RotationSpeed = 0.1f;
 
-        private TgcRay down,forward,ortog;
+        public TgcRay down,horx,horz;
 
         private bool onGround = false;
         private float vSpeed = 10;
@@ -86,9 +86,12 @@ namespace TGC.Group.Model.Camera
         public Camera()
         {
             down = new TgcRay();
-            forward = new TgcRay();
-            ortog = new TgcRay();
+            horx = new TgcRay();
+            horz = new TgcRay();
             down.Direction = new TGCVector3(0, -1, 0);
+            horx.Direction = new TGCVector3(1, 0, 0);
+            horz.Direction = new TGCVector3(0, 0, 1);
+
 
             g.camera = this;
             g.hands=new Hands();
@@ -252,19 +255,9 @@ namespace TGC.Group.Model.Camera
             for (int i = 0; i < iters; i++)
             {
                 eyePosition += step;
-
-                forward.Direction = g.camera.cameraRotatedTarget;
-
-                forward.Direction.Normalize();
-                forward.Origin = eyePosition + -forward.Direction * border;
-
-                ortog.Direction = TGCVector3.Cross(forward.Direction,TGCVector3.Up);
-
-                ortog.Direction.Normalize();
-                ortog.Origin = eyePosition + -ortog.Direction * border;
-
-
-                down.Origin = new TGCVector3(eyePosition.X, eyePosition.Y+border, eyePosition.Z);
+                horx.Origin = new TGCVector3(eyePosition.X - border, eyePosition.Y, eyePosition.Z);
+                horz.Origin = new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z - border);
+                down.Origin = new TGCVector3(eyePosition.X, eyePosition.Y + border, eyePosition.Z);
 
                 bool doGoto = false;
                 var handleRays = new Action<Parallelepiped>((box) =>
@@ -287,10 +280,9 @@ namespace TGC.Group.Model.Camera
                                   displacement += -ray.Direction * (2*border - t);
                               }
                           }
-                          TgcLine.fromExtremes(ray.Origin,ray.Origin+ray.Direction*2*border).Render();
                       });
-                    handleHor(forward);
-                    handleHor(ortog);
+                    handleHor(horx);
+                    handleHor(horz);
 
                     var playerHeight = 9f;
                     if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < playerHeight * border)
@@ -330,7 +322,6 @@ namespace TGC.Group.Model.Camera
                         {
                             setToRemove = meshc;
                         }
-
                     }
                     else
                     {

@@ -149,7 +149,7 @@ namespace TGC.Group.Model
                 //dir en el cielo, no se cambia hasta que se llegue
             }
             dir.Normalize();
-            dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .5f : 1f)
+            dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .0f : 1f)
                                * (g.map.candlesPlaced==g.cameraSprites.candlesRequired ? .2f : 1f)
                                * g.game.ElapsedTime);//11000f
 

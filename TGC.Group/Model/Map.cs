@@ -151,13 +151,20 @@ namespace TGC.Group.Model
 
 
             if (GameModel.debugColission)
+            {
                 g.chunks.fromCoordinates(g.camera.eyePosition, false).renderDebugColission();
+                TGCVector3 ray = g.camera.horx.Origin + TGCVector3.Down * 200f;
+                TGCVector3 end = ray + g.camera.horx.Direction * 200f;
+
+                TgcLine.fromExtremes(ray, end).Render();
+
+                ray = g.camera.horz.Origin + TGCVector3.Down * 200f;
+                end = ray + g.camera.horz.Direction * 200f;
+
+                TgcLine.fromExtremes(ray, end).Render();
+            }
 
             g.terrain.Render();
-
-
-
-
         }
 
         static public TgcMesh GetMeshFromScene(string scenePath)

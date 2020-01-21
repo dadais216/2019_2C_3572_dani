@@ -51,17 +51,20 @@ namespace TGC.Group.Model
             }
         }
 
+        const float border = 60f;//para evitar atravesar esquinas alineadas con los vectores de movimiento
+                                 //parece que con 30 es seguro, por las dudas lo subi hasta 
+                                 //justo antes de que sea notable cuando te deslizas por la pared
         public bool intersectRay(TgcRay ray, out float dist, out TGCVector3 q)
         {
             float t;
             dist = 9999999;
             var face=new TGCVector3[4];
-           
-            face[0] = transformedVertex[0];
-            face[1] = transformedVertex[2];
-            face[2] = transformedVertex[3];
-            face[3] = transformedVertex[1];
-            if(TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
+
+            face[0] = transformedVertex[0] + new TGCVector3(-border, 0, 0);
+            face[1] = transformedVertex[2] + new TGCVector3(-border, 0, 0);
+            face[2] = transformedVertex[3] + new TGCVector3(border, 0, 0);
+            face[3] = transformedVertex[1] + new TGCVector3(border, 0, 0);
+            if (TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
                 dist=Math.Min(t,dist);
 
             face[0] = transformedVertex[2];
@@ -71,10 +74,10 @@ namespace TGC.Group.Model
             if (TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
                 dist = Math.Min(t, dist);
 
-            face[0] = transformedVertex[6];
-            face[1] = transformedVertex[7];
-            face[2] = transformedVertex[5];
-            face[3] = transformedVertex[4];
+            face[0] = transformedVertex[6] + new TGCVector3(-border, 0, 0);
+            face[1] = transformedVertex[7] + new TGCVector3(border, 0, 0);
+            face[2] = transformedVertex[5] + new TGCVector3(border, 0, 0);
+            face[3] = transformedVertex[4] + new TGCVector3(-border, 0, 0);
             if (TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
                 dist = Math.Min(t, dist);
 
@@ -112,12 +115,13 @@ namespace TGC.Group.Model
         {
             var poly=new TgcConvexPolygon();
             var face = new TGCVector3[4];
+
             
             poly.Color = Color.DarkOrchid;
-            face[0] = transformedVertex[0];
-            face[1] = transformedVertex[2];
-            face[2] = transformedVertex[3];
-            face[3] = transformedVertex[1];
+            face[0] = transformedVertex[0] + new TGCVector3(-border, 0, 0);
+            face[1] = transformedVertex[2] + new TGCVector3(-border, 0, 0);
+            face[2] = transformedVertex[3] + new TGCVector3(border, 0,0);
+            face[3] = transformedVertex[1] + new TGCVector3(border, 0, 0);
             poly.BoundingVertices = face;
             poly.updateValues();
             poly.Render();
@@ -132,10 +136,10 @@ namespace TGC.Group.Model
             poly.Render();
 
             poly.Color = Color.DodgerBlue;
-            face[0] = transformedVertex[6];
-            face[1] = transformedVertex[7];
-            face[2] = transformedVertex[5];
-            face[3] = transformedVertex[4];
+            face[0] = transformedVertex[6] + new TGCVector3(-border, 0, 0);
+            face[1] = transformedVertex[7] + new TGCVector3(border, 0, 0);
+            face[2] = transformedVertex[5] + new TGCVector3(border, 0, 0);
+            face[3] = transformedVertex[4] + new TGCVector3(-border, 0, 0);
             poly.BoundingVertices = face;
             poly.updateValues();
             poly.Render();
