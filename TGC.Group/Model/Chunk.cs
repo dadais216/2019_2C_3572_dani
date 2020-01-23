@@ -179,38 +179,28 @@ namespace TGC.Group.Model
                 Meshc.matrizChange = false;
             }
 
-
-
-
-            var s = toIndexSpace(g.camera.eyePosition);
-            chunks[s.i, s.j].render();
-            chunks[s.i+1, s.j].render();
-            chunks[s.i+1, s.j+1].render();
-            chunks[s.i, s.j+1].render();
-            chunks[s.i-1, s.j+1].render();
-            chunks[s.i-1, s.j].render();
-            chunks[s.i-1, s.j-1].render();
-            chunks[s.i, s.j-1].render();
-            chunks[s.i+1, s.j-1].render();
-
             int chunksInTriangle = 0;
             foreach (Chunk chunk in chunks)
             {
-                if (g.camera.triangle.enclosesPoint(chunk.center))
+                if (g.camera.triangleFar.enclosesPoint(chunk.center)) 
+                //    g.camera.triangleNear.enclosesPoint(chunk.center))
                 {
                     chunksInTriangle++;
                     chunk.render();
                 }
             }
-            //Console.WriteLine(chunksInTriangle.ToString());
+            Console.WriteLine(chunksInTriangle.ToString());
 
             //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
 
 
 
-            if(GameModel.debugChunks)
-                g.camera.triangle.render();
+            if (GameModel.debugChunks)
+            {
+                g.camera.triangleNear.render();
+                g.camera.triangleFar.render();
+            }
 
 
             //foreach (Chunk chunk in chunks)

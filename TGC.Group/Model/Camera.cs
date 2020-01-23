@@ -257,7 +257,8 @@ namespace TGC.Group.Model.Camera
                 eyePosition += step;
                 horx.Origin = new TGCVector3(eyePosition.X - border, eyePosition.Y, eyePosition.Z);
                 horz.Origin = new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z - border);
-                down.Origin = new TGCVector3(eyePosition.X, eyePosition.Y + border, eyePosition.Z);
+                var ceilignH = 3 * border;
+                down.Origin = new TGCVector3(eyePosition.X, eyePosition.Y + ceilignH, eyePosition.Z);
 
                 bool doGoto = false;
                 var handleRays = new Action<Parallelepiped>((box) =>
@@ -284,31 +285,33 @@ namespace TGC.Group.Model.Camera
                     handleHor(horx);
                     handleHor(horz);
 
-                    var playerHeight = 9f;
-                    if (vSpeed <= 0 && box.intersectRay(down, out t, out q) && t < playerHeight * border)
-                    {
-                        if (t < playerHeight * border)
-                            displacement += -down.Direction * (playerHeight * border - t);
-                        onBox = true;
-                    }
+                    var cameraHeight = 9f*border;
 
-                    /*if (box.intersectRay(up, out t, out q) && t < border * 3)
+                    if (box.intersectRay(down, out t, out q) && t < cameraHeight+ceilignH)
                     {
-                        underRoof = true;
-                        if (t < border)
+                        if (t < ceilignH)
                         {
-                            if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                            underRoof = true;
+                            if (t < border)
                             {
-                                eyePosition += new TGCVector3(eyePositionOffRoof.X - eyePosition.X, 0f, eyePositionOffRoof.Z - eyePosition.Z);
-                                //no es la mejor solucion porque causa mucho temblor, pero bueno
-                                doGoto=true;//salto el codigo de terreno porque puede hacer subir la camara
-                                return;
+                                if (onGround)//esta subiendo una pendiente hacia un techo, se pudre todo
+                                {
+                                    eyePosition += new TGCVector3(eyePositionOffRoof.X - eyePosition.X, 0f, eyePositionOffRoof.Z - eyePosition.Z);
+                                    //no es la mejor solucion porque causa mucho temblor, pero bueno
+                                    doGoto = true;//salto el codigo de terreno porque puede hacer subir la camara
+                                    return;
+                                }
+                                displacement += down.Direction * (border - t);
+                                vSpeed = 0f;
                             }
-                            displacement += -up.Direction * (border - t);
-                            vSpeed = 0f;
                         }
-
-                    }*/
+                        else if(vSpeed <= 0)
+                        {
+                            //t<cameraHeight+ceilingH
+                            displacement += -down.Direction * (cameraHeight+ceilignH - t);
+                            onBox = true;
+                        }
+                    }
                 });
                 var chunk = g.chunks.fromCoordinates(eyePosition, false);
                 Meshc setToRemove = null;
@@ -414,31 +417,38 @@ namespace TGC.Group.Model.Camera
             //Logger.Log(eyePosition);
             //Logger.Log(map.chunks.fromCoordinates(eyePosition, false).center.X.ToString()+"  "+ map.chunks.fromCoordinates(eyePosition, false).center.Y.ToString());
 
+;
 
-            // Y esta seteado para visualizarlo en debug nomas
-            var eyeUp = new TGCVector3(eyePosition.X, eyePosition.Y + 10f, eyePosition.Z);
-            triangle.a = eyeUp;
+            //un triangulo solo con
+            //far = 200000f sideStrech = .7f dibuja bien el fondo pero tiene errores cerca, y trae ~210 chunks
 
-            //cuando agregue niebla cambiar estos dos
-            var far = 200000f;
-            var sideStrech = .7f;
+            var formatTriangle = new Action<Triangle,float,float, float>((triangle, backup, far, sideStretch) => {
+                // Y esta seteado para visualizarlo en debug nomas
+                float triangleHeigh= eyePosition.Y + 10f;
 
-            var lineVec = (cameraFinalTarget - eyePosition) * far;
+                var eyeDir = (cameraFinalTarget - eyePosition);
+                eyeDir.Y = 0;//ignorar y
+                eyeDir.Normalize();
 
-            var Pend = lineVec + eyePosition;
-            Pend.Y = eyeUp.Y;
+                var Pend = eyeDir * far + eyePosition;
+                triangle.a = eyeDir * -backup + eyePosition;
 
-            var lineBack = TGCVector3.Cross(lineVec, new TGCVector3(0, 1, 0)) * sideStrech;
-            var PBeg = -lineBack + Pend;
-            var PendBack = lineBack + Pend;
-            PendBack.Y = eyeUp.Y;
+                Pend.Y = triangleHeigh;
+                triangle.a.Y = triangleHeigh;
 
-            triangle.b = PBeg;
-            triangle.c = PendBack;
-
-
+                var lineBack = TGCVector3.Cross(eyeDir, new TGCVector3(0, 1, 0)) * sideStretch;
+                var PBeg = -lineBack + Pend;
+                var PendBack = lineBack + Pend;
 
 
+                PendBack.Y = triangleHeigh;
+
+                triangle.b = PBeg;
+                triangle.c = PendBack;
+            });
+            formatTriangle(triangleFar,  0f,   150000f,  80000f);
+            //formatTriangle(triangleNear, 10000f, 80000f, 110000f);
+            
         }
 
 
@@ -448,6 +458,7 @@ namespace TGC.Group.Model.Camera
             public TGCVector3 a, b, c; //deberian ser TGCVector2 pero por conveniencia
             public void render()
             {
+
                 var line = TgcLine.fromExtremes(a, (b + c) * .5f, Color.Red);
                 var back = TgcLine.fromExtremes(b, c, Color.Green);
                 var leg1 = TgcLine.fromExtremes(a, b, Color.Yellow);
@@ -476,7 +487,8 @@ namespace TGC.Group.Model.Camera
                 return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
             }
         }
-        public Triangle triangle = new Triangle();
+        public Triangle triangleFar = new Triangle();
+        public Triangle triangleNear = new Triangle();
 
 
 

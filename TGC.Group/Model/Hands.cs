@@ -9,7 +9,7 @@ namespace TGC.Group.Model
 {
     class Hands
     {
-        public int state = 2;//0 nada 1 mano derecha 2 ambas manos
+        public int state = 0;//0 nada 1 mano derecha 2 ambas manos
 
         //estas variables estan para hacer la animacion de levantar la vela si es que la hago,
         //por ahora lo dejo para el final
