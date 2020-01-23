@@ -40,8 +40,6 @@ namespace TGC.Group.Model
                         meshc.render();
                     }
                 }
-                if(GameModel.debugChunks)
-                    renderDebug();
             }
             public void renderDebug()
             {
@@ -93,7 +91,7 @@ namespace TGC.Group.Model
                     chunks[i, j].color=Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
                 }
         }
-        public Chunk fromCoordinates(TGCVector3 pos, bool print=false)
+        public Chunk fromCoordinates(TGCVector3 pos)
         {
 
             var x = (int)FastMath.Floor(pos.X / chunkLen) + chunksPerDim / 2;
@@ -105,8 +103,6 @@ namespace TGC.Group.Model
                 //en el juego final no creo que sea necesario
             {
                 var ret = chunks[x, z];
-                if(print)
-                    Console.WriteLine(ret.meshes.Count.ToString() + "    " + x.ToString() + "   " + z.ToString());
 
                 return ret;
             }
@@ -179,28 +175,104 @@ namespace TGC.Group.Model
                 Meshc.matrizChange = false;
             }
 
-            int chunksInTriangle = 0;
-            foreach (Chunk chunk in chunks)
+            int chunksRendered = 0;
+
+            var eyeDir = g.camera.cameraRotatedTarget;
+            eyeDir.Y = 0;//ignorar y
+            eyeDir.Normalize();
+
+            var ortogDir = TGCVector3.Cross(eyeDir,TGCVector3.Up);
+
+
+            //la idea inicial es tener un generar una cuadricula del tamaño de chunk con estos 2 vectores como base
+            //y por cada interseccion conseguir el chunk y renderizarlo
+            //funciona si los puntos estan alineados con los chunks, si no lo estan puede haber 2 puntos por chunk
+            //o ninguno.
+            //si se avanza por chunkLen * 1 / sqrt( 2 ) se asegura que no va a haber agujeros, pero se va a estar
+            //tocando los chunks con 2 puntos casi siempre, pero bueno. Para no renderizar 2 veces controlo que
+            //el ultimo frame de renderizado no sea el actual. 
+
+
+            //el factor de avance podría estar en funcion de que tan alineado se esta, siendo 1 si se esta alineado
+            //y 1/sqrt(2) si se esta totalmente desalineado.
+            //float distFactor = 0.707f + (float)Math.Abs(Math.Cos(Camera.Camera.leftrightRot * 2f))* (1f-0.707f);
+
+            float distFactor = 0.707f;
+
+            Action<int, int> drawHor = (along, side) =>
+             {
+                 for (int j = -side; j <= side; j++)
+                 {
+                     var pos = eyeDir * chunkLen * along * distFactor
+                             + ortogDir * chunkLen * j * distFactor
+                             + g.camera.eyePosition;
+
+
+                     Chunk c = fromCoordinates(pos);
+                     if (c != null)
+                     {
+                         c.render();
+                         chunksRendered++;
+                         if (GameModel.debugChunks)
+                         {
+                             var p1 = pos * 1; p1.Y = -40000;
+                             var p2 = pos * 1; p2.Y = 4000;
+
+                             var line = TgcLine.fromExtremes(p1, p2);
+                             line.Color = Color.BlanchedAlmond;
+                             line.Render();
+                             c.renderDebug();
+                         }
+                     }
+                 }
+             };
+
+            //@todo agregar version hd que suma mas
+
+            drawHor(-2,1);
+            drawHor(-1, 2);
+            int cutOut = 8;
+            for(int i = 0; i < cutOut; i++)
             {
-                if (g.camera.triangleFar.enclosesPoint(chunk.center)) 
-                //    g.camera.triangleNear.enclosesPoint(chunk.center))
-                {
-                    chunksInTriangle++;
-                    chunk.render();
-                }
+                drawHor(i, (i+1)/2+1);
             }
-            Console.WriteLine(chunksInTriangle.ToString());
+            for (int i = cutOut; i < 18; i++)
+            {
+                drawHor(i, 6);
+            }
+
+
+            /*var size = 9;
+            for(float i=-size;i<size+1;i+=.707f)
+                for(float j = -size; j < size+1; j+=.707f)
+                {
+                    var pos = eyeDir * chunkLen * i + ortogDir * chunkLen * j;// + g.camera.eyePosition;
+
+                    var p1 = pos * 1;p1.Y = -40000;
+                    var p2 = pos * 1;p2.Y = 4000;
+
+                    var line = TgcLine.fromExtremes(p1, p2);
+                    line.Color=Color.BlanchedAlmond;
+                    line.Render();
+
+
+
+                    Chunk c = fromCoordinates(pos);
+                    if (c != null)
+                    {
+                        c.render();
+                        chunksRendered++;
+                    }
+                }*/
+
+
+
+            Console.WriteLine(chunksRendered.ToString());
 
             //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
 
 
-
-            if (GameModel.debugChunks)
-            {
-                g.camera.triangleNear.render();
-                g.camera.triangleFar.render();
-            }
 
 
             //foreach (Chunk chunk in chunks)

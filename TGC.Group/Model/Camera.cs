@@ -33,7 +33,7 @@ namespace TGC.Group.Model.Camera
         private readonly TGCVector3 directionView = Map.South;
 
 
-        private static float leftrightRot = 2.803196f;
+        public static float leftrightRot = 2.803196f;
 
         //No hace falta la base ya que siempre es la misma, la base se arma segun las rotaciones de esto costados y updown.
         /// <summary>
@@ -147,7 +147,6 @@ namespace TGC.Group.Model.Camera
                 cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
                 Cursor.Position = mouseCenter;
             }
-
 
             if (g.input.keyDown(Key.W))
                 inputMove += Map.South;
@@ -313,7 +312,7 @@ namespace TGC.Group.Model.Camera
                         }
                     }
                 });
-                var chunk = g.chunks.fromCoordinates(eyePosition, false);
+                var chunk = g.chunks.fromCoordinates(eyePosition);
                 Meshc setToRemove = null;
                 foreach (var meshc in chunk.meshes)
                 {
@@ -417,78 +416,11 @@ namespace TGC.Group.Model.Camera
             //Logger.Log(eyePosition);
             //Logger.Log(map.chunks.fromCoordinates(eyePosition, false).center.X.ToString()+"  "+ map.chunks.fromCoordinates(eyePosition, false).center.Y.ToString());
 
-;
-
-            //un triangulo solo con
-            //far = 200000f sideStrech = .7f dibuja bien el fondo pero tiene errores cerca, y trae ~210 chunks
-
-            var formatTriangle = new Action<Triangle,float,float, float>((triangle, backup, far, sideStretch) => {
-                // Y esta seteado para visualizarlo en debug nomas
-                float triangleHeigh= eyePosition.Y + 10f;
-
-                var eyeDir = (cameraFinalTarget - eyePosition);
-                eyeDir.Y = 0;//ignorar y
-                eyeDir.Normalize();
-
-                var Pend = eyeDir * far + eyePosition;
-                triangle.a = eyeDir * -backup + eyePosition;
-
-                Pend.Y = triangleHeigh;
-                triangle.a.Y = triangleHeigh;
-
-                var lineBack = TGCVector3.Cross(eyeDir, new TGCVector3(0, 1, 0)) * sideStretch;
-                var PBeg = -lineBack + Pend;
-                var PendBack = lineBack + Pend;
-
-
-                PendBack.Y = triangleHeigh;
-
-                triangle.b = PBeg;
-                triangle.c = PendBack;
-            });
-            formatTriangle(triangleFar,  0f,   150000f,  80000f);
-            //formatTriangle(triangleNear, 10000f, 80000f, 110000f);
             
         }
 
 
 
-        public class Triangle
-        {
-            public TGCVector3 a, b, c; //deberian ser TGCVector2 pero por conveniencia
-            public void render()
-            {
-
-                var line = TgcLine.fromExtremes(a, (b + c) * .5f, Color.Red);
-                var back = TgcLine.fromExtremes(b, c, Color.Green);
-                var leg1 = TgcLine.fromExtremes(a, b, Color.Yellow);
-                var leg2 = TgcLine.fromExtremes(a, c, Color.Yellow);
-
-                line.Render();
-                back.Render();
-                leg1.Render();
-                leg2.Render();
-            }
-
-            public bool enclosesPoint(TGCVector3 p)
-            {
-                //lo que se me habia ocurrido es usar producto interno entre a y b y despues entre a y p, viendo si el angulo es menor al de ab
-                //y repetir para los otros 2 vertices. Pero puede que tenga problemas en los signos y ni ganas de verlo ahora
-
-                //esto lo saque de internet
-                float s1 = c.Z - a.Z;
-                float s2 = c.X - a.X;
-                float s3 = b.Z - a.Z;
-                float s4 = p.Z - a.Z;
-
-                float w1 = (a.X * s1 + s4 * s2 - p.X * s1) / (s3 * s2 - (b.X - a.X) * s1);
-                float w2 = (s4 - w1 * s3) / s1;
-
-                return w1 >= 0 && w2 >= 0 && (w1 + w2) <= 1;
-            }
-        }
-        public Triangle triangleFar = new Triangle();
-        public Triangle triangleNear = new Triangle();
 
 
 

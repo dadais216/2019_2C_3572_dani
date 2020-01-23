@@ -152,7 +152,7 @@ namespace TGC.Group.Model
 
             if (GameModel.debugColission)
             {
-                g.chunks.fromCoordinates(g.camera.eyePosition, false).renderDebugColission();
+                g.chunks.fromCoordinates(g.camera.eyePosition).renderDebugColission();
                 TGCVector3 ray = g.camera.horx.Origin + TGCVector3.Down * 200f;
                 TGCVector3 end = ray + g.camera.horx.Direction * 200f;
 

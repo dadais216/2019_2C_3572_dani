@@ -110,7 +110,8 @@ namespace TGC.Group.Model
             if (mode == 1)
             {
                 //mientras se lo este mirando no ataca al jugador, se queda cerca
-                if (g.camera.triangleNear.enclosesPoint(pos))
+                //@todo chequeo especial, antes se usaba los triangulos de la camara
+                if (true)
                 {
                     if (setObj)
                     {
