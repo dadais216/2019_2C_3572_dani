@@ -80,7 +80,7 @@ namespace TGC.Group.Model
             shader.comun = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx");
             shader.arbol = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "arbol.fx");
 
-            shader.setValue("lightAttenuation", .2f);
+            shader.setValue("lightAttenuation", .3f);
             shader.setValue("lightColor", ColorValue.FromColor(Color.White));
             shader.setValue("materialAmbientColor", ColorValue.FromColor(Color.White));
             shader.setValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
@@ -350,25 +350,26 @@ namespace TGC.Group.Model
 
             //techo
             mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
-                    172, 231, 264,
-                    0, 341, 264,
                     172, 227, 264,
                     0, 227f, 264,
-                    172, 231, -217,
-                    0, 341, -217,
+                    172, 231, 264,
+                    0, 341, 264,
                     172, 227, -217,
-                    0, 227f, -217
+                    0, 227f, -217,
+                    172, 231, -217,
+                    0, 341, -217
                 );
             mm.parallelipeds[parIndex++] = Parallelepiped.fromVertex(
-                    -172, 231, 264,
-                    0, 341, 264,
                     -172, 227, 264,
                     0, 227f, 264,
-                    -172, 231, -217,
-                    0, 341, -217,
+                    -172, 231, 264,
+                    0, 341, 264,
                     -172, 227, -217,
-                    0, 227f, -217
-                );
+                    0, 227f, -217,
+                    -172, 231, -217,
+                    0, 341, -217
+                );//puede que el que tenga forma de triangulo cause problemas con alguna deformacion por los
+                  //vertex fall, pero por ahora no parece haber problema
 
             for (int i = cantBoxes; i < cantBoxes + putByHand; i++)
             {
@@ -377,6 +378,7 @@ namespace TGC.Group.Model
                 g.chunks.addVertexFall(par, mm);
             }
 
+            /*
             //partes de la iglesia no caen en ningun vertex, las agrego manualmente
             var addToChunk = new Action<TGCVector3>(v => {
                 var c = g.chunks.fromCoordinates(v);
@@ -391,9 +393,9 @@ namespace TGC.Group.Model
             addToChunk(new TGCVector3(-1991, 0, -8930));
             addToChunk(new TGCVector3(-3159, 0, 3621));
             addToChunk(new TGCVector3(2258, 0, 3767));
-
             
             //centro de la iglesia ( -2879,753   -10917,6   3882,9  )
+            */
 
             foreach (var mesh in mm.meshes)
             {

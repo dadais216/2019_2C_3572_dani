@@ -59,6 +59,17 @@ namespace TGC.Group.Model
             float t;
             dist = 9999999;
             var face=new TGCVector3[4];
+            
+            //
+            //
+            //      6 --- 7
+            //     /|    /|
+            //    2 --- 3 |
+            //    | 4 --| 5
+            //    |/    |/
+            //    0 --- 1
+            //
+            //
 
             face[0] = transformedVertex[0] + new TGCVector3(-border, 0, 0);
             face[1] = transformedVertex[2] + new TGCVector3(-border, 0, 0);
@@ -95,7 +106,6 @@ namespace TGC.Group.Model
             if (TgcCollisionUtils.intersectRayConvexPolygon(ray, face, out t, out q))
                 dist = Math.Min(t, dist);
             
-            //0 4 5 1
             face[0] = transformedVertex[0];
             face[1] = transformedVertex[4];
             face[2] = transformedVertex[5];

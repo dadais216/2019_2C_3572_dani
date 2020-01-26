@@ -13,11 +13,15 @@ namespace TGC.Group.Model
         {
             public List<Meshc> meshes = new List<Meshc>();
             public List<MultiMeshc> multimeshes = new List<MultiMeshc>();
-            //en la primera aproximacion le mando la meshc entera. Supongo que seria mejor tener todo aplanado
-            //pero no sé hasta donde me deja c# hacer cosas
+            //nunca se da en el juego que haya mas de un multimesh por chunk asi que esto podría no ser una lista
+            public List<Parallelepiped> parallelepipedsOfMultimesh = new List<Parallelepiped>();
+            //solo guardo los parallelipepeds del multimesh que estan en este chunk, para no colisionar con los demas
+            //al pedo
+
+
             public TGCVector3 center;
             public Color color;
-            public int lastDrawnFrame=-1; //asegura que no se dibuje 2 veces. Despues implementar lo mismo a nivel mesh
+            public int lastDrawnFrame = -1; //asegura que no se dibuje 2 veces. Despues implementar lo mismo a nivel mesh
 
             public void render()
             {
@@ -35,7 +39,7 @@ namespace TGC.Group.Model
                             g.map.maybeLightCandleAt(meshc.position());
                         }
                     }
-                    foreach(MultiMeshc meshc in multimeshes)
+                    foreach (MultiMeshc meshc in multimeshes)
                     {
                         meshc.render();
                     }
@@ -67,28 +71,28 @@ namespace TGC.Group.Model
                 {
                     meshc.renderDebugColission();
                 }
-                foreach (MultiMeshc meshc in multimeshes)
+                foreach (Parallelepiped par in parallelepipedsOfMultimesh)
                 {
-                    meshc.renderDebugColission();
+                    par.renderAsPolygons();
                 }
             }
         }
         public const float MapSquareRad = 410000f;//deberia ser lo mismo que terrain
-        public const float chunkLen= 10000f;
-        public const int chunksPerDim = ((int)MapSquareRad / (int)chunkLen)*2;
+        public const float chunkLen = 10000f;
+        public const int chunksPerDim = ((int)MapSquareRad / (int)chunkLen) * 2;
         public Chunk[,] chunks = new Chunk[chunksPerDim, chunksPerDim];
 
         public Chunks()
         {
             var random = new Random();
 
-            for (int i=0;i<chunksPerDim;i++)
-                for(int j = 0; j < chunksPerDim; j++)
+            for (int i = 0; i < chunksPerDim; i++)
+                for (int j = 0; j < chunksPerDim; j++)
                 {
                     chunks[i, j] = new Chunk();
-                    chunks[i, j].center = new TGCVector3((i+.5f) * chunkLen-MapSquareRad,0, (j+.5f) * chunkLen - MapSquareRad);
+                    chunks[i, j].center = new TGCVector3((i + .5f) * chunkLen - MapSquareRad, 0, (j + .5f) * chunkLen - MapSquareRad);
 
-                    chunks[i, j].color=Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
+                    chunks[i, j].color = Color.FromArgb(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255));
                 }
         }
         public Chunk fromCoordinates(TGCVector3 pos)
@@ -99,8 +103,8 @@ namespace TGC.Group.Model
 
 
             if (x >= 0 && z >= 0 && x < chunksPerDim && z < chunksPerDim)
-                //este chequeo esta porque estoy boludeando con deformaciones,
-                //en el juego final no creo que sea necesario
+            //este chequeo esta porque estoy boludeando con deformaciones,
+            //en el juego final no creo que sea necesario
             {
                 var ret = chunks[x, z];
 
@@ -128,27 +132,70 @@ namespace TGC.Group.Model
             //y haya chunks por los que pase el paralleliped que no se registren
             //por lo que me tengo que limitar a una sola deformacion, 
             //o a varias que no separen los vertices mas del largo de un chunk
-            foreach(TGCVector3 vertex in meshc.paralleliped.transformedVertex)
+            foreach (TGCVector3 vertex in meshc.paralleliped.transformedVertex)
             {
                 Chunk c = fromCoordinates(vertex);
-                if (c!=null&&!c.meshes.Contains(meshc))
+                if (c != null && !c.meshes.Contains(meshc))
                 {
                     c.meshes.Add(meshc);
                 }
             }
         }
         public void addVertexFall(Parallelepiped par, MultiMeshc meshc)
-        //aca podria haber usado las templates pero las tengo que aprender a escribir
-        // y son como las de scala y es mas rapido copiar y pegar
         {
+            Action<TGCVector3> addToChunk = v =>
+            {
+                Chunk c = fromCoordinates(v);
+                if (c != null)
+                {
+                    if (!c.multimeshes.Contains(meshc))
+                    {
+                        c.multimeshes.Add(meshc);
+                        c.parallelepipedsOfMultimesh.Add(par);
+                    }
+                    else
+                    {
+                        if (!c.parallelepipedsOfMultimesh.Contains(par))
+                        {
+                            c.parallelepipedsOfMultimesh.Add(par);
+                        }
+                    }
+                }
+            
+            };
             foreach (TGCVector3 vertex in par.transformedVertex)
             {
-                Chunk c = fromCoordinates(vertex);
-                if (c != null && !c.multimeshes.Contains(meshc))
-                {
-                    c.multimeshes.Add(meshc);
-                }
+                addToChunk(vertex);
             }
+
+            Action<int, int,float> extraVertex = (v1, v2, w1) =>
+             {
+                 float w2 = 1f - w1;
+                 var vertex = new TGCVector3(par.transformedVertex[v1].X * w1 + par.transformedVertex[v2].X * w2,
+                                           0,
+                                           par.transformedVertex[v1].Z * w1 + par.transformedVertex[v2].Z * w2);
+                 addToChunk(vertex);
+            };
+            extraVertex(0, 4, .5f);
+            extraVertex(0, 1, .5f);
+            extraVertex(1, 5, .5f);
+            extraVertex(4, 5, .5f);//@optim puede que tirar vertex del piso no sea necesario, ver al final
+
+            extraVertex(2, 6, .5f);
+            extraVertex(2, 3, .5f);
+            extraVertex(3, 7, .5f);
+            extraVertex(6, 7, .5f);
+
+            extraVertex(2, 7, .5f);
+            extraVertex(2, 7, .25f);
+            extraVertex(2, 7, .75f);
+
+            extraVertex(4, 1, .5f);
+            extraVertex(4, 1, .25f);
+            extraVertex(4, 1, .75f);
+
+
+
         }
 
         public void render()
@@ -174,6 +221,7 @@ namespace TGC.Group.Model
                 }
                 Meshc.matrizChange = false;
             }
+
 
             int chunksRendered = 0;
 
@@ -229,6 +277,9 @@ namespace TGC.Group.Model
 
             //@todo agregar version hd que suma mas
 
+            //@todo se podrían dibujar los chunks lejanos solo si hay alguna luz ahi, teniendo en cuenta
+            //tambien los entremedios
+
             drawHor(-2,1);
             drawHor(-1, 2);
             int cutOut = 8;
@@ -267,9 +318,8 @@ namespace TGC.Group.Model
 
 
 
-            Console.WriteLine(chunksRendered.ToString());
+            //Console.WriteLine(chunksRendered.ToString());
 
-            //Logger.Log(s.i.ToString() + "  " + s.j.ToString() + "  " + chunksPerDim);
 
 
 

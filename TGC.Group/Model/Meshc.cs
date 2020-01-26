@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Group.Model;
@@ -114,7 +116,7 @@ namespace TGC.Group
         }
         public void render()
         {
-            if(lastFrameDrawn != GameModel.actualFrame)
+            if (lastFrameDrawn != GameModel.actualFrame)
             {
                 lastFrameDrawn = GameModel.actualFrame;
                 if (GameModel.debugMeshes)
@@ -126,14 +128,56 @@ namespace TGC.Group
                         mesh.Render();
                     }
                 }
+
+                if (true) //@todo agregar boton
+                {
+                    foreach (var par in parallelipeds)
+                    {
+                        Action<TGCVector3,Color> drawLine = (v,c) =>
+                         {
+                             var p1 = v * 1; p1.Y = -40000;
+                             var p2 = v * 1; p2.Y = 4000;
+
+                             var line = TgcLine.fromExtremes(p1, p2);
+                             line.Color = c;
+                             line.updateValues();
+                             line.Render();
+                         };
+
+                        foreach(var vertex in par.transformedVertex)
+                        {
+                            drawLine(vertex,Color.Gold);
+                        }
+
+                        Action<int, int, float> drawExtraVertexFall = (v1, v2, w1) =>
+                        {
+                            float w2 = 1f - w1;
+                            var vertex = new TGCVector3(par.transformedVertex[v1].X * w1 + par.transformedVertex[v2].X * w2,
+                                                      0,
+                                                      par.transformedVertex[v1].Z * w1 + par.transformedVertex[v2].Z * w2);
+                            drawLine(vertex,Color.BlanchedAlmond);
+                        };
+
+                        drawExtraVertexFall(0, 4, .5f);
+                        drawExtraVertexFall(0, 1, .5f);
+                        drawExtraVertexFall(1, 5, .5f);
+                        drawExtraVertexFall(4, 5, .5f);//@optim puede que tirar vertex del piso no sea necesario, ver al final
+
+                        drawExtraVertexFall(2, 6, .5f);
+                        drawExtraVertexFall(2, 3, .5f);
+                        drawExtraVertexFall(3, 7, .5f);
+                        drawExtraVertexFall(6, 7, .5f);
+
+                        drawExtraVertexFall(2, 7, .5f);
+                        drawExtraVertexFall(2, 7, .25f);
+                        drawExtraVertexFall(2, 7, .75f);
+
+                        drawExtraVertexFall(4, 1, .5f);
+                        drawExtraVertexFall(4, 1, .25f);
+                        drawExtraVertexFall(4, 1, .75f);
+                    }
+                }
             }
-
-        }
-
-        public void renderDebugColission()
-        {
-            foreach (var paralleliped in parallelipeds)
-                paralleliped.renderAsPolygons();
         }
     }
 }

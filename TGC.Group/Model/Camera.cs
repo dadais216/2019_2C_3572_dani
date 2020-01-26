@@ -340,15 +340,12 @@ namespace TGC.Group.Model.Camera
                         chunk.meshes.Remove(setToRemove);
                 }
 
-                foreach (var meshc in chunk.multimeshes)
-                {
-                    foreach(var box in meshc.parallelipeds)
+                    foreach(var box in chunk.parallelepipedsOfMultimesh)
                     {
                         handleRays(box);
                         if (doGoto)
                             goto setCamera;//C# no se banca gotos en lambdas
                     }
-                }
 
 
                 eyePosition += displacement;
