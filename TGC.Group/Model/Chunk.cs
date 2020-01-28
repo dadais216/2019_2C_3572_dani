@@ -25,12 +25,12 @@ namespace TGC.Group.Model
 
             public void render()
             {
-                if (lastDrawnFrame != GameModel.actualFrame)
+                if (lastDrawnFrame != g.game.actualFrame)
                 {
-                    lastDrawnFrame = GameModel.actualFrame;
+                    lastDrawnFrame = g.game.actualFrame;
                     foreach (Meshc meshc in meshes)
                     {
-                        meshc.render();
+                        meshc.renderAndDeform();
                         //se tiene que renderizar primero porque se esta usando el Transform de mesh, que se comparte
                         //con todas las velas
 
@@ -38,6 +38,8 @@ namespace TGC.Group.Model
                         {
                             g.map.maybeLightCandleAt(meshc.position());
                         }
+
+                        meshc.deform();
                     }
                     foreach (MultiMeshc meshc in multimeshes)
                     {
@@ -205,22 +207,6 @@ namespace TGC.Group.Model
             //se separa la transformacion de el render porque la transformacion aplica a chunks que no estan siendo
             //renderizados tambien. Ahora se recorren todos, en la version final se van a actualizar algunos con 
             //distintas tranformaciones
-
-            if (Meshc.matrizChange)
-            {
-                foreach (Chunk chunk in chunks)
-                {
-                    foreach(Meshc m in chunk.meshes)
-                    {
-                        m.transformColission();
-                    }
-                    foreach (MultiMeshc m in chunk.multimeshes)
-                    {
-                        m.transformColission();
-                    }
-                }
-                Meshc.matrizChange = false;
-            }
 
 
             int chunksRendered = 0;

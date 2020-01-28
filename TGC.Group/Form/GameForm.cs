@@ -74,6 +74,8 @@ namespace TGC.Group.Form
             ApplicationRunning = false;
         }
 
+        string currentDirectory;
+
         /// <summary>
         ///     Inicio todos los objetos necesarios para cargar el ejemplo y directx.
         /// </summary>
@@ -95,7 +97,7 @@ namespace TGC.Group.Form
             DirectSound.InitializeD3DDevice(panel3D);
 
             // Directorio actual de ejecución
-            var currentDirectory = Environment.CurrentDirectory;
+            currentDirectory = Environment.CurrentDirectory;
             currentDirectory = currentDirectory.Substring(0, currentDirectory.LastIndexOf('\\'));
             currentDirectory = currentDirectory.Substring(0, currentDirectory.LastIndexOf('\\'))+"\\";
             //independiente de build. Medio garca pero no encontre una forma estandar de hacerlo
@@ -127,6 +129,13 @@ namespace TGC.Group.Form
                         {
                             Modelo.Update();
                             Modelo.Render();
+
+                            if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.R))
+                            {
+                                Modelo = new GameModel(currentDirectory + Game.Default.MediaDirectory, currentDirectory + Game.Default.ShadersDirectory);
+                                ExecuteModel();
+                            }
+
                         }
                         else
                         {

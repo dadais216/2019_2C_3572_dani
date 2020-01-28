@@ -14,10 +14,6 @@ namespace TGC.Group
     //idealmente deberia hacer mi propia mesh para no arrastrar un monton de cosas que no uso
     public class Meshc
     {
-        public static bool matrizChange = true;//eventualmente cambiar por el mecanismo que use para determinar cuando hacer
-        //vertexfall de un meshc particular
-
-
         public TgcMesh mesh;
         public Parallelepiped paralleliped;
 
@@ -34,38 +30,54 @@ namespace TGC.Group
 
 
         public TGCMatrix originalMesh;
-
+        public TGCMatrix deformation;
+        //probar guardar originalMesh*deformation tambien, para no calcularlo por cada mesh en render
 
         public int lastFrameDrawn = -1;
-        public int lastFrameColissionT = -1;
 
 
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
         //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
         //porque voy a querer tener transformaciones distintas para cada cosa y seria mas comodo
 
-
-
-        public void transformColission()
+        static public TGCMatrix multMatrix(float f,TGCMatrix m)//lo ideal seria tener algo inplace y simd pero bueno
         {
-            if (matrizChange && lastFrameColissionT != GameModel.actualFrame)
-            {
-                lastFrameColissionT = GameModel.actualFrame;
-                paralleliped.transform(GameModel.matriz * originalMesh);
-                g.chunks.addVertexFall(this);
-            }
+            var r=new TGCMatrix();
+            r.M11 = m.M11 * f;
+            r.M12 = m.M12 * f;
+            r.M13 = m.M13 * f;
+            r.M21 = m.M21 * f;
+            r.M22 = m.M22 * f;
+            r.M23 = m.M23 * f;
+            r.M31 = m.M31 * f;
+            r.M32 = m.M32 * f;
+            r.M33 = m.M33 * f;
+
+            r.M42 = m.M42 * f;
+            return r;
         }
-        public void render()
+
+        public void deform()
         {
-            if (lastFrameDrawn != GameModel.actualFrame)
+            paralleliped.transform(multMatrix(g.map.deforming, deformation) + originalMesh);
+
+            //como las cosas se deforman despacio es seguro no actualizar los chunks por un tiempo relativamente largo
+            if(g.game.actualFrame%180==0)//sería preferible que no se hagan todos en un mismo frame, pero es
+                //dificil testear la velocidad y preferiria no agregar otra variable para esto sin saber como afecta
+                g.chunks.addVertexFall(this);
+        }
+        public void renderAndDeform()
+        {
+            if (lastFrameDrawn != g.game.actualFrame)
             {
-                lastFrameDrawn = GameModel.actualFrame;
+                lastFrameDrawn = g.game.actualFrame;
                 if (GameModel.debugMeshes)
                 {
-                    mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+                    mesh.Transform = multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
                     mesh.Render();
                 }
 
+                deform();
             }
 
         }
@@ -98,38 +110,36 @@ namespace TGC.Group
         public Parallelepiped[] parallelipeds;
 
         public TGCMatrix originalMesh;
+        public TGCMatrix deformation;
 
         public int lastFrameDrawn = -1;
-        public int lastFrameColissionT = -1;
 
-        public void transformColission()
+        public void deform()
         {
-            if (Meshc.matrizChange && lastFrameColissionT != GameModel.actualFrame)
+            foreach (var paralleliped in parallelipeds)
             {
-                lastFrameColissionT = GameModel.actualFrame;
-                foreach (var paralleliped in parallelipeds)
-                {
-                    paralleliped.transform(GameModel.matriz * originalMesh);
+                paralleliped.transform(Meshc.multMatrix(g.map.deforming, deformation) + originalMesh);
+                if (g.game.actualFrame % 180 == 0)
                     g.chunks.addVertexFall(paralleliped, this);
-                }
             }
         }
         public void render()
         {
-            if (lastFrameDrawn != GameModel.actualFrame)
+            if (lastFrameDrawn != g.game.actualFrame)
             {
-                lastFrameDrawn = GameModel.actualFrame;
+                lastFrameDrawn = g.game.actualFrame;
                 if (GameModel.debugMeshes)
                 {
                     foreach (var mesh in meshes)
                     {
-                        mesh.Transform = GameModel.matriz * originalMesh;//mesh se transforma siempre porque se comparte
+                        mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
 
                         mesh.Render();
                     }
                 }
+                deform();
 
-                if (true) //@todo agregar boton
+                if (false) //@todo agregar boton
                 {
                     foreach (var par in parallelipeds)
                     {

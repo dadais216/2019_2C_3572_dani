@@ -33,18 +33,18 @@ namespace TGC.Group.Model.Camera
         private readonly TGCVector3 directionView = Map.South;
 
 
-        public static float leftrightRot = 2.803196f;
+        public float leftrightRot = 2.803196f;
 
         //No hace falta la base ya que siempre es la misma, la base se arma segun las rotaciones de esto costados y updown.
         /// <summary>
         ///
         /// </summary>
-        private static float updownRot = 0.5277546f;
+        private float updownRot = 0.5277546f;
 
         /// <summary>
         ///  Se mantiene la matriz rotacion para no hacer este calculo cada vez.
         /// </summary>
-        public static TGCMatrix cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
+        public TGCMatrix cameraRotation;
 
         /// <summary>
         ///  Se traba la camara, se utiliza para ocultar el puntero del mouse y manejar la rotacion de la camara.
@@ -85,6 +85,8 @@ namespace TGC.Group.Model.Camera
         /// </summary>
         public Camera()
         {
+            cameraRotation = TGCMatrix.RotationX(updownRot) * TGCMatrix.RotationY(leftrightRot);
+
             down = new TgcRay();
             horx = new TgcRay();
             horz = new TgcRay();

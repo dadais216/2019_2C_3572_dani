@@ -47,6 +47,8 @@ namespace TGC.Group.Model
 
         public Mostro mostro;//no sé si tiene mucho sentido que este en map, no me preocupa mucho igual
 
+        public float deforming=0;
+
         public class Shaders
         {
             public Effect comun;
@@ -77,6 +79,8 @@ namespace TGC.Group.Model
         public int lightIndex;
         public Map()
         {
+            g.map = this;
+
             shader.comun = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx");
             shader.arbol = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "arbol.fx");
 
@@ -111,7 +115,6 @@ namespace TGC.Group.Model
 
             mostro = new Mostro();
 
-            g.map = this;
 
         }
 
@@ -165,6 +168,9 @@ namespace TGC.Group.Model
             }
 
             g.terrain.Render();
+
+            deforming += g.game.ElapsedTime*1.2f;
+            Console.WriteLine(deforming);
         }
 
         static public TgcMesh GetMeshFromScene(string scenePath)
@@ -232,9 +238,21 @@ namespace TGC.Group.Model
                                 size,
                                 posb
                             );
-                        meshc.transformColission();
 
-                        //chunks.addVertexFall(meshc);
+
+                        meshc.deformation = new TGCMatrix();
+                        meshc.deformation.M11 = (float)Random.NextDouble()*2f-1f;
+                        meshc.deformation.M12 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M13 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M21 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M22 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M23 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M31 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M32 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M33 = (float)Random.NextDouble() * 2f - 1f;
+                        meshc.deformation.M42 = -1.2f;
+
+                        meshc.deform();
                     }
                 }
         }
@@ -371,6 +389,11 @@ namespace TGC.Group.Model
                 );//puede que el que tenga forma de triangulo cause problemas con alguna deformacion por los
                   //vertex fall, pero por ahora no parece haber problema
 
+
+            mm.deformation = new TGCMatrix();
+            mm.deformation.M21 = 1;
+            mm.deformation.M22 = 1.5f;
+
             for (int i = cantBoxes; i < cantBoxes + putByHand; i++)
             {
                 var par = mm.parallelipeds[i];
@@ -442,7 +465,6 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         public void addCandles()
         {
             candleMesh = GetMeshFromScene("Vela-TgcScene.xml");
-            Meshc.matrizChange = true;
             for (int i = 0; i < g.cameraSprites.candlesInMap; i++)
             {
                 int j, k;
@@ -491,7 +513,6 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
                     break;
                 } while (true);
             }
-            Meshc.matrizChange = false;
         }
 
         public bool checkColission(TGCVector3 pos,float colissionLen)
@@ -560,8 +581,8 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
 
             //si el centro de la iglesia se renderizó en el frame anterior, renderizar candleplace en este
-            renderCandlePlace = g.chunks.chunks[41, 41].lastDrawnFrame == GameModel.actualFrame - 1 ||
-                                g.chunks.chunks[40, 40].lastDrawnFrame == GameModel.actualFrame - 1;
+            renderCandlePlace = g.chunks.chunks[41, 41].lastDrawnFrame == g.game.actualFrame - 1 ||
+                                g.chunks.chunks[40, 40].lastDrawnFrame == g.game.actualFrame - 1;
             
         }
 

@@ -22,7 +22,7 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
-        public static int actualFrame=0;
+        public int actualFrame=0;
 
         /// <summary>
         ///     Constructor del juego.
@@ -87,6 +87,7 @@ namespace TGC.Group.Model
             }
             else if(gameState==1)
             {
+                /*
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.Y) ||
                     Input.keyDown(Microsoft.DirectX.DirectInput.Key.U) ||
                     Input.keyDown(Microsoft.DirectX.DirectInput.Key.I) ||
@@ -128,6 +129,9 @@ namespace TGC.Group.Model
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D5)) matriz.M24 += 0.1f * sgn;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D6)) matriz.M34 += 0.1f * sgn;
                 if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.D7)) matriz.M44 += 0.1f * sgn;
+                */
+                if (Input.keyDown(Microsoft.DirectX.DirectInput.Key.K))
+                    g.map.deforming+= Input.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift)? -5f:5f;
 
                 if (g.cameraSprites.debugVisualizations)
                 {
