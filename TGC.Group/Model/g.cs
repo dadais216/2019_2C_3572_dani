@@ -23,5 +23,6 @@ namespace TGC.Group.Model
         static public Hands hands;
         static public CameraSprites cameraSprites;
         static public TgcD3dInput input;
+        static public Shadow shadow;
     }
 }

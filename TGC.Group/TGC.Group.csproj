@@ -93,6 +93,7 @@
   <ItemGroup>
     <Compile Include="Model\Chunk.cs" />
     <Compile Include="Model\CameraSprites.cs" />
+    <Compile Include="Model\Shadow.cs" />
     <Compile Include="Model\Terrain.cs" />
     <Compile Include="Model\Hands.cs" />
     <Compile Include="Model\g.cs" />

@@ -206,8 +206,8 @@ namespace TGC.Group.Model
 
         }
 
-        public bool infiniteStamina = true;
-        public bool squeletonHalfSpeed = true;
+        public bool infiniteStamina = false;
+        public bool squeletonHalfSpeed = false;
         public int candlesRequired = 9;
         public int candlesInMap = 90;
         public bool debugVisualizations = true;

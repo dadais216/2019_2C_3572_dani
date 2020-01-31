@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
+using TGC.Core.SceneLoader;
 using static TGC.Group.Model.Chunks;
 
 namespace TGC.Group.Model
@@ -43,8 +44,20 @@ namespace TGC.Group.Model
                     }
                     foreach (MultiMeshc meshc in multimeshes)
                     {
-                        meshc.render();
+                        meshc.renderAndDeform();
                     }
+                }
+            }
+            public void renderForShadow()
+            {
+                foreach (Meshc meshc in meshes)
+                {
+                    g.shadow.renderMesh(meshc);
+                }
+                foreach (MultiMeshc meshc in multimeshes)
+                {
+                    
+                    g.shadow.renderMesh(meshc);
                 }
             }
             public void renderDebug()
@@ -328,6 +341,32 @@ namespace TGC.Group.Model
             //    meshc.mesh.Render();
             //    meshc.paralleliped.renderAsPolygons();
             //}
+        }
+
+        public void renderForShadow()
+        {
+            var dir = g.camera.eyePosition - g.mostro.pos;
+
+            int2 index = toIndexSpace(g.camera.eyePosition);
+
+            if (index.i == 0) index.i++;
+            if (index.j == 0) index.j++;
+            if (index.i == chunksPerDim) index.i--;
+            if (index.j == chunksPerDim) index.j--;
+
+            //@todo 4 chunks en vez de 9
+
+            chunks[index.i-1, index.j-1].renderForShadow();
+            chunks[index.i-1, index.j  ].renderForShadow();
+            chunks[index.i-1, index.j+1].renderForShadow();
+            chunks[index.i  , index.j-1].renderForShadow();
+            chunks[index.i  , index.j  ].renderForShadow();
+            chunks[index.i  , index.j+1].renderForShadow();
+            chunks[index.i+1, index.j-1].renderForShadow();
+            chunks[index.i+1, index.j  ].renderForShadow();
+            chunks[index.i+1, index.j+1].renderForShadow();
+
+
         }
 
     }

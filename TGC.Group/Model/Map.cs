@@ -250,7 +250,7 @@ namespace TGC.Group.Model
                         meshc.deformation.M31 = (float)Random.NextDouble() * 2f - 1f;
                         meshc.deformation.M32 = (float)Random.NextDouble() * 2f - 1f;
                         meshc.deformation.M33 = (float)Random.NextDouble() * 2f - 1f;
-                        meshc.deformation.M42 = -1.2f;
+                        meshc.deformation.M42 = -1.4f;
 
                         meshc.deform();
                     }

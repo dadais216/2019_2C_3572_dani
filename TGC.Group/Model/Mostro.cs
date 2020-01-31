@@ -58,7 +58,7 @@ namespace TGC.Group.Model
 
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
            
-            musica.play(true);
+            //musica.play(true);
 
             g.mostro = this;
         }

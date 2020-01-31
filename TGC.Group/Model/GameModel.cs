@@ -155,15 +155,29 @@ namespace TGC.Group.Model
 
             PostUpdate();
         }
+
+        Shadow shadow = new Shadow();
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
         ///     Borrar todo lo que no haga falta.
         /// </summary>
+
+        bool once = true;
         public override void Render()
         {
-            PreRender();
+            ClearTextures();
+            BeginRenderScene();
 
+            if (once)
+            {
+                once = false;
+                g.map.Render();
+            }
+
+            shadow.render();
+
+            /*
             if (gameState==0)
             {
                 g.cameraSprites.renderMenu();
@@ -177,7 +191,10 @@ namespace TGC.Group.Model
                 g.cameraSprites.renderStaminaBar();
                 g.hands.renderCandles();
             }
-            PostRender();
+            */
+            RenderAxis();
+            RenderFPS();
+            EndRenderScene();
         }
 
         /// <summary>

@@ -71,16 +71,24 @@ namespace TGC.Group
             if (lastFrameDrawn != g.game.actualFrame)
             {
                 lastFrameDrawn = g.game.actualFrame;
-                if (GameModel.debugMeshes)
-                {
-                    mesh.Transform = multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
-                    mesh.Render();
-                }
 
+                render();
                 deform();
             }
 
         }
+
+        public void render()
+        {
+            if (GameModel.debugMeshes)
+            {
+                mesh.Transform = multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
+                mesh.Render();
+            }
+        }
+
+        
+
 
         //solo valido despues de actualizar transform
         public TGCVector3 position()
@@ -125,18 +133,23 @@ namespace TGC.Group
         }
         public void render()
         {
+            if (GameModel.debugMeshes)
+            {
+                foreach (var mesh in meshes)
+                {
+                    mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
+
+                    mesh.Render();
+                }
+            }
+        }
+        public void renderAndDeform()
+        {
             if (lastFrameDrawn != g.game.actualFrame)
             {
                 lastFrameDrawn = g.game.actualFrame;
-                if (GameModel.debugMeshes)
-                {
-                    foreach (var mesh in meshes)
-                    {
-                        mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
 
-                        mesh.Render();
-                    }
-                }
+                render();
                 deform();
 
                 if (false) //@todo agregar boton
