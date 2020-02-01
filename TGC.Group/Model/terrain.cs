@@ -118,6 +118,29 @@ namespace TGC.Core.Terrain
             effect.End();
         }
 
+        public void renderForShadow(TGCMatrix mat)
+        {
+            effect = g.shadow.shader;
+            technique = "RenderShadow";
+
+            effect.SetValue("matWorld", TGCMatrix.Identity);
+            effect.SetValue("g_mViewLightProj", mat);
+
+            D3DDevice.Instance.Device.VertexDeclaration = TGCShaders.Instance.VdecPositionTextured;
+            effect.Technique = technique;
+            D3DDevice.Instance.Device.SetStreamSource(0, vbTerrain, 0);
+
+            //Render con shader
+            effect.Begin(0);
+            effect.BeginPass(0);
+            D3DDevice.Instance.Device.DrawPrimitives(PrimitiveType.TriangleList, 0, totalVertices / 3);
+            effect.EndPass();
+            effect.End();
+
+            effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+            technique = "DIFFUSE_MAP";
+        }
+
         /// <summary>
         ///     Crea la malla de un terreno en base a un Heightmap
         /// </summary>

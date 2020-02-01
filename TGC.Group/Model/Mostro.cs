@@ -36,7 +36,7 @@ namespace TGC.Group.Model
         {
             mesh = Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
 
-            mesh.Effect = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath+"esqueleto.fx");
+            mesh.Effect = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "esqueleto.fx");
             mesh.Technique = "DIFFUSE_MAP";
 
 
@@ -57,7 +57,7 @@ namespace TGC.Group.Model
             musica.MinDistance = 60f;
 
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
-           
+
             //musica.play(true);
 
             g.mostro = this;
@@ -68,7 +68,7 @@ namespace TGC.Group.Model
 
         public void render()
         {
-            TGCShaders.Instance.SetShaderMatrix(mesh.Effect,mesh.Transform);
+            TGCShaders.Instance.SetShaderMatrix(mesh.Effect, mesh.Transform);
 
             mesh.Effect.SetValue("lightIntensity", 150f + 500f * g.hands.state);
             mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
@@ -151,7 +151,7 @@ namespace TGC.Group.Model
             }
             dir.Normalize();
             dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .0f : 1f)
-                               * (g.map.candlesPlaced==g.cameraSprites.candlesRequired ? .2f : 1f)
+                               * (g.map.candlesPlaced == g.cameraSprites.candlesRequired ? .2f : 1f)
                                * g.game.ElapsedTime);//11000f
 
             colDir = new TGCVector3(dir.X, 0, dir.Z);
@@ -197,6 +197,7 @@ namespace TGC.Group.Model
 
             if (intersecRay())
             {
+                swithSideTimer = 0f;
                 setObj = true;
 
                 ray.Direction = TGCVector3.Cross(colDir, TGCVector3.Up) * sidePref;

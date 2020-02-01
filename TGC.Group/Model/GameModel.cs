@@ -163,17 +163,10 @@ namespace TGC.Group.Model
         ///     Borrar todo lo que no haga falta.
         /// </summary>
 
-        bool once = true;
         public override void Render()
         {
             ClearTextures();
             BeginRenderScene();
-
-            if (once)
-            {
-                once = false;
-                g.map.Render();
-            }
 
             shadow.render();
 

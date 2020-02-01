@@ -17,7 +17,7 @@ namespace TGC.Group.Model
         Surface depths;
         TGCMatrix proj;
         int SHADOWMAP_SIZE = 1024;
-        Effect shader;
+        public Effect shader;
 
         public Shadow()
         {
@@ -70,7 +70,7 @@ namespace TGC.Group.Model
 
 
 
-            //g.terrain.Render();
+            g.terrain.renderForShadow(lightView * proj);
             g.chunks.renderForShadow();
 
 

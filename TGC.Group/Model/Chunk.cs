@@ -345,28 +345,48 @@ namespace TGC.Group.Model
 
         public void renderForShadow()
         {
-            var dir = g.camera.eyePosition - g.mostro.pos;
+            int chunksRendered = 0;
 
-            int2 index = toIndexSpace(g.camera.eyePosition);
+            var eyeDir = g.camera.eyePosition - g.mostro.pos;
+            eyeDir.Y = 0;//ignorar y
+            eyeDir.Normalize();
 
-            if (index.i == 0) index.i++;
-            if (index.j == 0) index.j++;
-            if (index.i == chunksPerDim) index.i--;
-            if (index.j == chunksPerDim) index.j--;
+            var ortogDir = TGCVector3.Cross(eyeDir, TGCVector3.Up);
 
-            //@todo 4 chunks en vez de 9
+            float distFactorForward = 0.707f;
+            float distFactorSide = 0.3f;//para meter chunks que esten lo suficientemente cerca al costado 
 
-            chunks[index.i-1, index.j-1].renderForShadow();
-            chunks[index.i-1, index.j  ].renderForShadow();
-            chunks[index.i-1, index.j+1].renderForShadow();
-            chunks[index.i  , index.j-1].renderForShadow();
-            chunks[index.i  , index.j  ].renderForShadow();
-            chunks[index.i  , index.j+1].renderForShadow();
-            chunks[index.i+1, index.j-1].renderForShadow();
-            chunks[index.i+1, index.j  ].renderForShadow();
-            chunks[index.i+1, index.j+1].renderForShadow();
+            
 
+            var lightPos = g.camera.eyePosition;
 
+            bool sngx = g.mostro.pos.X <= lightPos.X;
+            bool sngz = g.mostro.pos.Z <= lightPos.Z;// <= aca y < en el bucle para que de distinto si justo son iguales
+
+            for(int i=0; ;i++)
+            {
+                var along = g.mostro.pos + eyeDir * i * chunkLen * distFactorForward;
+
+                if((along.X<lightPos.X)!=sngx &&
+                   (along.Z<lightPos.Z)!=sngz)//creo que sería seguro probar con un eje nomas
+                {
+                    break;
+                }
+                for (int j = -1; j <= 1; j++)
+                {
+                    var pos = along
+                            + ortogDir * chunkLen * j * distFactorSide;
+
+                    Chunk c = fromCoordinates(pos);
+                    if (c != null)
+                    {
+                        c.renderForShadow();
+                        chunksRendered++;
+                    }
+                }
+                Console.WriteLine(along.X.ToString()+"  "+lightPos.X.ToString());
+            }
+            Console.WriteLine(chunksRendered);
         }
 
     }

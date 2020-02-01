@@ -53,25 +53,24 @@ struct VS_OUTPUT
 void VertShadow(float4 Pos : POSITION,
 	float3 Normal : NORMAL,
 	out float4 oPos : POSITION,
-	out float2 Depth : TEXCOORD0)
+	out float Depth : TEXCOORD0)
 {
 	// transformacion estandard
     oPos = mul(Pos, matWorld); // uso el del mesh
     oPos = mul(oPos, g_mViewLightProj); // pero visto desde la pos. de la luz
 
-	// devuelvo: profundidad = z/w
-    Depth.xy = oPos.zw;
+    Depth = oPos.w; //el shader original hacia z/w, ni idea por que
 }
 
 //-----------------------------------------------------------------------------
 // Pixel Shader para el shadow map, dibuja la "profundidad"
 //-----------------------------------------------------------------------------
-void PixShadow(float2 Depth : TEXCOORD0, out float4 Color : COLOR)
+void PixShadow(float Depth : TEXCOORD0, out float4 Color : COLOR)
 {
 	// parche para ver el shadow map
 	//float k = Depth.x/Depth.y;
 	//Color = (1-k);
-    Color = Depth.x / Depth.y;
+    Color = Depth / 50000;
 }
 
 technique RenderShadow
