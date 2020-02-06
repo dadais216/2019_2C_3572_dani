@@ -36,22 +36,8 @@ namespace TGC.Group.Model
         {
             mesh = Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
 
-            mesh.Effect = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "esqueleto.fx");
+            mesh.Effect = g.map.shader;
             mesh.Technique = "DIFFUSE_MAP";
-
-
-            mesh.Effect.SetValue("lightAttenuation", .2f);
-            mesh.Effect.SetValue("spotLightAngleCos", FastMath.ToRad(0f));
-            mesh.Effect.SetValue("spotLightExponent", .0f);
-            mesh.Effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
-
-            mesh.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.White));
-            mesh.Effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
-            mesh.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.Black));
-            mesh.Effect.SetValue("materialSpecularExp", .9f);
-
-            //mesh.Effect = TGCShaders.Instance.TgcMeshSpotLightShader;
-            //mesh.Technique = "DIFFUSE_MAP";
 
             musica = new Tgc3dSound(g.game.MediaDir + "tambo_tambo-la_cumbita.wav", pos, g.game.DirectSound.DsDevice);
             musica.MinDistance = 60f;
@@ -68,15 +54,7 @@ namespace TGC.Group.Model
 
         public void render()
         {
-            TGCShaders.Instance.SetShaderMatrix(mesh.Effect, mesh.Transform);
-
-            mesh.Effect.SetValue("lightIntensity", 150f + 500f * g.hands.state);
-            mesh.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            mesh.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(g.camera.eyePosition));
-            mesh.Effect.SetValue("spotLightDir", TGCVector3.Vector3ToFloat3Array(g.camera.cameraRotatedTarget));
-            mesh.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(0, g.map.candlesPlaced * 2, 0, 0)));
-
-
+            mesh.Effect.SetValue("type", 2);
 
             mesh.Render();
 

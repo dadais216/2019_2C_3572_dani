@@ -166,11 +166,15 @@ namespace TGC.Group.Model
         public override void Render()
         {
             ClearTextures();
-            BeginRenderScene();
 
             shadow.render();
 
-            /*
+            BeginRenderScene();
+            g.map.shader.SetValue("shadowTexture",g.shadow.tex);
+
+            g.terrain.technique = "DIFFUSEWITHSHADOW";
+
+            
             if (gameState==0)
             {
                 g.cameraSprites.renderMenu();
@@ -184,9 +188,9 @@ namespace TGC.Group.Model
                 g.cameraSprites.renderStaminaBar();
                 g.hands.renderCandles();
             }
-            */
             RenderAxis();
             RenderFPS();
+            
             EndRenderScene();
         }
 

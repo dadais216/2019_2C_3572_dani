@@ -35,6 +35,8 @@ namespace TGC.Group
 
         public int lastFrameDrawn = -1;
 
+        public int type=0;//flags para shader
+
 
         //usa este metodo para hacer transformaciones, todo lo que viene de tgcMesh no se usa
         //me parece que en la version final voy a preferir tener solo la transformacion y modificarla de a poco,
@@ -82,13 +84,11 @@ namespace TGC.Group
         {
             if (GameModel.debugMeshes)
             {
+                g.map.shader.SetValue("type", type);
                 mesh.Transform = multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
                 mesh.Render();
             }
         }
-
-        
-
 
         //solo valido despues de actualizar transform
         public TGCVector3 position()
@@ -120,6 +120,8 @@ namespace TGC.Group
         public TGCMatrix originalMesh;
         public TGCMatrix deformation;
 
+        public int type=0;
+
         public int lastFrameDrawn = -1;
 
         public void deform()
@@ -135,6 +137,7 @@ namespace TGC.Group
         {
             if (GameModel.debugMeshes)
             {
+                g.map.shader.SetValue("type", type);
                 foreach (var mesh in meshes)
                 {
                     mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte

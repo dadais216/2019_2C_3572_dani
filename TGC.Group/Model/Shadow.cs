@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace TGC.Group.Model
 {
     class Shadow
     {
-        Texture tex;
+        public Texture tex;
         Surface depths;
         TGCMatrix proj;
         int SHADOWMAP_SIZE = 1024;
@@ -47,59 +48,47 @@ namespace TGC.Group.Model
             //shader.SetValue("g_vLightPos", new TGCVector4(g_LightPos.X, g_LightPos.Y, g_LightPos.Z, 1));
             //shader.SetValue("g_vLightDir", new TGCVector4(g_LightDir.X, g_LightDir.Y, g_LightDir.Z, 1));
 
-
             var lightView = TGCMatrix.LookAtLH(g.mostro.pos, g.camera.eyePosition, new TGCVector3(0, 0, 1));
 
-
-            shader.SetValue("g_mProjLight", proj.ToMatrix());
             shader.SetValue("g_mViewLightProj", (lightView * proj).ToMatrix());
 
-            
-            /*
-            var pOldRT = D3DDevice.Instance.Device.GetRenderTarget(0);
-            var pShadowSurf = g_pShadowMap.GetSurfaceLevel(0);
-            D3DDevice.Instance.Device.SetRenderTarget(0, pShadowSurf);
-            var pOldDS = D3DDevice.Instance.Device.DepthStencilSurface;
-            D3DDevice.Instance.Device.DepthStencilSurface = g_pDSShadow;
+            var screenRT = D3DDevice.Instance.Device.GetRenderTarget(0);
+            D3DDevice.Instance.Device.SetRenderTarget(0, tex.GetSurfaceLevel(0));
+            var screenDS = D3DDevice.Instance.Device.DepthStencilSurface;
+
+
+            D3DDevice.Instance.Device.DepthStencilSurface = depths;
             D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
             D3DDevice.Instance.Device.BeginScene();
-            effect.SetValue("g_txShadow", g_pShadowMap);
-            */
-
-
-
-
 
             g.terrain.renderForShadow(lightView * proj);
             g.chunks.renderForShadow();
 
 
-            /*
             D3DDevice.Instance.Device.EndScene();
+            //D3DDevice.Instance.Device.Present();
+
 
             //TextureLoader.Save("shadowmap.bmp", ImageFileFormat.Bmp, g_pShadowMap);
 
-            // restuaro el render target y el stencil
-            D3DDevice.Instance.Device.DepthStencilSurface = pOldDS;
-            D3DDevice.Instance.Device.SetRenderTarget(0, pOldRT);
-            */
-
+            D3DDevice.Instance.Device.DepthStencilSurface = screenDS;
+            D3DDevice.Instance.Device.SetRenderTarget(0, screenRT);
         }
 
 
         public void renderMesh(Meshc mesh)
         {
-            renderMesh(mesh.mesh, mesh.originalMesh, mesh.deformation);
+            renderMesh(mesh.mesh, mesh.originalMesh, mesh.deformation,mesh.type);
         }
         public void renderMesh(MultiMeshc mmesh)
         {
             foreach(var mesh in mmesh.meshes)
             {
-                renderMesh(mesh, mmesh.originalMesh, mmesh.deformation);
+                renderMesh(mesh, mmesh.originalMesh, mmesh.deformation,mmesh.type);
             }
         }
 
-        public void renderMesh(TgcMesh mesh,TGCMatrix originalMesh, TGCMatrix deformation)
+        public void renderMesh(TgcMesh mesh,TGCMatrix originalMesh, TGCMatrix deformation, int type)
         {
             var effectPrev = mesh.Effect;
             var tecniquePrev = mesh.Technique;
@@ -107,6 +96,7 @@ namespace TGC.Group.Model
             mesh.Effect = shader;
             mesh.Technique = "RenderShadow";
 
+            shader.SetValue("type", type);
 
             mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;
             mesh.Render();

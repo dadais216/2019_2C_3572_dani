@@ -16,7 +16,7 @@ namespace TGC.Core.Terrain
     {
         protected Effect effect;
 
-        protected string technique;
+        public string technique;
         private Texture terrainTexture;
         private int totalVertices;
         private VertexBuffer vbTerrain;
@@ -29,8 +29,7 @@ namespace TGC.Core.Terrain
 
             //Shader
 
-            //effect= TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "TgcMeshSpotLightShader.fx");
-            effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+            effect = g.map.shader;
             technique = "DIFFUSE_MAP";
 
 
@@ -101,7 +100,7 @@ namespace TGC.Core.Terrain
                 return;
 
             effect.SetValue("texDiffuseMap", terrainTexture);
-
+            effect.SetValue("type", 0);
 
             TexturesManager.Instance.clear(1);
 
@@ -126,6 +125,8 @@ namespace TGC.Core.Terrain
             effect.SetValue("matWorld", TGCMatrix.Identity);
             effect.SetValue("g_mViewLightProj", mat);
 
+            effect.SetValue("type", 0);
+
             D3DDevice.Instance.Device.VertexDeclaration = TGCShaders.Instance.VdecPositionTextured;
             effect.Technique = technique;
             D3DDevice.Instance.Device.SetStreamSource(0, vbTerrain, 0);
@@ -137,7 +138,7 @@ namespace TGC.Core.Terrain
             effect.EndPass();
             effect.End();
 
-            effect = TGCShaders.Instance.TgcMeshSpotLightShader;
+            effect = g.map.shader;
             technique = "DIFFUSE_MAP";
         }
 
