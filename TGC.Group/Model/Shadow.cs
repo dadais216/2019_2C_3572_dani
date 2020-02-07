@@ -44,13 +44,17 @@ namespace TGC.Group.Model
         public void render()
         {
 
-            //esto es para el otro render
-            //shader.SetValue("g_vLightPos", new TGCVector4(g_LightPos.X, g_LightPos.Y, g_LightPos.Z, 1));
-            //shader.SetValue("g_vLightDir", new TGCVector4(g_LightDir.X, g_LightDir.Y, g_LightDir.Z, 1));
-
             var lightView = TGCMatrix.LookAtLH(g.mostro.pos, g.camera.eyePosition, new TGCVector3(0, 0, 1));
-
             shader.SetValue("g_mViewLightProj", (lightView * proj).ToMatrix());
+
+
+            g.map.shader.SetValue("mViewLightProj", (lightView * proj).ToMatrix());
+            g.map.shader.SetValue("lightPos", TGCVector3.Vector3ToFloat3Array(g.mostro.pos));
+
+
+            var obj = g.mostro.pos + (g.camera.eyePosition - g.mostro.pos) * .5f; 
+            g.map.shader.SetValue("lightDir", TGCVector3.Vector3ToFloat3Array(g.camera.eyePosition - g.mostro.pos));
+
 
             var screenRT = D3DDevice.Instance.Device.GetRenderTarget(0);
             D3DDevice.Instance.Device.SetRenderTarget(0, tex.GetSurfaceLevel(0));
@@ -58,7 +62,7 @@ namespace TGC.Group.Model
 
 
             D3DDevice.Instance.Device.DepthStencilSurface = depths;
-            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.CornflowerBlue, 1.0f, 0);
             D3DDevice.Instance.Device.BeginScene();
 
             g.terrain.renderForShadow(lightView * proj);

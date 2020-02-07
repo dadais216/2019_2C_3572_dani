@@ -168,7 +168,6 @@ namespace TGC.Group.Model
             ClearTextures();
 
             shadow.render();
-
             BeginRenderScene();
             g.map.shader.SetValue("shadowTexture",g.shadow.tex);
 

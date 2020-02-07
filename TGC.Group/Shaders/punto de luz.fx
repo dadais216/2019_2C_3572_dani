@@ -164,7 +164,6 @@ sampler_state
 	AddressU = Clamp;
 	AddressV = Clamp;
 };
-#define EPSILON 0.05f
 
 //-----------------------------------------------------------------------------
 // Vertex Shader para dibujar la escena pp dicha con sombras
@@ -178,14 +177,14 @@ void vs_diffuseWShadow(
 	out float2 oTex : TEXCOORD0,
 	out float3 oWorldPos : TEXCOORD1,
 	out float3 oWorldN : TEXCOORD2,
-	out float4 oLightPos : TEXCOORD3
+	out float4 oPosFromLight : TEXCOORD3
 )
 {
 	vs_DiffuseMap(
 		iPos, iNormal, iTex,
 		oPos, oTex, oWorldPos, oWorldN);
 
-	oLightPos = mul(oPos, mViewLightProj);
+	oPosFromLight = mul(oWorldPos, mViewLightProj);
 }
 
 //-----------------------------------------------------------------------------
@@ -193,28 +192,33 @@ void vs_diffuseWShadow(
 //-----------------------------------------------------------------------------
 float4 ps_diffuseWShadow(
 	float2 tex : TEXCOORD0,
-	float4 pos : TEXCOORD1,
+	float3 worldPos : TEXCOORD1,
 	float3 normal : TEXCOORD2,
-	float4 lightPos : TEXCOORD3
+	float4 posFromLight : TEXCOORD3
 ) : COLOR
 {
-	//float4 color=ps_DiffuseMap(tex,pos,normal);
-
-	float color = tex2D(shadowSampler,tex);
-
-	return float4(color,color,color,color);
-
 	/*
-	float3 vLight = normalize(float3(vPos - g_vLightPos));
-	float cono = dot(vLight, g_vLightDir);
+	float4 color=ps_DiffuseMap(tex,pos,normal);
+
+	float c = tex2D(shadowSampler,tex);
+
+	color.r += c * (1-color.r);
+	color.g += c * (1 - color.g);
+	color.b += c * (1 - color.b);
+
+	return color;
+	*/
+
+	float3 lightL = normalize(float3(worldPos - lightPos));
+	float cono = dot(lightL, lightDir);
 	float4 K = 0.0;
 	if (cono > 0.7)
 	{
 		// coordenada de textura CT
-		float2 CT = 0.5 * vPosLight.xy / vPosLight.w + float2(0.5, 0.5);
+		float2 CT = 0.5 * posFromLight.xy / posFromLight.w + float2(0.5, 0.5);
 		CT.y = 1.0f - CT.y;
 
-		float I = (tex2D(g_samShadow, CT) + EPSILON < vPosLight.z / vPosLight.w) ? 0.0f : 1.0f;
+		float I = (tex2D(shadowSampler, CT) + 0.05f < posFromLight.z / posFromLight.w) ? 0.0f : 1.0f;
 
 		if (cono < 0.8)
 			I *= 1 - (0.8 - cono) * 10;
@@ -222,10 +226,9 @@ float4 ps_diffuseWShadow(
 		K = I;
 	}
 
-	float4 color_base = tex2D(diffuseMap, Tex);
+	float4 color_base = ps_DiffuseMap(tex, worldPos, normal);
 	color_base.rgb *= 0.5 + 0.5 * K;
 	return color_base;
-	*/
 }
 
 technique DIFFUSEWITHSHADOW

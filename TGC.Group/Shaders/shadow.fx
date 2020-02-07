@@ -45,9 +45,8 @@ void VertShadow(float4 Pos : POSITION,
 {
 
 	texCoord = texCoordIn;
-	// transformacion estandard
-    oPos = mul(Pos, matWorld); // uso el del mesh
-    oPos = mul(oPos, g_mViewLightProj); // pero visto desde la pos. de la luz
+    oPos = mul(Pos, matWorld); 
+    oPos = mul(oPos, g_mViewLightProj); //visto desde la pos de la luz
 
     Depth = oPos.w; //el shader original hacia z/w, ni idea por que
 }
