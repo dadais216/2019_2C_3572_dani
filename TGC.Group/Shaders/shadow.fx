@@ -22,16 +22,7 @@ sampler2D diffuseMap = sampler_state
 
 float time = 0;
 
-float4x4 g_mViewLightProj;
-
-//Output del Vertex Shader
-struct VS_OUTPUT
-{
-    float4 Position : POSITION0;
-    float2 Texcoord : TEXCOORD0;
-    float3 Norm : TEXCOORD1; // Normales
-    float3 Pos : TEXCOORD2; // Posicion real 3d
-};
+float4x4 mViewLightProj;
 
 //-----------------------------------------------------------------------------
 // Vertex Shader que implementa un shadow map
@@ -46,7 +37,7 @@ void VertShadow(float4 Pos : POSITION,
 
 	texCoord = texCoordIn;
     oPos = mul(Pos, matWorld); 
-    oPos = mul(oPos, g_mViewLightProj); //visto desde la pos de la luz
+    oPos = mul(oPos, mViewLightProj); //visto desde la pos de la luz
 
     Depth = oPos.w; //el shader original hacia z/w, ni idea por que
 }

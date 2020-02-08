@@ -43,17 +43,16 @@ namespace TGC.Group.Model
 
         public void render()
         {
-
             var lightView = TGCMatrix.LookAtLH(g.mostro.pos, g.camera.eyePosition, new TGCVector3(0, 0, 1));
-            shader.SetValue("g_mViewLightProj", (lightView * proj).ToMatrix());
+            var viewLightProj = (lightView * proj).ToMatrix();
+            shader.SetValue("mViewLightProj", viewLightProj);
+            g.map.shader.SetValue("mViewLightProj", viewLightProj);
 
-
-            g.map.shader.SetValue("mViewLightProj", (lightView * proj).ToMatrix());
             g.map.shader.SetValue("lightPos", TGCVector3.Vector3ToFloat3Array(g.mostro.pos));
 
-
-            var obj = g.mostro.pos + (g.camera.eyePosition - g.mostro.pos) * .5f; 
-            g.map.shader.SetValue("lightDir", TGCVector3.Vector3ToFloat3Array(g.camera.eyePosition - g.mostro.pos));
+            var lightDir = g.camera.eyePosition - g.mostro.pos;
+            lightDir.Normalize();
+            g.map.shader.SetValue("lightDir", TGCVector3.Vector3ToFloat3Array(lightDir));
 
 
             var screenRT = D3DDevice.Instance.Device.GetRenderTarget(0);
@@ -65,7 +64,7 @@ namespace TGC.Group.Model
             D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.CornflowerBlue, 1.0f, 0);
             D3DDevice.Instance.Device.BeginScene();
 
-            g.terrain.renderForShadow(lightView * proj);
+            g.terrain.renderForShadow(viewLightProj);
             g.chunks.renderForShadow();
 
 

@@ -117,13 +117,13 @@ namespace TGC.Core.Terrain
             effect.End();
         }
 
-        public void renderForShadow(TGCMatrix mat)
+        public void renderForShadow(Microsoft.DirectX.Matrix mat)
         {
             effect = g.shadow.shader;
             technique = "RenderShadow";
 
             effect.SetValue("matWorld", TGCMatrix.Identity);
-            effect.SetValue("g_mViewLightProj", mat);
+            effect.SetValue("mViewLightProj", mat);
 
             effect.SetValue("type", 0);
 

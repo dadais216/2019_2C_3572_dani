@@ -20,7 +20,7 @@ namespace TGC.Group.Model
     public class Mostro
     {
         public TgcMesh mesh;
-        public TGCVector3 pos = new TGCVector3(0, 60000, 0);
+        public TGCVector3 pos = new TGCVector3(0, 60000, 0);//60000
         public TGCVector3 dir;
 
         TGCVector3 lookAt;

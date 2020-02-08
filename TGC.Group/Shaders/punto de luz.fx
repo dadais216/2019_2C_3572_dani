@@ -184,7 +184,7 @@ void vs_diffuseWShadow(
 		iPos, iNormal, iTex,
 		oPos, oTex, oWorldPos, oWorldN);
 
-	oPosFromLight = mul(oWorldPos, mViewLightProj);
+	oPosFromLight = mul(mul(iPos,matWorld), mViewLightProj);
 }
 
 //-----------------------------------------------------------------------------
@@ -211,23 +211,34 @@ float4 ps_diffuseWShadow(
 
 	float3 lightL = normalize(float3(worldPos - lightPos));
 	float cono = dot(lightL, lightDir);
+
 	float4 K = 0.0;
+	/*
+	float2 CT = 0.5 * posFromLight.xy / posFromLight.w + float2(0.5, 0.5);
+	CT.y = 1.0f - CT.y;
+	float val = tex2D(shadowSampler, CT);
+
+	return float4(val,val,val,1);
+	*/
+
+
+
 	if (cono > 0.7)
 	{
 		// coordenada de textura CT
 		float2 CT = 0.5 * posFromLight.xy / posFromLight.w + float2(0.5, 0.5);
 		CT.y = 1.0f - CT.y;
 
-		float I = (tex2D(shadowSampler, CT) + 0.05f < posFromLight.z / posFromLight.w) ? 0.0f : 1.0f;
+		float I = (tex2D(shadowSampler, CT) + 0.001 > posFromLight.w / 50000) ? 1.0f : 0.0f;
 
-		if (cono < 0.8)
-			I *= 1 - (0.8 - cono) * 10;
+		//if (cono < 0.8)
+		//	I *= 1 - (0.8 - cono) * 10;
 
 		K = I;
 	}
 
 	float4 color_base = ps_DiffuseMap(tex, worldPos, normal);
-	color_base.rgb *= 0.5 + 0.5 * K;
+	color_base.b += K;
 	return color_base;
 }
 
