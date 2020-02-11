@@ -53,8 +53,6 @@ namespace TGC.Group.Model
             Camara =new Camera.Camera();
             new Map();
             new Shadow();
-
-            g.map.shader.SetValue("shadowTexture", g.shadow.tex);
         }
 
         /// <summary>

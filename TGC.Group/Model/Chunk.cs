@@ -31,13 +31,15 @@ namespace TGC.Group.Model
                     lastDrawnFrame = g.game.actualFrame;
                     foreach (Meshc meshc in meshes)
                     {
-                        meshc.renderAndDeform();
-                        //se tiene que renderizar primero porque se esta usando el Transform de mesh, que se comparte
-                        //con todas las velas
-
                         if (g.map.isCandle(meshc))
                         {
+                            meshc.render();//velas no se deforman, son incorruptibles.
+                            //De paso me permite preguntar por == en la pos para maybeLightCandle
                             g.map.maybeLightCandleAt(meshc.position());
+                        }
+                        else
+                        {
+                            meshc.renderAndDeform();
                         }
                     }
                     foreach (MultiMeshc meshc in multimeshes)

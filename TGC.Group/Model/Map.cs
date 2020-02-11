@@ -106,18 +106,13 @@ namespace TGC.Group.Model
 
             for(int i = 0; i < lightCount; i++)
             {
-                //lightPos del frame anterior, no deberian ser muy distintas y ahorro tener que recorrer los chunks 2 veces
-                //para conseguir las luces actuales
+                //lightPos del frame anterior
                 shader.SetValue("lightPosition["+i.ToString()+"]", TGCVector3.Vector3ToFloat4Array(lightPosition[i]));
                 shader.SetValue("lightIntensity[" + i.ToString() + "]", 250f + Random.Next(-50, 50));
+
+                //de paso limpio la lightpos para cargar las de este frame
+                lightPosition[i] = TGCVector3.One * float.MaxValue;
             }
-
-            //foreach(var pos in lightPosition)
-            //{
-            //    Console.WriteLine(pos.X.ToString()+"  "+pos.Z.ToString());
-            //}
-            //Console.WriteLine("----");
-
 
             lightIndex = 0;
 
@@ -611,36 +606,31 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
             //if (g.map.lightIndex < Map.lightCount/2)
             //if(g.map.lightIndex >= Map.lightCount)
-            if(true)
-            {
+            //if(true)
                 //se priorizan las mas cercanas
-                //creo que es mas rapido buscar el maximo cada vez que mantener la lista ordenada, no sé
-                int maxIndex = 0;
-                float maxDistSq = float.NegativeInfinity;
-                for (int i = 0; i < Map.lightCount; i++)
+
+                if (lightIndex < Map.lightCount)
                 {
-                    if (g.map.lightPosition[i] == pos)
-                    //si la luz ya esta no volverla a poner
-                    //una luz puede estar mas de una vez porque se reutilizan las de frames previos cuando
-                    //en el triangulo actual hay menos de 9
-                    {
-                        return;
-                    }
-                    var dist = TGCVector3.LengthSq(g.map.lightPosition[i] - g.camera.eyePosition);
-                    if (dist > maxDistSq)
-                    {
-                        maxDistSq = dist;
-                        maxIndex = i;
-                    }
+                    lightPosition[lightIndex++] = pos;
                 }
-                if (TGCVector3.LengthSq(pos - g.camera.eyePosition) < maxDistSq)
-                    g.map.lightPosition[maxIndex] = pos;
-                lightIndex++;
+                else
+                {
+                    int maxIndex = 0;
+                    float maxDistSq = float.NegativeInfinity;
+                    for (int i = 0; i < Map.lightCount; i++)
+                    {
+                        var dist = TGCVector3.LengthSq(g.map.lightPosition[i] - g.camera.eyePosition);
+                        if (dist > maxDistSq)
+                        {
+                            maxDistSq = dist;
+                            maxIndex = i;
+                        }
+                    }
+                    if (TGCVector3.LengthSq(pos - g.camera.eyePosition) < maxDistSq)
+                        lightPosition[maxIndex] = pos;
+                }
+
             }
-            else
-            {
-                lightPosition[lightIndex++] = pos;
-            }
+            
         }
     }
-}

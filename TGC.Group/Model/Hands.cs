@@ -103,16 +103,6 @@ namespace TGC.Group.Model
                 return false;
             state++;
             //g.mostro.mode = 1;
-
-
-            for (int i = 0; i < Map.lightCount; i++)
-            {
-                if (meshc.position() == g.map.lightPosition[i])
-                {
-                    g.map.lightPosition[i] = TGCVector3.One * float.MaxValue;
-                    break;
-                }
-            }
             return true;
         }
 

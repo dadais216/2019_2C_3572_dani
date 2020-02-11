@@ -37,9 +37,11 @@ namespace TGC.Group.Model
             proj = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(80), aspectRatio, nearPlane, farPlane);
 
 
-            var nearPlane2 = 50;
-            var farPlane2 = 5000000;
-            D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(45.0f), aspectRatio, nearPlane2, farPlane2).ToMatrix();
+            //var nearPlane2 = 50;
+            //var farPlane2 = 5000000;
+            //D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(45.0f), aspectRatio, nearPlane2, farPlane2).ToMatrix();
+            //ni idea de que hace esta linea pero me hizo perder una hora cuando cambie el orden de inicializacion
+            //y cambio la matriz esta, que solo afectaba a las velas en mano y la barra de estamina
         }
 
 
