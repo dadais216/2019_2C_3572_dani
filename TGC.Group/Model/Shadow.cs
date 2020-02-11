@@ -29,6 +29,8 @@ namespace TGC.Group.Model
             tex = new Texture(D3DDevice.Instance.Device, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, Usage.RenderTarget, Format.R32F, Pool.Default);
             depths = D3DDevice.Instance.Device.CreateDepthStencilSurface(SHADOWMAP_SIZE, SHADOWMAP_SIZE, DepthFormat.D24S8, MultiSampleType.None, 0, true);
 
+            g.map.shader.SetValue("shadowTexture", tex);
+
             var aspectRatio = D3DDevice.Instance.AspectRatio;
             var nearPlane = 50;
             var farPlane = 5000000;
@@ -84,7 +86,7 @@ namespace TGC.Group.Model
             //podria ser deep lore
             var mostroPos = g.mostro.pos;
             g.mostro.pos = g.camera.eyePosition- 500f*TGCVector3.Up;
-            g.mostro.renderForShadow();
+            g.mostro.render();
             g.mostro.pos = mostroPos;
 
             D3DDevice.Instance.Device.EndScene();
@@ -95,37 +97,8 @@ namespace TGC.Group.Model
 
             D3DDevice.Instance.Device.DepthStencilSurface = screenDS;
             D3DDevice.Instance.Device.SetRenderTarget(0, screenRT);
-        }
 
-
-        public void renderMesh(Meshc mesh)
-        {
-            renderMesh(mesh.mesh, mesh.originalMesh, mesh.deformation,mesh.type);
-        }
-        public void renderMesh(MultiMeshc mmesh)
-        {
-            foreach(var mesh in mmesh.meshes)
-            {
-                renderMesh(mesh, mmesh.originalMesh, mmesh.deformation,mmesh.type);
-            }
-        }
-
-        public void renderMesh(TgcMesh mesh,TGCMatrix originalMesh, TGCMatrix deformation, int type)
-        {
-            var effectPrev = mesh.Effect;
-            var tecniquePrev = mesh.Technique;
-
-            mesh.Effect = shader;
-            mesh.Technique = "RenderShadow";
-
-            shader.SetValue("type", type);
-
-            mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;
-            mesh.Render();
-
-
-            mesh.Effect = effectPrev;
-            mesh.Technique = tecniquePrev;
+            g.map.shader.SetValue("inView", g.mostro.timeInView > 0);
         }
 
     }

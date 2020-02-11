@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.DirectX.Direct3D;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
@@ -14,6 +15,9 @@ namespace TGC.Group
     //idealmente deberia hacer mi propia mesh para no arrastrar un monton de cosas que no uso
     public class Meshc
     {
+        static public Effect actualShader;
+        static public string actualTechnique;
+
         public TgcMesh mesh;
         public Parallelepiped paralleliped;
 
@@ -84,7 +88,9 @@ namespace TGC.Group
         {
             if (GameModel.debugMeshes)
             {
-                g.map.shader.SetValue("type", type);
+                mesh.Effect = actualShader;
+                actualShader.SetValue("type", type);
+                mesh.Technique = actualTechnique;
                 mesh.Transform = multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
                 mesh.Render();
             }
@@ -137,9 +143,11 @@ namespace TGC.Group
         {
             if (GameModel.debugMeshes)
             {
-                g.map.shader.SetValue("type", type);
+                Meshc.actualShader.SetValue("type", type);
                 foreach (var mesh in meshes)
                 {
+                    mesh.Effect = Meshc.actualShader;
+                    mesh.Technique = Meshc.actualTechnique;
                     mesh.Transform = Meshc.multMatrix(g.map.deforming, deformation) + originalMesh;//mesh se transforma siempre porque se comparte
 
                     mesh.Render();

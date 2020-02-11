@@ -52,6 +52,9 @@ namespace TGC.Group.Model
             g.cameraSprites.initMenu();
             Camara =new Camera.Camera();
             new Map();
+            new Shadow();
+
+            g.map.shader.SetValue("shadowTexture", g.shadow.tex);
         }
 
         /// <summary>
@@ -155,7 +158,6 @@ namespace TGC.Group.Model
             PostUpdate();
         }
 
-        Shadow shadow = new Shadow();
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
@@ -165,14 +167,24 @@ namespace TGC.Group.Model
         public override void Render()
         {
             ClearTextures();
+            if (g.mostro.mode == 3)
+            {
+                Meshc.actualShader = g.shadow.shader;
+                Meshc.actualTechnique = "RenderShadow";
 
-            shadow.render();
+                g.shadow.render();
+                actualFrame++;
+
+                Meshc.actualShader = g.map.shader;
+                Meshc.actualTechnique = "DIFFUSEWITHSHADOW";
+            }
+            else
+            {
+                Meshc.actualShader = g.map.shader;
+                Meshc.actualTechnique = "DIFFUSE_MAP";
+            }
 #if true
             BeginRenderScene();
-            g.map.shader.SetValue("shadowTexture",g.shadow.tex);
-
-            g.terrain.technique = "DIFFUSEWITHSHADOW";
-
             
             if (gameState==0)
             {

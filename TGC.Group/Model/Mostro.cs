@@ -36,17 +36,17 @@ namespace TGC.Group.Model
         {
             mesh = Map.GetMeshFromScene("Esqueleto2-TgcScene.xml");
 
-            mesh.Effect = g.map.shader;
-            mesh.Technique = "DIFFUSE_MAP";
-
             musica = new Tgc3dSound(g.game.MediaDir + "tambo_tambo-la_cumbita.wav", pos, g.game.DirectSound.DsDevice);
             musica.MinDistance = 60f;
 
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
 
-            //musica.play(true);
+            musica.play(true);
 
             g.mostro = this;
+
+
+            mode=3;
         }
 
         const float colissionLen = 200f;
@@ -55,7 +55,10 @@ namespace TGC.Group.Model
         public void render()
         {
             updateMesh();
+
+            mesh.Effect = Meshc.actualShader;
             mesh.Effect.SetValue("type", 2);
+            mesh.Technique = Meshc.actualTechnique;
 
             mesh.Render();
 
@@ -74,16 +77,6 @@ namespace TGC.Group.Model
 
         }
 
-        public void renderForShadow()
-        {
-            updateMesh();
-            mesh.Effect = g.shadow.shader;
-            mesh.Technique = "RenderShadow";
-            render();
-            mesh.Effect = g.map.shader;
-            mesh.Technique = "DIFFUSE_MAP";
-        }
-
         bool speedGoingUp = true;
         float acceleration = 200f;
 
@@ -96,9 +89,14 @@ namespace TGC.Group.Model
         public TGCVector3 colDir;
         public TGCVector3 cPos;
 
+
+        public TGCVector2 lightObj;
+        public TGCVector2 lightObjObj;
+        public float flyHeight;
+        public float timeInView=0;
+
         public void update()
         {
-            mode = 3;
             dir = TGCVector3.Empty;
             if (mode == 0)
             {
@@ -150,7 +148,16 @@ namespace TGC.Group.Model
                 var lightMove = lightObjObj - lightObj;
                 if (lightMove.Length() < 1000f)
                 {
-                    newLightObjObj();
+                    lightObjObj = new TGCVector2();
+                    var rnd = g.map.Random;
+
+
+                    lightObjObj.X = (float)rnd.NextDouble();
+                    lightObjObj.Y = (float)rnd.NextDouble();
+                    lightObjObj.Normalize();
+                    lightObjObj *= (float)rnd.NextDouble() * 150000f;
+                    lightObjObj += new TGCVector2(g.camera.eyePosition.X,g.camera.eyePosition.Z);
+
                     lightMove = lightObjObj - lightObj;
                 }
                 lightMove.Normalize();
@@ -158,10 +165,34 @@ namespace TGC.Group.Model
                 lightObj += lightMove*g.game.ElapsedTime;
 
                 flyHeight = g.camera.terrainHeight(pos) + 2500f;
-                dir.X = (lightObj.X-pos.X);
+                dir.X = lightObj.X-pos.X;
                 dir.Y =  flyHeight - pos.Y;
-                dir.Z = (lightObj.Y-pos.Z);
+                dir.Z = lightObj.Y-pos.Z;
+
+
+                var sightLine = new TGCVector2(dir.X,dir.Z);
+                var playerLine = new TGCVector2(g.camera.eyePosition.X - pos.X, g.camera.eyePosition.Z - pos.Z);
+                sightLine.Normalize();playerLine.Normalize();
+                if (TGCVector2.Dot(sightLine, playerLine) >= .96)
+                {
+                    var sight = g.camera.Position - pos;
+                    //detectar colisiones
+                    timeInView += g.game.ElapsedTime;
+                    if (timeInView > 1)
+                    {
+                        mode=0;
+                    }
+                }
+                else
+                {
+                    timeInView = 0;
+                }
+
+
             }
+
+            Console.WriteLine(mode);
+
             dir.Normalize();
             dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .0f : 1f)
                                * (g.map.candlesPlaced == g.cameraSprites.candlesRequired ? .2f : 1f)
@@ -256,21 +287,6 @@ namespace TGC.Group.Model
 
             musica.Position = pos;
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
-        }
-
-
-        public TGCVector2 lightObj;
-        public TGCVector2 lightObjObj;
-        public float flyHeight;
-        private void newLightObjObj()
-        {
-            lightObjObj = new TGCVector2();
-            var rnd = g.map.Random;
-
-            lightObjObj.X = (float)rnd.NextDouble();
-            lightObjObj.Y = (float)rnd.NextDouble();
-            lightObjObj.Normalize();
-            lightObjObj *= (float)rnd.NextDouble() * 200000f;
         }
 
         private void updateMesh()

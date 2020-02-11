@@ -164,6 +164,7 @@ sampler_state
 	AddressU = Clamp;
 	AddressV = Clamp;
 };
+bool inView;
 
 //-----------------------------------------------------------------------------
 // Vertex Shader para dibujar la escena pp dicha con sombras
@@ -221,8 +222,6 @@ float4 ps_diffuseWShadow(
 	return float4(val,val,val,1);
 	*/
 
-	
- 
 	float limit = 0.7;
 	if (cono > limit)
 	{
@@ -238,7 +237,10 @@ float4 ps_diffuseWShadow(
 	}
 
 	float4 color_base = ps_DiffuseMap(tex, worldPos, normal);
-	color_base.b += K;
+	if(inView)
+		color_base.r += K;
+	else
+		color_base.b += K;
 	return color_base;
 }
 

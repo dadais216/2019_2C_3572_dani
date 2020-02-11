@@ -5,6 +5,7 @@ using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Shaders;
 using TGC.Core.Textures;
+using TGC.Group;
 using TGC.Group.Model;
 
 namespace TGC.Core.Terrain
@@ -96,8 +97,8 @@ namespace TGC.Core.Terrain
         /// </summary>
         public void Render()
         {
-            if (!Enabled)
-                return;
+            effect = g.map.shader;
+            technique = Meshc.actualTechnique;
 
             effect.SetValue("texDiffuseMap", terrainTexture);
             effect.SetValue("type", 0);
@@ -137,9 +138,6 @@ namespace TGC.Core.Terrain
             D3DDevice.Instance.Device.DrawPrimitives(PrimitiveType.TriangleList, 0, totalVertices / 3);
             effect.EndPass();
             effect.End();
-
-            effect = g.map.shader;
-            technique = "DIFFUSE_MAP";
         }
 
         /// <summary>

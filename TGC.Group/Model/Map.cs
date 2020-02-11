@@ -54,11 +54,13 @@ namespace TGC.Group.Model
         public const int lightCount = 9;//cambiar en shader tambien
         public TGCVector3[] lightPosition = new TGCVector3[lightCount];
         public int lightIndex;
+
         public Map()
         {
             g.map = this;
 
             shader = TGCShaders.Instance.LoadEffect(TGCShaders.Instance.CommonShadersPath + "punto de luz.fx");
+            Meshc.actualShader = shader;
             
             shader.SetValue("lightAttenuation", .3f);
             shader.SetValue("lightColor", ColorValue.FromColor(Color.White));
@@ -144,8 +146,8 @@ namespace TGC.Group.Model
 
             g.terrain.Render();
 
-            deforming += g.game.ElapsedTime*1.2f;
-            Console.WriteLine(deforming);
+            deforming += g.game.ElapsedTime*0.1f;
+            //Console.WriteLine(deforming);
         }
 
         static public TgcMesh GetMeshFromScene(string scenePath)
@@ -176,8 +178,6 @@ namespace TGC.Group.Model
         private void addTrees()
         {
             var pino = GetMeshFromScene("Pino-TgcScene.xml");
-            pino.Effect = shader;
-            pino.Technique = "DIFFUSEWITHSHADOW";
             pino.AlphaBlendEnable = false;//no se porque lo tenia seteado en true 
 
             for (int j = 1; j < Chunks.chunksPerDim - 1; j++)
@@ -394,11 +394,6 @@ namespace TGC.Group.Model
             */
 
             mm.type = 0;
-            foreach (var mesh in mm.meshes)
-            {
-                mesh.Effect = shader;
-                mesh.Technique = "DIFFUSEWITHSHADOW";
-            }
         }
 
         private void initSky()
@@ -550,7 +545,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
             {
                 candlesPlaced = Math.Min(g.cameraSprites.candlesRequired, candlesPlaced + g.hands.state);
                 g.hands.state = 0;
-                g.mostro.mode = 0;
+                g.mostro.mode=3;
             }
 
 

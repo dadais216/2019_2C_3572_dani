@@ -39,8 +39,6 @@ namespace TGC.Group.Model
                         {
                             g.map.maybeLightCandleAt(meshc.position());
                         }
-
-                        meshc.deform();
                     }
                     foreach (MultiMeshc meshc in multimeshes)
                     {
@@ -50,14 +48,18 @@ namespace TGC.Group.Model
             }
             public void renderForShadow()
             {
-                foreach (Meshc meshc in meshes)
+                if (lastDrawnFrame != g.game.actualFrame)
                 {
-                    g.shadow.renderMesh(meshc);
-                }
-                foreach (MultiMeshc meshc in multimeshes)
-                {
-                    
-                    g.shadow.renderMesh(meshc);
+                    lastDrawnFrame = g.game.actualFrame;
+                    foreach (Meshc meshc in meshes)
+                    {
+                        meshc.render();
+                    }
+                    foreach (MultiMeshc meshc in multimeshes)
+                    {
+
+                        meshc.render();
+                    }
                 }
             }
             public void renderDebug()
@@ -133,11 +135,17 @@ namespace TGC.Group.Model
             public int i;
             public int j;
         }
-        public int2 toIndexSpace(TGCVector3 pos)
+        public int2 toIndexSpace(TGCVector3 pos,int margin)
         {
             var ret = new int2();
             ret.i = (int)FastMath.Floor(pos.X / chunkLen) + chunksPerDim / 2;
             ret.j = (int)FastMath.Floor(pos.Z / chunkLen) + chunksPerDim / 2;
+
+            if (ret.i < margin) ret.i = margin;
+            if (ret.i > chunksPerDim - margin -1) ret.i = chunksPerDim - margin -1;
+            if (ret.j < margin) ret.j = margin;
+            if (ret.j > chunksPerDim - margin -1) ret.j = chunksPerDim - margin-1;
+
             return ret;
         }
         public void addVertexFall(Meshc meshc)
@@ -345,7 +353,6 @@ namespace TGC.Group.Model
 
         public void renderForShadow()
         {
-            int chunksRendered = 0;
 
             var lightObj = new TGCVector3(g.mostro.lightObjObj.X,g.mostro.flyHeight,g.mostro.lightObjObj.Y);
             var lightPos = g.mostro.pos;
@@ -382,11 +389,21 @@ namespace TGC.Group.Model
                     if (c != null)
                     {
                         c.renderForShadow();
-                        chunksRendered++;
                     }
                 }
             }
-            Console.WriteLine(chunksRendered);
+
+            //traigo los que estan cerca de la camara tambien
+            var index = toIndexSpace(g.camera.eyePosition,2);
+
+            for (int i=-2;i<=2;i++)
+                for(int j = -2; j <= 2; j++)
+                {
+                    chunks[index.i, index.j].renderForShadow();
+                }
+
+
+            //Console.WriteLine(chunksRendered);
         }
 
     }

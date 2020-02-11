@@ -102,7 +102,7 @@ namespace TGC.Group.Model
             if (state == 2)
                 return false;
             state++;
-            g.mostro.mode = 1;
+            //g.mostro.mode = 1;
 
             meshc.mesh.Transform = GameModel.matriz * meshc.originalMesh;
             //hago esto para estar seguro, porque mesh se comparte, igual probe de no usarlo y por algun motivo parece funcionar
