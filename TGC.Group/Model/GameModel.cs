@@ -64,8 +64,6 @@ namespace TGC.Group.Model
         /// </summary>
         /// 
 
-        public static TGCMatrix matriz;
-
         public static bool debugColission = false;
         public static bool debugChunks = false;
         public static bool debugMeshes = true;
@@ -193,7 +191,6 @@ namespace TGC.Group.Model
 
             g.map.Render();
             g.mostro.render();
-
             if (gameState == 1)
             {
                 g.cameraSprites.renderStaminaBar();
@@ -201,7 +198,7 @@ namespace TGC.Group.Model
             }
             RenderAxis();
             RenderFPS();
-            
+
             EndRenderScene();
 #endif
         }

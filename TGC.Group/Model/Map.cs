@@ -77,8 +77,6 @@ namespace TGC.Group.Model
             //terrain.loadTexture(game.MediaDir + "caja.jpg");
             terrain.loadTexture(g.game.MediaDir + "TexturesCom_RoadsDirt0081_1_seamless_S.jpg");
 
-            GameModel.matriz = TGCMatrix.Identity;
-
             for (int i = 0; i < lightCount; i++)
             {
                 lightPosition[i] = TGCVector3.One*float.MaxValue;
@@ -434,6 +432,8 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
         public void addCandles()
         {
             candleMesh = GetMeshFromScene("Vela-TgcScene.xml");
+            //candleMesh.Effect = shader;
+            //candleMesh.Technique = "DIFFUSE_MAP";
             for (int i = 0; i < g.cameraSprites.candlesInMap; i++)
             {
                 int j, k;
@@ -472,7 +472,7 @@ D3DDevice.Instance.ZNearPlaneDistance, D3DDevice.Instance.ZFarPlaneDistance * 10
 
                     //no uso  transformColission porque hace caer 4 vertices, lo que tiene potencial de registrar la 
                     //vela en mas de un chunk
-                    candleMeshc.paralleliped.transform(GameModel.matriz * candleMeshc.originalMesh);
+                    candleMeshc.paralleliped.transform(candleMeshc.originalMesh);
                     Chunk c = g.chunks.fromCoordinates(candleMeshc.paralleliped.transformedVertex[0]);
                     if (c != null)
                     {

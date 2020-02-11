@@ -104,8 +104,6 @@ namespace TGC.Group.Model
             state++;
             //g.mostro.mode = 1;
 
-            meshc.mesh.Transform = GameModel.matriz * meshc.originalMesh;
-            //hago esto para estar seguro, porque mesh se comparte, igual probe de no usarlo y por algun motivo parece funcionar
 
             for (int i = 0; i < Map.lightCount; i++)
             {

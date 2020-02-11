@@ -45,8 +45,9 @@ namespace TGC.Group.Model
 
             g.mostro = this;
 
-
-            mode=3;
+            lookAt = new TGCVector3(0.5f, 0, 0.5f);
+            lookin = new TGCVector3(0, 0, -1);
+            mode =-1;
         }
 
         const float colissionLen = 200f;
@@ -98,7 +99,13 @@ namespace TGC.Group.Model
         public void update()
         {
             dir = TGCVector3.Empty;
-            if (mode == 0)
+            if (mode == -1)//cambiar por un switch
+            {
+                if (g.map.candlesPlaced > 0)
+                    mode = 3;
+                return;
+            }
+            else if (mode == 0)
             {
                 //va hacia el jugador, la aceleracion salta entre + y - cada tanto
                 speedToPlayer();
@@ -207,7 +214,6 @@ namespace TGC.Group.Model
 
 
             cPos = pos + TGCVector3.Up * height;
-
 
 
             var chunk = g.chunks.fromCoordinates(pos);
