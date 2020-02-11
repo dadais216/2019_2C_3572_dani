@@ -57,6 +57,7 @@ namespace TGC.Group.Model
         {
             if (g.input.keyDown(Microsoft.DirectX.DirectInput.Key.W))
             {
+                pixels = pixelsBuf;
                 g.game.gameState = 1;
 
                 g.map.precomputeCandlePolygonVertex();
@@ -67,7 +68,7 @@ namespace TGC.Group.Model
             {
                 selectorState= selectorState < 3?
                     (selectorState==2?2:selectorState+1):
-                    (selectorState == 9 ? 9 : selectorState + 1);
+                    (selectorState == 10 ? 10 : selectorState + 1);
             }
             if (g.input.keyPressed(Microsoft.DirectX.DirectInput.Key.UpArrow))
             {
@@ -84,7 +85,7 @@ namespace TGC.Group.Model
                     case 4: squeletonHalfSpeed = !squeletonHalfSpeed;break;
                     case 7: inmunity = !inmunity; break;
                     case 8: debugVisualizations = !debugVisualizations;break;
-                    case 9: selectorState = 2;break;
+                    case 10: selectorState = 2;break;
                 }
                 actualStateDraw = selectorState;
             }
@@ -92,11 +93,14 @@ namespace TGC.Group.Model
             {
                 if (selectorState == 5)
                 {
-                    candlesRequired = Math.Max(1, candlesRequired + 1);
-                    candlesInMap = Math.Max(candlesRequired, candlesInMap);
+                    candlesRequired += candlesRequired + 1;
                 }
                 if (selectorState == 6)
-                    candlesInMap = Math.Max(1, candlesInMap + 50);
+                    candlesInMap += 50;
+                if (selectorState == 9)
+                {
+                    pixelsBuf = pixelsBuf==0? 300:Math.Max(0, pixelsBuf - 50);
+                }
             }
             if (g.input.keyPressed(Microsoft.DirectX.DirectInput.Key.LeftArrow))
             {
@@ -104,6 +108,8 @@ namespace TGC.Group.Model
                     candlesRequired=Math.Max(1,candlesRequired-1);
                 if (selectorState == 6)
                     candlesInMap= Math.Max(candlesRequired, candlesInMap - 50);
+                if (selectorState == 9)
+                    pixelsBuf = pixelsBuf==300?0:Math.Min(300, pixelsBuf + 50);
             }
         }
 
@@ -119,7 +125,7 @@ namespace TGC.Group.Model
 
         TgcText2D candlesRequiredText = new TgcText2D();
         TgcText2D candlesInMapText = new TgcText2D();
-
+        TgcText2D indieText = new TgcText2D();
 
         int selectorState = 0;
         int actualStateDraw = -1;
@@ -150,7 +156,7 @@ namespace TGC.Group.Model
 
             text3.Align = TgcText2D.TextAlign.LEFT;
             text3.Color = Color.White;
-            text3.Text = "objetivo\ncontroles\ntrucos";
+            text3.Text = "objetivo\ncontroles\n";
             text3.Size = new Size(1000, 1000);
             //text3.Position = new Point(40, 450);
             text3.Position = new Point(1*x, 18*y);
@@ -166,7 +172,7 @@ namespace TGC.Group.Model
 
             text5.Align = TgcText2D.TextAlign.LEFT;
             text5.Color = Color.White;
-            text5.Text = "wasd  - moverse\nshift  - correr\nh    - ???";
+            text5.Text = "wasd espacio  - moverse\nshift  - correr\n";
             text5.Size = new Size(1000, 1000);
             //text5.Position = new Point(340, 450);
             text5.Position = new Point(10*x, 18*y);
@@ -174,7 +180,9 @@ namespace TGC.Group.Model
 
             text6.Align = TgcText2D.TextAlign.LEFT;
             text6.Color = Color.White;
-            text6.Text = "estamina infinita\nesqueleto mitad velocidad\ncantidad de velas requeridas:\nvelas en mapa:\ninmunidad\nvisualizacion debug (z colisiones,x meshes,c chunks)\natras";
+            text6.Text = "estamina infinita\nesqueleto mitad velocidad\n"
+                +"cantidad de velas requeridas:\nvelas en mapa:\ninmunidad\n" +
+                "visualizacion debug (z colisiones,x meshes,c chunks)\nindie: \natras";
             text6.Size = new Size(1000, 1000);
             //text6.Position = new Point(250, 450);
             text6.Position = new Point(8*x, 18*y);
@@ -206,7 +214,11 @@ namespace TGC.Group.Model
             candlesInMapText.Position = new Point(14*x, floor(21.4*y));
             candlesInMapText.changeFont(commonFont);
 
-
+            indieText.Align = TgcText2D.TextAlign.LEFT;
+            indieText.Color = Color.White;
+            indieText.Size = new Size(1000, 1000);
+            indieText.Position = new Point(12 * x, floor(24.8 * y));
+            indieText.changeFont(commonFont);
         }
 
         public bool infiniteStamina = false;
@@ -215,6 +227,8 @@ namespace TGC.Group.Model
         public int candlesInMap = 90;
         public bool debugVisualizations = true;
         public bool inmunity = true;
+        int pixelsBuf = 0;
+        public int pixels = 0;
 
         Func<double, int> floor = d =>
         {
@@ -272,6 +286,8 @@ namespace TGC.Group.Model
                 candlesRequiredText.render();
                 candlesInMapText.Text = candlesInMap.ToString();
                 candlesInMapText.render();
+                indieText.Text = pixelsBuf == 0 ? "no" : pixelsBuf.ToString();
+                indieText.render();
             }
 
 

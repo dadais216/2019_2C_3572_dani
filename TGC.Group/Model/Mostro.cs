@@ -63,7 +63,7 @@ namespace TGC.Group.Model
 
             mesh.Render();
 
-            if (g.cameraSprites.debugVisualizations)
+            if (GameModel.debugSqueleton)
             {
                 TgcLine.fromExtremes(cPos, cPos + colDir, Color.Red).Render();
                 TGCVector3 cross = TGCVector3.Cross(colDir, TGCVector3.Up);

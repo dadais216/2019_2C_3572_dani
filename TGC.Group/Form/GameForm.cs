@@ -51,7 +51,7 @@ namespace TGC.Group.Form
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().ToString());
             // FullScreen, van en este orden para que queda oculta la barra de Windows.
             WindowState = FormWindowState.Normal;
-#if false
+#if true
             FormBorderStyle = FormBorderStyle.None;
             WindowState = FormWindowState.Maximized;
 #endif

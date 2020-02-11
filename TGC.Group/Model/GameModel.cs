@@ -45,6 +45,10 @@ namespace TGC.Group.Model
         ///     procesamiento que podemos pre calcular para nuestro juego.
         ///     Borrar el codigo ejemplo no utilizado.
         /// </summary>
+        private Texture renderTarget;
+        private Surface depthStencil;//no sé si lo necesito
+        private Effect postProcess;
+        private VertexBuffer vertexBuffer;
         public override void Init()
         {
             g.input = Input;
@@ -53,6 +57,40 @@ namespace TGC.Group.Model
             Camara =new Camera.Camera();
             new Map();
             new Shadow();
+
+
+            //copy paste de distorciones.cs, ni idea
+            Device d3dDevice = D3DDevice.Instance.Device;
+            depthStencil = d3dDevice.CreateDepthStencilSurface(d3dDevice.PresentationParameters.BackBufferWidth, 
+                d3dDevice.PresentationParameters.BackBufferHeight, DepthFormat.D24S8, MultiSampleType.None, 0, true);
+
+            renderTarget = new Texture(d3dDevice, 
+                d3dDevice.PresentationParameters.BackBufferWidth, 
+                d3dDevice.PresentationParameters.BackBufferHeight, 
+                1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
+
+            postProcess = Effect.FromFile(d3dDevice, 
+                ShadersDir + "postProcess.fx", null, null, 
+                ShaderFlags.PreferFlowControl, null,out string compilationErrors);
+            if (postProcess == null)
+            {
+                throw new Exception("Error al cargar shader. Errores: " + compilationErrors);
+            }
+
+            postProcess.SetValue("renderTarget", renderTarget);
+            postProcess.SetValue("screen_dx", d3dDevice.PresentationParameters.BackBufferWidth);
+            postProcess.SetValue("screen_dy", d3dDevice.PresentationParameters.BackBufferHeight);
+
+            CustomVertex.PositionTextured[] vertices = new CustomVertex.PositionTextured[]
+            {
+                new CustomVertex.PositionTextured( -1, 1, 1, 0,0),
+                new CustomVertex.PositionTextured(1,  1, 1, 1,0),
+                new CustomVertex.PositionTextured(-1, -1, 1, 0,1),
+                new CustomVertex.PositionTextured(1,-1, 1, 1,1)
+            };
+            vertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionTextured), 4, 
+                d3dDevice, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionTextured.Format, Pool.Default);
+            vertexBuffer.SetData(vertices, 0, LockFlags.None);
         }
 
         /// <summary>
@@ -65,6 +103,7 @@ namespace TGC.Group.Model
         public static bool debugColission = false;
         public static bool debugChunks = false;
         public static bool debugMeshes = true;
+        public static bool debugSqueleton = false;
 
         public int gameState = 0;//0 menu inicio, 1 juego, 2 muerte
 
@@ -144,6 +183,9 @@ namespace TGC.Group.Model
                     else if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.C))
                     {
                         debugChunks = !debugChunks;
+                    } else if (Input.keyPressed(Microsoft.DirectX.DirectInput.Key.V))
+                    {
+                        debugSqueleton = !debugSqueleton;
                     }
                 }
                 g.mostro.update();
@@ -180,13 +222,24 @@ namespace TGC.Group.Model
                 Meshc.actualTechnique = "DIFFUSE_MAP";
             }
 #if true
-            BeginRenderScene();
-            
-            if (gameState==0)
+
+
+            Device d3dDevice = D3DDevice.Instance.Device;
+            Surface pOldRT=null; Surface pOldDS=null;
+            if (g.cameraSprites.pixels != 0)
+            {
+                pOldRT = d3dDevice.GetRenderTarget(0);
+                d3dDevice.SetRenderTarget(0, renderTarget.GetSurfaceLevel(0));
+                pOldDS = d3dDevice.DepthStencilSurface;
+                d3dDevice.DepthStencilSurface = depthStencil;
+            }
+            d3dDevice.BeginScene();
+            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+            if (gameState == 0)
             {
                 g.cameraSprites.renderMenu();
             }
-
             g.map.Render();
             g.mostro.render();
             if (gameState == 1)
@@ -197,7 +250,29 @@ namespace TGC.Group.Model
             RenderAxis();
             RenderFPS();
 
-            EndRenderScene();
+            if (g.cameraSprites.pixels != 0)
+            {
+                d3dDevice.EndScene();
+
+                d3dDevice.DepthStencilSurface = pOldDS;
+                d3dDevice.SetRenderTarget(0, pOldRT);
+
+                d3dDevice.BeginScene();
+
+                d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+                d3dDevice.SetStreamSource(0, vertexBuffer, 0);
+                postProcess.SetValue("renderTarget", renderTarget);
+                postProcess.SetValue("pixels", g.cameraSprites.pixels);
+
+                d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                postProcess.Begin(FX.None);
+                postProcess.BeginPass(0);
+                d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                postProcess.EndPass();
+                postProcess.End();
+            }
+            d3dDevice.EndScene();
+            d3dDevice.Present();
 #endif
         }
 
