@@ -43,14 +43,25 @@ namespace TGC.Group.Model
 
         public void render()
         {
-            var lightView = TGCMatrix.LookAtLH(g.mostro.pos, g.camera.eyePosition, new TGCVector3(0, 0, 1));
+            //pense en poner la luz adentro de la calabera y hacer que se vean los bordes,
+            //se veia medio feo pero por ahi se puede hacer mejor
+            //var lightPos =  g.mostro.cPos 
+            //                + TGCVector3.Up * 400f 
+            //                + g.mostro.colDir * 0.21f 
+            //                + TGCVector3.Cross(g.mostro.colDir, TGCVector3.Up) * .1f;
+
+            var lightPos = g.mostro.cPos + g.mostro.height * TGCVector3.Up;
+
+            var lightObj = new TGCVector3(g.mostro.lightObj.X, g.mostro.flyHeight, g.mostro.lightObj.Y);
+
+            var lightView = TGCMatrix.LookAtLH(lightPos, lightObj, new TGCVector3(0, 0, 1));
             var viewLightProj = (lightView * proj).ToMatrix();
             shader.SetValue("mViewLightProj", viewLightProj);
             g.map.shader.SetValue("mViewLightProj", viewLightProj);
 
-            g.map.shader.SetValue("lightPos", TGCVector3.Vector3ToFloat3Array(g.mostro.pos));
+            g.map.shader.SetValue("lightPos", TGCVector3.Vector3ToFloat3Array(lightPos));
 
-            var lightDir = g.camera.eyePosition - g.mostro.pos;
+            var lightDir = lightObj - lightPos;
             lightDir.Normalize();
             g.map.shader.SetValue("lightDir", TGCVector3.Vector3ToFloat3Array(lightDir));
 
@@ -64,9 +75,17 @@ namespace TGC.Group.Model
             D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.CornflowerBlue, 1.0f, 0);
             D3DDevice.Instance.Device.BeginScene();
 
+
+            //g.mostro.renderForShadow();
             g.terrain.renderForShadow(viewLightProj);
             g.chunks.renderForShadow();
 
+            //uso el mesh del esqueleto para el jugador porque no tengo otro
+            //podria ser deep lore
+            var mostroPos = g.mostro.pos;
+            g.mostro.pos = g.camera.eyePosition- 500f*TGCVector3.Up;
+            g.mostro.renderForShadow();
+            g.mostro.pos = mostroPos;
 
             D3DDevice.Instance.Device.EndScene();
             //D3DDevice.Instance.Device.Present();

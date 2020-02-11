@@ -221,20 +221,20 @@ float4 ps_diffuseWShadow(
 	return float4(val,val,val,1);
 	*/
 
-
-
-	if (cono > 0.7)
+	
+ 
+	float limit = 0.7;
+	if (cono > limit)
 	{
 		// coordenada de textura CT
 		float2 CT = 0.5 * posFromLight.xy / posFromLight.w + float2(0.5, 0.5);
 		CT.y = 1.0f - CT.y;
 
-		float I = (tex2D(shadowSampler, CT) + 0.001 > posFromLight.w / 50000) ? 1.0f : 0.0f;
+		float I = (tex2D(shadowSampler, CT) + 0.010 > posFromLight.w / 50000) ? 1.0f : 0.0f;
 
-		//if (cono < 0.8)
-		//	I *= 1 - (0.8 - cono) * 10;
-
-		K = I;
+		// 1-limit    ____ 1 
+		// cono-limit ____ x
+		K = I * (cono-limit)/(1-limit);
 	}
 
 	float4 color_base = ps_DiffuseMap(tex, worldPos, normal);

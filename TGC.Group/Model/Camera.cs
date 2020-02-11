@@ -132,7 +132,7 @@ namespace TGC.Group.Model.Camera
         public override void UpdateCamera(float elapsedTime)
         {
 
-            if (g.game.gameState!= 1)
+            if (g.game.gameState != 1)
                 goto setCamera;
             //Lock camera
             if (g.input.keyPressed(Key.L))
@@ -159,7 +159,7 @@ namespace TGC.Group.Model.Camera
             if (g.input.keyDown(Key.D))
                 inputMove += Map.West;
 
-            
+
 
             TGCVector3 moveXZ = TGCVector3.TransformNormal(inputMove, cameraRotation);
             moveXZ.Y = 0;
@@ -168,11 +168,11 @@ namespace TGC.Group.Model.Camera
 
 
             TGCVector3 moving = moveXZ * MovementSpeed * elapsedTime;
-            if (g.input.keyDown(Key.LeftShift) && onGround && stamina>500f)
+            if (g.input.keyDown(Key.LeftShift) && onGround && stamina > 500f)
                 moving *= 3f;
 
-            stamina -= moving.Length()/40f;
-            stamina = Math.Min(stamina+ (MovementSpeed * elapsedTime)/(g.cameraSprites.infiniteStamina? 1f:35f), 5000f);
+            stamina -= moving.Length() / 40f;
+            stamina = Math.Min(stamina + (MovementSpeed * elapsedTime) / (g.cameraSprites.infiniteStamina ? 1f : 35f), 5000f);
 
 
 
@@ -180,14 +180,14 @@ namespace TGC.Group.Model.Camera
             float t;
             TGCVector3 q;
 
-            bool onBox=false;
+            bool onBox = false;
             //salto
             if (onGround)
             {
-                if (g.input.keyDown(Key.Space) && !underRoof && stamina>1000f)
+                if (g.input.keyDown(Key.Space) && !underRoof && stamina > 1000f)
                 {
                     stamina -= 1000f;
-                    vSpeed = 100f- Math.Max(-elapsedTime * 100, -380);
+                    vSpeed = 100f - Math.Max(-elapsedTime * 100, -380);
                 }
                 else
                     vSpeed = 0f;
@@ -196,21 +196,21 @@ namespace TGC.Group.Model.Camera
             }
             else
                 vSpeed = Math.Max(vSpeed - elapsedTime * 100, -480);//gravedad
-                //v=a*t
-                //x=v*t
-                //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
-                //sigo con elapsed porque no note una diferencia importante
-                //la solucion seria medir de forma absoluta desde el comienzo del salto
+                                                                    //v=a*t
+                                                                    //x=v*t
+                                                                    //como tengo t al cuadrado no deberia usar elapsed porque dependeria de los fps
+                                                                    //sigo con elapsed porque no note una diferencia importante
+                                                                    //la solucion seria medir de forma absoluta desde el comienzo del salto
 
 
-            if(!underRoof)
-                eyePositionOffRoof= new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z);
+            if (!underRoof)
+                eyePositionOffRoof = new TGCVector3(eyePosition.X, eyePosition.Y, eyePosition.Z);
             underRoof = false;
 
 
 
 
-            moving += -down.Direction* vSpeed*elapsedTime * 100;
+            moving += -down.Direction * vSpeed * elapsedTime * 100;
 
             //rayos colision
 
@@ -241,8 +241,8 @@ namespace TGC.Group.Model.Camera
 
             //solo se mueve cierta distancia por iteracion. Esto hace que no se atraviesen las cosas.
             //con fps bajos va a correr todavia mas lento pero va a ser consistente
-            float dist=moving.Length();
-            int iters = (int)FastMath.Ceiling(dist/45f);
+            float dist = moving.Length();
+            int iters = (int)FastMath.Ceiling(dist / 45f);
 
 
             var step = moving * (1 / (float)iters);
@@ -265,30 +265,30 @@ namespace TGC.Group.Model.Camera
                 var handleRays = new Action<Parallelepiped>((box) =>
                 {
                     var handleHor = new Action<TgcRay>((ray) =>
-                      {
+                    {
                         //lo malo un rayo por direccion en vez de dos es que si tengo 2 paredes
                         //casi paralelas y me voy acercando a la interseccion voy a atravesar una
                         //de las dos, porque la colision frena con la primera. Se podría cambiar 
                         //intersecRay para que siga pero creo que nunca va a aparecer algo asi en el mapa.
                         //Podria pasar si dejo que los arboles roten.
                         if (box.intersectRay(ray, out t, out q) && t < 2 * border)
-                          {
-                              if (t < border)
-                              {
-                                  displacement += ray.Direction * t;
-                              }
-                              else
-                              {
-                                  displacement += -ray.Direction * (2*border - t);
-                              }
-                          }
-                      });
+                        {
+                            if (t < border)
+                            {
+                                displacement += ray.Direction * t;
+                            }
+                            else
+                            {
+                                displacement += -ray.Direction * (2 * border - t);
+                            }
+                        }
+                    });
                     handleHor(horx);
                     handleHor(horz);
 
-                    var cameraHeight = 9f*border;
+                    var cameraHeight = 9f * border;
 
-                    if (box.intersectRay(down, out t, out q) && t < cameraHeight+ceilignH)
+                    if (box.intersectRay(down, out t, out q) && t < cameraHeight + ceilignH)
                     {
                         if (t < ceilignH)
                         {
@@ -306,10 +306,10 @@ namespace TGC.Group.Model.Camera
                                 vSpeed = 0f;
                             }
                         }
-                        else if(vSpeed <= 0)
+                        else if (vSpeed <= 0)
                         {
                             //t<cameraHeight+ceilingH
-                            displacement += -down.Direction * (cameraHeight+ceilignH - t);
+                            displacement += -down.Direction * (cameraHeight + ceilignH - t);
                             onBox = true;
                         }
                     }
@@ -322,7 +322,7 @@ namespace TGC.Group.Model.Camera
 
                     if (g.map.isCandle(meshc))
                     {
-                        if (g.map.pointParallelipedXZColission(box, eyePosition,100f))
+                        if (g.map.pointParallelipedXZColission(box, eyePosition, 100f))
                         {
                             setToRemove = meshc;
                         }
@@ -338,49 +338,21 @@ namespace TGC.Group.Model.Camera
 
                 if (setToRemove != null)
                 {
-                    if(g.hands.maybePickCandle(setToRemove))
+                    if (g.hands.maybePickCandle(setToRemove))
                         chunk.meshes.Remove(setToRemove);
                 }
 
-                    foreach(var box in chunk.parallelepipedsOfMultimesh)
-                    {
-                        handleRays(box);
-                        if (doGoto)
-                            goto setCamera;//C# no se banca gotos en lambdas
-                    }
+                foreach (var box in chunk.parallelepipedsOfMultimesh)
+                {
+                    handleRays(box);
+                    if (doGoto)
+                        goto setCamera;//C# no se banca gotos en lambdas
+                }
 
 
                 eyePosition += displacement;
             }
-            //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
-            //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
-            //sistema aparte es simple y es mucho mas eficiente
-            //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
-    
-            var zxScale = Map.xzTerrainScale;
-            var yScale = Map.yTerrainScale;
-            var yOffset = Map.yTerrainOffset;
-
-            var hm = g.terrain.HeightmapData;
-
-            float x = eyePosition.X / zxScale;
-            float z = eyePosition.Z / zxScale;
-
-            int hx = (int)FastMath.Floor(x) + hm.GetLength(0) / 2;
-            int hz = (int)FastMath.Floor(z) + hm.GetLength(1) / 2;
-
-            //interpolacion bilineal
-            float Yx0z0 = (hm[hx, hz] - yOffset) *yScale;
-            float Yx1z0 = (hm[hx+1, hz] - yOffset) * yScale;
-            float Yx0z1 = (hm[hx, hz+1] - yOffset) * yScale;
-            float Yx1z1 = (hm[hx+1, hz+1] - yOffset) * yScale;
-
-            float dx = x - FastMath.Floor(x);
-            float dz = z - FastMath.Floor(z);
-
-            float interpolz0 = Yx0z0 * (1 - dx) + Yx1z0 * dx;
-            float interpolz1 = Yx0z1 * (1 - dx) + Yx1z1 * dx;
-            float interpol = interpolz0 * (1 - dz) + interpolz1 * dz;
+            float interpol = terrainHeight(eyePosition);
 
             if (eyePosition.Y <= interpol + 500)
             {
@@ -404,18 +376,51 @@ namespace TGC.Group.Model.Camera
             {
                 var mostroDir = g.mostro.pos + TGCVector3.Up * g.mostro.height;
                 mostroDir.Normalize(); //se normaliza por el largo del lineVec
-                cameraFinalTarget =  eyePosition - mostroDir;
+                cameraFinalTarget = eyePosition - mostroDir;
             }
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = TGCVector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
-        
+
             base.SetCamera(eyePosition, cameraFinalTarget, cameraRotatedUpVector); //cambiar por TGCVector3.Up cuando restringa la camara
-            //base.SetCamera(eyePosition, cameraRotatedTarget, cameraRotatedUpVector);
+                                                                                   //base.SetCamera(eyePosition, cameraRotatedTarget, cameraRotatedUpVector);
 
             //Logger.Log(eyePosition);
             //Logger.Log(map.chunks.fromCoordinates(eyePosition, false).center.X.ToString()+"  "+ map.chunks.fromCoordinates(eyePosition, false).center.Y.ToString());
 
-            
+
+        }
+
+        public float terrainHeight(TGCVector3 pos)
+        {
+            //manejo de terreno. Se podria hacer colisionando rayos con triangulos, usando el mismo sistema que las
+            //demas colisiones, y puede que quiera hacerlo si hago mas complejo, pero por ahora manejarlo como un
+            //sistema aparte es simple y es mucho mas eficiente
+            //en algunos lugares, como un barranco, voy a agregar colisiones con cajas invisibles para manejar eso mejor
+
+            var zxScale = Map.xzTerrainScale;
+            var yScale = Map.yTerrainScale;
+            var yOffset = Map.yTerrainOffset;
+
+            var hm = g.terrain.HeightmapData;
+
+            float x = pos.X / zxScale;
+            float z = pos.Z / zxScale;
+
+            int hx = (int)FastMath.Floor(x) + hm.GetLength(0) / 2;
+            int hz = (int)FastMath.Floor(z) + hm.GetLength(1) / 2;
+
+            //interpolacion bilineal
+            float Yx0z0 = (hm[hx, hz] - yOffset) * yScale;
+            float Yx1z0 = (hm[hx + 1, hz] - yOffset) * yScale;
+            float Yx0z1 = (hm[hx, hz + 1] - yOffset) * yScale;
+            float Yx1z1 = (hm[hx + 1, hz + 1] - yOffset) * yScale;
+
+            float dx = x - FastMath.Floor(x);
+            float dz = z - FastMath.Floor(z);
+
+            float interpolz0 = Yx0z0 * (1 - dx) + Yx1z0 * dx;
+            float interpolz1 = Yx0z1 * (1 - dx) + Yx1z1 * dx;
+            return interpolz0 * (1 - dz) + interpolz1 * dz;
         }
 
 

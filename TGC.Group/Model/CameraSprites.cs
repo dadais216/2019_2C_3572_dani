@@ -13,6 +13,14 @@ namespace TGC.Group.Model
 {
     class CameraSprites
     {
+        public CameraSprites()
+        {
+            x = GameForm.ActiveForm.Width / 30;
+            y = GameForm.ActiveForm.Height / 30;
+        }
+        int x;
+        int y;
+
         public void renderStaminaBar()
         {
             //dibujo un poligono enfrente de la camara
@@ -117,11 +125,6 @@ namespace TGC.Group.Model
         int actualStateDraw = -1;
         public void initMenu()
         {
-            var w=GameForm.ActiveForm.Width;
-            var h = GameForm.ActiveForm.Height;
-
-            var x = w / 30;
-            var y = h / 30;
 
             //los sizes tambien deberian depender de x y pero eh
 
@@ -193,14 +196,14 @@ namespace TGC.Group.Model
             candlesRequiredText.Color = Color.White;
             candlesRequiredText.Size = new Size(1000, 1000);
             //candlesRequiredText.Position = new Point(710, 528);
-            candlesRequiredText.Position = new Point(22*x, 21*y);
+            candlesRequiredText.Position = new Point(19*x, floor(20.2*y));
             candlesRequiredText.changeFont(commonFont);
 
             candlesInMapText.Align = TgcText2D.TextAlign.LEFT;
             candlesInMapText.Color = Color.White;
             candlesInMapText.Size = new Size(1000, 1000);
             //candlesInMapText.Position = new Point(490, 567);
-            candlesInMapText.Position = new Point(15*x, 23*y);
+            candlesInMapText.Position = new Point(14*x, floor(21.4*y));
             candlesInMapText.changeFont(commonFont);
 
 
@@ -213,19 +216,26 @@ namespace TGC.Group.Model
         public bool debugVisualizations = true;
         public bool inmunity = true;
 
+        Func<double, int> floor = d =>
+        {
+            return (int)Math.Floor(d);
+        };
         public void renderMenu()
         {
+
+            
+
             text.render();
             text2.render();
             text3.render();
 
             if (selectorState < 3)
             {
-                selector.Position = new Point(15, 450 + selectorState * 40);
+                selector.Position = new Point(floor(.5*x), floor(18*y + selectorState * y*1.15));
             }
             else
             {
-                selector.Position = new Point(205, 450 + (selectorState-3) * 39);
+                selector.Position = new Point(7*x, floor(18 * y + (selectorState-3) * y * 1.15));
             }
             selector.render();
 
@@ -240,22 +250,22 @@ namespace TGC.Group.Model
             {
                 if(infiniteStamina)
                 {   
-                    seleccionado.Position = new Point(225, 450);
+                    seleccionado.Position = new Point(floor(7.2 * x), 18*y);
                     seleccionado.render();
                 }
                 if (squeletonHalfSpeed)
                 {
-                    seleccionado.Position = new Point(225, 450+38);
+                    seleccionado.Position = new Point(floor(7.2*x), 18*y + floor(1.12*y));
                     seleccionado.render();
                 }
                 if (inmunity)
                 {
-                    seleccionado.Position = new Point(225, 450 + 38 * 4);
+                    seleccionado.Position = new Point(floor(7.2 * x), 18 * y + floor(1.12 * y)*4);
                     seleccionado.render();
                 }
                 if (debugVisualizations)
                 {
-                    seleccionado.Position = new Point(225, 450 + 38*5);
+                    seleccionado.Position = new Point(floor(7.2 * x), 18 * y + floor(1.12 * y) * 5);
                     seleccionado.render();
                 }
                 candlesRequiredText.Text = candlesRequired.ToString();

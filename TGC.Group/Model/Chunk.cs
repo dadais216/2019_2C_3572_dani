@@ -347,7 +347,10 @@ namespace TGC.Group.Model
         {
             int chunksRendered = 0;
 
-            var eyeDir = g.camera.eyePosition - g.mostro.pos;
+            var lightObj = new TGCVector3(g.mostro.lightObjObj.X,g.mostro.flyHeight,g.mostro.lightObjObj.Y);
+            var lightPos = g.mostro.pos;
+
+            var eyeDir = lightObj - lightPos;
             eyeDir.Y = 0;//ignorar y
             eyeDir.Normalize();
 
@@ -358,17 +361,15 @@ namespace TGC.Group.Model
 
             
 
-            var lightPos = g.camera.eyePosition;
-
-            bool sngx = g.mostro.pos.X <= lightPos.X;
-            bool sngz = g.mostro.pos.Z <= lightPos.Z;// <= aca y < en el bucle para que de distinto si justo son iguales
+            bool sngx = lightPos.X <= lightObj.X;
+            bool sngz = lightPos.Z <= lightObj.Z;// <= aca y < en el bucle para que de distinto si justo son iguales
 
             for(int i=0; ;i++)
             {
-                var along = g.mostro.pos + eyeDir * i * chunkLen * distFactorForward;
+                var along = lightPos + eyeDir * i * chunkLen * distFactorForward;
 
-                if((along.X<lightPos.X)!=sngx &&
-                   (along.Z<lightPos.Z)!=sngz)//creo que sería seguro probar con un eje nomas
+                if((along.X<lightObj.X)!=sngx &&
+                   (along.Z<lightObj.Z)!=sngz)//creo que sería seguro probar con un eje nomas
                 {
                     break;
                 }
@@ -384,7 +385,6 @@ namespace TGC.Group.Model
                         chunksRendered++;
                     }
                 }
-                Console.WriteLine(along.X.ToString()+"  "+lightPos.X.ToString());
             }
             Console.WriteLine(chunksRendered);
         }

@@ -36,7 +36,6 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
 
             g.game = this;
-
         }
 
 
@@ -168,6 +167,7 @@ namespace TGC.Group.Model
             ClearTextures();
 
             shadow.render();
+#if true
             BeginRenderScene();
             g.map.shader.SetValue("shadowTexture",g.shadow.tex);
 
@@ -191,6 +191,7 @@ namespace TGC.Group.Model
             RenderFPS();
             
             EndRenderScene();
+#endif
         }
 
         /// <summary>

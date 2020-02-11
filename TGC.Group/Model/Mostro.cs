@@ -54,6 +54,7 @@ namespace TGC.Group.Model
 
         public void render()
         {
+            updateMesh();
             mesh.Effect.SetValue("type", 2);
 
             mesh.Render();
@@ -63,7 +64,24 @@ namespace TGC.Group.Model
                 TgcLine.fromExtremes(cPos, cPos + colDir, Color.Red).Render();
                 TGCVector3 cross = TGCVector3.Cross(colDir, TGCVector3.Up);
                 TgcLine.fromExtremes(cPos, cPos + cross * sidePref, Color.Green).Render();
+
+                var lightObj = new TGCVector3(g.mostro.lightObj.X, g.mostro.flyHeight, g.mostro.lightObj.Y);
+                var lightObjObj = new TGCVector3(g.mostro.lightObjObj.X, g.mostro.flyHeight, g.mostro.lightObjObj.Y);
+                TgcLine.fromExtremes(lightObj-TGCVector3.Up*10000f, lightObj + TGCVector3.Up * 10000f, Color.Green).Render();
+                TgcLine.fromExtremes(lightObjObj - TGCVector3.Up * 10000f, lightObjObj + TGCVector3.Up * 10000f, Color.Red).Render();
             }
+
+
+        }
+
+        public void renderForShadow()
+        {
+            updateMesh();
+            mesh.Effect = g.shadow.shader;
+            mesh.Technique = "RenderShadow";
+            render();
+            mesh.Effect = g.map.shader;
+            mesh.Technique = "DIFFUSE_MAP";
         }
 
         bool speedGoingUp = true;
@@ -75,17 +93,19 @@ namespace TGC.Group.Model
         int sidePref = 1;
         float swithSideTimer = 0;
 
-        TGCVector3 colDir;
-        TGCVector3 cPos;
+        public TGCVector3 colDir;
+        public TGCVector3 cPos;
+
         public void update()
         {
+            mode = 3;
             dir = TGCVector3.Empty;
             if (mode == 0)
             {
                 //va hacia el jugador, la aceleracion salta entre + y - cada tanto
                 speedToPlayer();
             }
-            if (mode == 1)
+            else if (mode == 1)
             {
                 //mientras se lo este mirando no ataca al jugador, se queda cerca
                 //@todo chequeo especial, antes se usaba los triangulos de la camara
@@ -123,9 +143,24 @@ namespace TGC.Group.Model
                 }
 
             }
-            if (mode == 2)
+            else if (mode == 3)
             {
-                //dir en el cielo, no se cambia hasta que se llegue
+                //@todo se puede optimizar guardando la direccion de movimiento y una cantidad de pasos en vez
+                //de tener objobj y calcular cada frame
+                var lightMove = lightObjObj - lightObj;
+                if (lightMove.Length() < 1000f)
+                {
+                    newLightObjObj();
+                    lightMove = lightObjObj - lightObj;
+                }
+                lightMove.Normalize();
+                lightMove *= 5000f;
+                lightObj += lightMove*g.game.ElapsedTime;
+
+                flyHeight = g.camera.terrainHeight(pos) + 2500f;
+                dir.X = (lightObj.X-pos.X);
+                dir.Y =  flyHeight - pos.Y;
+                dir.Z = (lightObj.Y-pos.Z);
             }
             dir.Normalize();
             dir.Multiply(speed * (g.cameraSprites.squeletonHalfSpeed ? .0f : 1f)
@@ -141,6 +176,7 @@ namespace TGC.Group.Model
 
 
             cPos = pos + TGCVector3.Up * height;
+
 
 
             var chunk = g.chunks.fromCoordinates(pos);
@@ -216,17 +252,34 @@ namespace TGC.Group.Model
 
 
             pos += dir;
-
-
-            mesh.Transform =
-                TGCMatrix.RotationAxis(TGCVector3.Cross(lookAt, lookin),
-                                     -(float)Math.Acos(TGCVector3.Dot(lookAt, lookin)))
-                * TGCMatrix.Scaling(TGCVector3.One * 30)
-                * TGCMatrix.Translation(pos);
             //Logger.Log(rot);
 
             musica.Position = pos;
             g.game.DirectSound.Listener3d.Position = g.camera.eyePosition;
+        }
+
+
+        public TGCVector2 lightObj;
+        public TGCVector2 lightObjObj;
+        public float flyHeight;
+        private void newLightObjObj()
+        {
+            lightObjObj = new TGCVector2();
+            var rnd = g.map.Random;
+
+            lightObjObj.X = (float)rnd.NextDouble();
+            lightObjObj.Y = (float)rnd.NextDouble();
+            lightObjObj.Normalize();
+            lightObjObj *= (float)rnd.NextDouble() * 200000f;
+        }
+
+        private void updateMesh()
+        {
+            mesh.Transform =
+                            TGCMatrix.RotationAxis(TGCVector3.Cross(lookAt, lookin),
+                                                 -(float)Math.Acos(TGCVector3.Dot(lookAt, lookin)))
+                            * TGCMatrix.Scaling(TGCVector3.One * 30)
+                            * TGCMatrix.Translation(pos);
         }
 
         private void speedToPlayer()
