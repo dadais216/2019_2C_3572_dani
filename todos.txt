@@ -1,0 +1,122 @@
+
+Mejorar colision con iglesia, hundirla y hacer mas vertex fall. El vertex fall exagerado lo hago con la iglesia o con todo?
+
+Mirar mas los chunks del esqueleto, levantar para el costado y que se yo
+
+Guardar aparte las luces del frame anterior. Si en este frame se cargaron menos de 9 rellenar con viejas que no esten
+
+REvisar colisiones de esqueleto, de ultima hacer que si esta colisionando constantemente por varios segundos se suspenda
+momentaneamente. Igual ahora se esta kakeando porque la deformacion es muy rapida, pero no estaria mal tener esto como fallback
+
+creditos, que aparezca hecho por en un texto durante la escena final
+
+podría haber flags para no manejar piso y techo en las colisiones de ciertos objetos, se usa poco. Sino tener 2 tipos de cajas
+
+Para evitar escalar cosas muy empinadas se podría hacer una segunda pasada con rayos horizontales mas largos. Esto se haría solo
+si se detecta una colision abajo y no hubo una colision horizontal. La segunda pasada solo se hace con el mesh con el que se
+colisiono abajo. 
+Podría haber una mecanica de escalado con esto, que requiera tener las manos libres. Cuando estas en ese modo lo unico que se
+haria es reducir el rango de la segunda pasada
+
+La ultima vela esta flotando en el cielo, se consigue cuando la iglesia se deforme hacia ella
+
+Aprovechar mas el heightmap, aprovechando que el mapa ahora es un bosque y no un campo. Los desniveles servirian para guiarse 
+tambien.
+
+La cantidad de velas sueltas va disminuyendo conforme vas poniendo en la iglesia. Las anteultimas estan en una casa al otro lado
+del mapa. Si volves a entrar a esa casa despues de conseguir las velas, que no tenes motivo para hacerlo, todas las texturas
+interiores estan kakeadas spookie
+
+Se pueden optimizar mas las colisiones si hago el codigo yo. Se puede salir antes si el plano esta mas lejos que el limite,
+se puede vefiricar por cuadrado en vez de 2 triangulos
+
+Esqueleto colision hacia abajo
+
+Si agrego niebla seguir renderizando los arboles en los chunks en una linea entre la camara y las velas lejanas para mantener
+el efecto. EL codigo para obtener chunks tambien se usaria para la linterna
+Cada chunk podría tener un bueno tieneVEla para acelerar el proceso
+
+La solucion al esqueleto en la iglesia es hacer que si el esqueleto esta en la iglesia y el jugador esta lo suficientemente
+lejos y no esta mirando suspender el chequeo de colisiones en el esqueleto contra la iglesia hasta que no este mas adentro.
+(seria un if en el codigo del esqueleto preguntando por algunos chunks)
+Otra que se podría hacer mas o menos con el mismo costo es hacer un chequeo de si el esqueleto esta adentro y el jugador afuera,
+y si eso pasa mover el esqueleto hacia algun punto marcado como salida (puertas y ventanas) que este mas cerca, si es necesario
+en esta etapa se puede suspender la colision. El esqueleto no puede entrar a la iglesia si el jugador no entro
+
+skybox roto, problema de tgc
+
+trucos- distancia de dibujado, velas puestas, ver lineas vertex fall, ver fps, multiplicador velocidad esqueleto
+
+arreglar camara 360 xd
+
+si recibis empuje de direcciones opuestas por un tiempo te moris, shader de sofocacion
+
+shaders mostro y muerte
+logica de velas, mapa y apagado
+heightmap mas groso
+edificio lejos, mecanica de habitacion que cambia
+mas shaders
+campo de oscuridad en borde del mapa
+movimientos de camara
+transformacion momentanea shift 6 y dot
+muerte del esqueleto
+escena final
+textura para el piso
+velas que no roten
+fuego,velas que se apagan
+correr mejor, no desaceleracion, no correr hacia atras
+colisiones, arboles en borde de chunk
+optimizacion cambiar listas por arrays
+optimizacion terrain en chunks
+hacer que el juego sea divertido
+
+volar shaders default
+
+un claro sin nada
+
+cuando agarras una vela se pone todo con un shader w/50000 y desaparece el esqueleto. Todo vuelve a la normalidad cuando
+pones la vela devuelta.
+
+Alguna estructura rara
+
+shader que haga todo asqueroso tipo el final de crumbling castle
+
+rebotar entre 2 focos para efecto 3d
+
+hacer triangulo de vision angosto y poner cosas raras a los costados
+
+tener la vision del esqueleto superpuesta
+
+reemplazar texturas por vision del esqueleto
+
+en una parte todas las luces iluminan mas y de golpe iluminan menos
+
+spawnear arbol adentro de la iglesia por la mitad del juego
+
+iglesia miniatura con una vela adentro
+
+vela que se aleja cuando la seguis
+
+si se te apaga una vela tenes que buscar otra
+
+el juego te guia hacia el otro edicio con velas que se apagan cuando te acercas, se ilumina otra lejos
+
+gameplay
+por ahi sacar la estamina, dejar el sistema de salud para la vela. Centrarse mas en la etapa anterior a que el esqueleto te
+vea, sigilo. La etapa cuando tenes la vela consiste en mantener el contacto visual, mientras mantengas el esqueleto se mueve
+despacio y hay algun shader vision de tunel o algo asi. Cuando se rompa el contacto por tener un arbol de por medio o algo asi,
+hay que correr y ahi hay riesgo de que se te apague la vela. Tambien esta el tema de si buscar otra o volver a la iglesia directamente
+
+Podría decidir hacer que el esqueleto no entre a la iglesia. Eso salta el problema de colisiones y le da un lugar seguro al juego,
+lo que hace salir de ahi mas spookie. 
+
+Por ahi hacer que puedas consumir estamina de vela en desaparecer arboles o ver en que direccion esta la iglesia
+
+Cuando entras a la iglesia el esqueleto vuelve a la fase de sigilo
+
+Al final se hace de dia y te vas caminando mientras hay varios esqueletos y arboles flotando (los arboles lejos para que no se
+note que no tienen fondo xd)
+
+movimientos de camara -> epilogo
+
+quejas de tgc: hotloading, render a textura
